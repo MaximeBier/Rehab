@@ -50,6 +50,8 @@ Défauts : 23:00 → 07:30 en semaine, 00:30 → 09:00 vendredi et samedi soir.
 
 Un changement de réglage est appliqué à l'évaluation suivante, sans rétroactivité sur les journaux.
 
+**Verrou d'édition.** Pendant qu'une plage nocturne est en cours, le couple `(coucher, lever)` qui la définit est en lecture seule, sauf pour l'allonger (avancer le coucher ou repousser le lever). Les six autres jours restent modifiables. Un joker ou un relapse en cours ne lève pas ce verrou : la plage reste « en cours » tant que `now` est dedans. L'écran Réglages affiche la ligne verrouillée avec un cadenas et la raison (« Modifiable à partir de 07:30 »).
+
 ### 2.3 Quota glissant
 
 Liste ordonnée de fenêtres `(durée, plafond)`. Pour chaque fenêtre, on somme les intervalles d'usage (toutes cibles confondues) intersectant `[now - durée, now]`. Dépassement si `somme ≥ plafond`.
@@ -60,6 +62,8 @@ Défauts :
 |---|---|
 | 30 min | 5 min |
 | 6 h | 30 min |
+
+**Verrou d'édition.** Tant que la décision courante est `Block(Quota)`, on ne peut ni relever un plafond, ni supprimer une fenêtre en dépassement, ni modifier la durée d'une fenêtre en dépassement. Durcir (baisser un plafond, ajouter une fenêtre) reste possible. L'écran Réglages affiche les champs verrouillés avec la raison (« Modifiable dans 18 min »).
 
 `unlockAt` par fenêtre : premier instant `t ≥ now` tel que la somme sur `[t - durée, t]` repasse strictement sous le plafond. Calcul par balayage des bornes de début d'intervalles (la somme ne décroît qu'à ces instants). `unlockAt` global = max des fenêtres en dépassement.
 
@@ -132,6 +136,7 @@ Dépendances : `app → rules → domain`. `rules` ne dépend de `domain` que po
 - `SlidingQuota` : somme par fenêtre et `unlockAt`.
 - `Streak` : `current(now)`, `best()`.
 - `UnlockPolicy.onLongPressCompleted(now) → Joker | Relapse` et application.
+- `SettingsGuard.validate(current, proposed, now, usage) → Accepted | Rejected(reason, unlockAt)` : applique les verrous d'édition des sections 2.2 et 2.3.
 - Ports : `UsageLog`, `EventLog`, `SettingsRepo`, `StreakRecordRepo`.
 
 ### 3.2 `rules`
@@ -198,7 +203,7 @@ De haut en bas : raison et heure/durée de déblocage (« Nuit · déblocage à 
 ### 4.2 Écrans de l'app
 
 1. **Accueil** : streak + record ; état courant (Libre / Bloqué jusqu'à… / Joker ou Relapse en cours jusqu'à…) ; consommation par fenêtre (« 3 / 5 min sur 30 min ») ; jokers restants ; bandeaux d'alerte : service inactif, app cible hors plage de versions.
-2. **Réglages** : 7 lignes coucher/lever ; liste des fenêtres de quota (ajout, suppression, édition) ; durée joker ; durée relapse ; jokers par jour ; durée d'appui. Application immédiate.
+2. **Réglages** : 7 lignes coucher/lever ; liste des fenêtres de quota (ajout, suppression, édition) ; durée joker ; durée relapse ; jokers par jour ; durée d'appui. Application immédiate. Les champs soumis à un verrou d'édition (sections 2.2 et 2.3) sont désactivés avec la raison et l'heure de déverrouillage. La validation du verrou est faite dans `domain` par `SettingsGuard`, pas seulement dans l'UI.
 3. **Journal** : liste chronologique des événements et intervalles d'usage. Brut. Base des futures statistiques.
 4. **Debug** : « Capturer la structure de l'écran » avec délai (5 s par défaut) : à l'échéance, le service sérialise le prochain `Snapshot` d'une app cible en JSON dans `files/captures/` ; « Dernière détection » (package, version, `targetId`, `unknownScreen`) en direct ; export des captures (partage système) ; « Afficher un overlay de test ».
 5. **Onboarding** : checklist affichée au premier lancement et tant qu'un prérequis manque : activer le service d'accessibilité ; exclure Rehab de l'optimisation batterie ; vérifier la présence et la version d'Instagram et X. Chaque ligne a un bouton ouvrant l'écran système correspondant.
@@ -234,7 +239,7 @@ Réglages en DataStore Proto avec les défauts de la section 2. Base corrompue :
 
 ## 8. Tests
 
-- **`domain`** (TDD, JVM, `FakeClock`) : plage traversant minuit ; `coucher == lever` ; quota exactement au plafond ; `unlockAt` avec deux fenêtres ; `dayOf` une minute avant et après le lever ; streak avec relapse à 01:00 ; 3ᵉ appui du jour ; appui de nuit avec jokers restants ; intervalle chevauchant la borne de fenêtre ; DST.
+- **`domain`** (TDD, JVM, `FakeClock`) : plage traversant minuit ; `coucher == lever` ; quota exactement au plafond ; `unlockAt` avec deux fenêtres ; `dayOf` une minute avant et après le lever ; streak avec relapse à 01:00 ; 3ᵉ appui du jour ; appui de nuit avec jokers restants ; intervalle chevauchant la borne de fenêtre ; DST ; `SettingsGuard` : raccourcir la plage en cours refusé, l'allonger accepté, modifier un autre jour accepté, relever un plafond pendant `Block(Quota)` refusé, baisser accepté.
 - **`rules`** (JVM, fixtures JSON capturées sur l'appareil) : Reels → `InstagramReels` ; feed sans suggéré → `null` ; feed avec suggéré → `InstagramSuggested` ; DM → `null` et `unknownScreen = false` ; X accueil → `TwitterHome` ; X recherche → `null` ; arbre inconnu → `unknownScreen = true`.
 - **`app`** (Robolectric) : `UsageTracker` (ouverture, fermeture, suppression < 2 s, reprise après redémarrage) ; `SnapshotBuilder` (bornes 400 nœuds / 12 niveaux) ; mapping Room ↔ ports du domaine.
 - **Manuel sur appareil** : checklist dans `docs/manual-test-checklist.md` (overlay sur Reels, barre de nav cliquable, appui long annulé, joker puis relapse, blocage nocturne, expiration du quota, survie au redémarrage, capture Debug).
