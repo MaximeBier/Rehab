@@ -44,7 +44,7 @@ Les trois cibles partagent exactement les mêmes conditions. Hors nuit et sous q
 
 ### 2.2 Plage nocturne
 
-Sept couples `(coucher, lever)`, un par jour de la semaine, en heure locale. La plage du jour J s'étend de `coucher(J)` à `lever(J+1)`. Une plage qui traverse minuit est découpée en `[coucher, 24h[` du jour J et `[0h, lever[` du jour J+1. Si `coucher == lever`, pas de plage ce jour-là.
+Sept couples `(coucher, lever)`, un par jour de la semaine, en heure locale. La ligne du jour J décrit la nuit qui suit J : `coucher` le soir de J (ou après minuit, donc le J+1 au petit matin si `coucher < lever`), `lever` le matin de J+1. La plage s'étend de ce coucher à ce lever ; elle traverse minuit dans le cas courant. Si `coucher == lever`, pas de plage cette nuit-là.
 
 Défauts : 23:00 → 07:30 en semaine, 00:30 → 09:00 vendredi et samedi soir.
 
@@ -121,7 +121,7 @@ Projet Gradle Kotlin multi-module. Pas de dépendance réseau. DI manuelle via u
 rehab/
 ├── domain/   Kotlin pur (JVM). Politique, quota, horaires, streak. Zéro import Android.
 ├── rules/    Kotlin pur (JVM). Définitions déclaratives des écrans cibles + détecteur.
-├── app/      Android. Service d'accessibilité, overlay, UI Compose, Room, DataStore.
+├── app/      Android. Service d'accessibilité, overlay, UI Compose, Room, SharedPreferences.
 └── docs/     Spec, plan, checklist de test manuel, guide de mise à jour des règles.
 ```
 
@@ -177,7 +177,7 @@ sealed interface Matcher {
 - `OverlayController` : fenêtre `TYPE_ACCESSIBILITY_OVERLAY` hébergeant un `ComposeView`. Non focusable, ne capte pas les gestes système. Couvre l'écran sauf `navBarBounds` si connu. Apparition immédiate sans animation, disparition en fondu court. En cas d'échec d'affichage : `GLOBAL_ACTION_BACK` puis retry au tick suivant.
 - `UsageTracker` : gère l'intervalle ouvert, persiste le dernier tick toutes les 10 s.
 - `VersionChecker` : lit `PackageManager` pour les versions Instagram/X, compare aux `testedVersions`, émet l'événement et la notification.
-- Persistance : Room (`usage_intervals`, `events`, `streak_record`) et DataStore Proto (réglages). Schéma versionné dès la V1 ; migrations destructives interdites.
+- Persistance : Room (`usage_intervals`, `events`, `streak_record`) et SharedPreferences (réglages sérialisés en JSON via kotlinx-serialization). Schéma versionné dès la V1 ; migrations destructives interdites.
 - UI Compose : Accueil, Réglages, Journal, Debug, Onboarding.
 
 ### 3.4 Flux nominal
@@ -225,10 +225,10 @@ Une seule catégorie, silencieuse : « Règles à mettre à jour pour <app> <ver
 | Table | Colonnes | Rétention |
 |---|---|---|
 | `usage_intervals` | `id, target_id, start_utc, end_utc?` (index `start_utc`) | 30 jours |
-| `events` | `id, type, at_utc, payload_json` — types : `JOKER, RELAPSE, SERVICE_ON, SERVICE_OFF, RULES_OUT_OF_RANGE, ERROR` | illimitée (`ERROR` plafonné à 500 lignes) |
+| `events` | `id, type, at_utc, unlock_until_utc?, package_name?, version?, message?` — types : `JOKER, RELAPSE, SERVICE_ON, SERVICE_OFF, RULES_OUT_OF_RANGE, ERROR` | illimitée (`ERROR` plafonné à 500 lignes) |
 | `streak_record` | `best_days` (une ligne) | illimitée |
 
-Réglages en DataStore Proto avec les défauts de la section 2. Base corrompue : erreur affichée, aucun effacement automatique.
+Réglages en SharedPreferences (une clé JSON) avec les défauts de la section 2. Base corrompue : erreur affichée, aucun effacement automatique.
 
 ## 7. Gestion d'erreur
 
