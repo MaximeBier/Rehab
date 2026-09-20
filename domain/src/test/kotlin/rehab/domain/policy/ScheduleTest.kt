@@ -1,6 +1,7 @@
 package rehab.domain.policy
 
 import rehab.domain.model.NightWindow
+import rehab.domain.model.Settings
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -68,5 +69,23 @@ class ScheduleTest {
         // 2026-10-25 : passage à l'heure d'hiver à 3h → 2h.
         assertNotNull(schedule.activeNight(at(2026, 10, 25, 2, 30)))
         assertNull(schedule.activeNight(at(2026, 10, 25, 8, 0)))
+    }
+
+    @Test fun `passage a l heure d ete avec un lever dans l heure inexistante`() {
+        // 2026-03-29 : 02:00 → 03:00 à Paris. Un lever à 02:30 n'existe pas ; java.time le décale à 03:30.
+        val nights = DayOfWeek.entries.associateWith { NightWindow(LocalTime.of(23, 0), LocalTime.of(2, 30)) }
+        val s = Schedule({ nights }, zone)
+        val p = s.activeNight(at(2026, 3, 29, 1, 30))!!
+        assertEquals(at(2026, 3, 29, 3, 30), p.end)
+        assertNull(s.activeNight(at(2026, 3, 29, 3, 30)))
+        assertEquals(LocalDate.of(2026, 3, 29), s.dayOf(at(2026, 3, 29, 3, 30)))
+    }
+
+    @Test fun `reglages par defaut mixtes vendredi soir libre samedi matin bloque`() {
+        val s = Schedule({ Settings.DEFAULT.nights }, zone)
+        // 2026-09-25 est un vendredi : la ligne vendredi commence samedi 00:30.
+        assertNull(s.activeNight(at(2026, 9, 25, 23, 30)))
+        assertNotNull(s.activeNight(at(2026, 9, 26, 0, 45)))
+        assertEquals(at(2026, 9, 26, 9, 0), s.activeNight(at(2026, 9, 26, 0, 45))!!.end)
     }
 }

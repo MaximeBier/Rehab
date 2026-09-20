@@ -104,7 +104,7 @@ Jokers, quota atteint, désactivation du service : aucun effet sur le streak.
 
 ### 2.8 Mode dégradé (fail-closed)
 
-Chaque jeu de règles porte une plage de versions testées de l'app cible. Si la version installée est hors plage, **ou** si le détecteur renvoie `Unknown` pendant plus de 30 s consécutives alors que l'onglet Accueil Instagram est sélectionné, la cible `InstagramSuggested` devient « tout l'onglet Accueil Instagram » jusqu'à mise à jour des règles. Une notification silencieuse, une fois par version d'app, signale « Règles à mettre à jour pour Instagram 3xx ». Le même mécanisme de version s'applique à X (cible déjà entière, seule la notification change).
+Chaque jeu de règles porte une plage de versions testées de l'app cible. Si la version installée est hors plage, **ou** si le détecteur renvoie `Unknown` pendant 30 s consécutives ou plus alors que l'onglet Accueil Instagram est sélectionné, la cible `InstagramSuggested` devient « tout l'onglet Accueil Instagram » jusqu'à mise à jour des règles. Une notification silencieuse, une fois par version d'app, signale « Règles à mettre à jour pour Instagram 3xx ». Le même mécanisme de version s'applique à X (cible déjà entière, seule la notification change). Cet état est en mémoire : il est levé au redémarrage du service, ce qui inclut l'installation d'une nouvelle version de Rehab avec des règles corrigées.
 
 ### 2.9 Cas limites tranchés
 
