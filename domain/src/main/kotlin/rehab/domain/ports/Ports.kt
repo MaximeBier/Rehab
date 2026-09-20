@@ -18,6 +18,8 @@ interface UsageLog {
 interface EventLog {
     fun append(event: Event)
     fun all(): List<Event>
+    /** Événements dont `at >= from`, triés par `at` croissant. */
+    fun since(from: Instant): List<Event>
 }
 
 interface SettingsRepo {

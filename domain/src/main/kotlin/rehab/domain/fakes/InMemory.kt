@@ -30,6 +30,7 @@ class InMemoryEventLog : EventLog {
     private val items = mutableListOf<Event>()
     override fun append(event: Event) { items += event }
     override fun all() = items.sortedBy { it.at }
+    override fun since(from: Instant) = all().filter { it.at >= from }
 }
 
 class InMemorySettingsRepo(initial: Settings = Settings.DEFAULT) : SettingsRepo {
