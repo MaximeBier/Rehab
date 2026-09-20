@@ -6,9 +6,12 @@ import rehab.app.data.RoomEventLog
 import rehab.app.data.RoomStreakRecordRepo
 import rehab.app.data.RoomUsageLog
 import rehab.app.data.db.RehabDatabase
+import rehab.app.service.AndroidRulesNotifier
 import rehab.app.service.CaptureCoordinator
 import rehab.app.service.DetectionState
+import rehab.app.service.PackageManagerVersions
 import rehab.app.service.ServiceState
+import rehab.app.service.VersionChecker
 import rehab.app.time.SystemClock
 import rehab.domain.degraded.DegradedModeTracker
 import rehab.domain.policy.PolicyEngine
@@ -46,4 +49,7 @@ class AppGraph(context: Context) {
     val capture = CaptureCoordinator(File(context.filesDir, "captures"))
     val detectionState = DetectionState()
     val serviceState = ServiceState()
+
+    val notifier = AndroidRulesNotifier(context)
+    val versionChecker = VersionChecker(PackageManagerVersions(context.packageManager), catalog, degraded, eventLog, notifier, clock)
 }
