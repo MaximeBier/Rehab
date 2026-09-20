@@ -71,7 +71,7 @@ fun RehabApp(vm: RehabViewModel) {
             when (tab) {
                 Tab.Accueil -> HomeScreen(home)
                 Tab.Reglages -> SettingsScreen(vm.graph)
-                Tab.Journal -> Text("Journal (à venir)")
+                Tab.Journal -> JournalScreen(vm.graph)
                 Tab.Debug -> Text("Debug (à venir)")
             }
         }
