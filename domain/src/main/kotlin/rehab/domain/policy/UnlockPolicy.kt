@@ -18,19 +18,23 @@ class UnlockPolicy(
     private val events: EventLog,
     private val streak: Streak,
 ) {
-    fun activeUnlockUntil(now: Instant): Instant? = events.all()
-        .mapNotNull {
-            when (it) {
-                is Event.Joker -> it.unlockUntil
-                is Event.Relapse -> it.unlockUntil
-                else -> null
+    fun activeUnlockUntil(now: Instant): Instant? {
+        val s = settings.get()
+        val horizon = now.minus(maxOf(s.jokerDuration, s.relapseDuration))
+        return events.since(horizon)
+            .mapNotNull {
+                when (it) {
+                    is Event.Joker -> it.unlockUntil
+                    is Event.Relapse -> it.unlockUntil
+                    else -> null
+                }
             }
-        }
-        .filter { it > now }
-        .maxOrNull()
+            .filter { it > now }
+            .maxOrNull()
+    }
 
     fun jokersUsed(day: LocalDate): Int =
-        events.all().filterIsInstance<Event.Joker>().count { schedule.dayOf(it.at) == day }
+        events.since(schedule.dayStart(day)).filterIsInstance<Event.Joker>().count { schedule.dayOf(it.at) == day }
 
     fun preview(now: Instant): PressOutcome = outcome(now, settings.get())
 
