@@ -27,7 +27,7 @@ object HomeText {
             TwitterRules.PACKAGE -> "X"
             else -> packageName
         }
-        return "$app $version hors plage testée : $app est bloqué en entier en attendant une mise à jour des règles."
+        return "$app $version hors plage testée : les règles de détection ne couvrent plus cette version, le blocage peut être incomplet en attendant une mise à jour des règles."
     }
 
     fun duration(d: Duration): String {
