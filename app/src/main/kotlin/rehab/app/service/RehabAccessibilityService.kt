@@ -63,7 +63,6 @@ class RehabAccessibilityService : AccessibilityService() {
     }
 
     override fun onServiceConnected() {
-        instance = this
         // Le système peut rappeler onServiceConnected() sur la même instance sans onUnbind()
         // intermédiaire (observé sur certains OEM après un crash du service d'accessibilité
         // système) : on ne suppose pas un appel unique, on rend l'initialisation idempotente.
@@ -77,6 +76,11 @@ class RehabAccessibilityService : AccessibilityService() {
                 override fun onHoldCompleted() { engine.post { graph.unlock.commit(graph.clock.now()); process() } }
             },
         )
+        // Publiée seulement une fois `graph`/`overlay` prêts : l'écran Debug lit cette instance
+        // pour activer son bouton d'overlay de test, qui appelle showTestOverlay() (utilise les
+        // deux). La publier plus tôt exposerait une fenêtre, même infime, où l'UI obtiendrait une
+        // instance dont ces `lateinit var` ne sont pas encore initialisées.
+        instance = this
         runCatching { unregisterReceiver(screenOff) }
         registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
         graph.serviceState.connected.value = true

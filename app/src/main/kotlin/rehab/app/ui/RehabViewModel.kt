@@ -134,7 +134,10 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     /**
      * Dernier résultat de `versionChecker.checkAll()` (écran d'onboarding). `checkAll()` lui-même
      * n'est appelé que par le thread "rehab-engine" (voir `onServiceConnected`) ; ce ViewModel se
-     * contente de lire `.value`, publié à chaque connexion du service.
+     * contente de lire `.value`, publié à chaque connexion du service. Liste vide tant que le
+     * service d'accessibilité n'a jamais tourné (avant le tout premier `onServiceConnected`) :
+     * l'onboarding n'affiche alors aucune ligne Instagram/X, ce qui est attendu — ces lignes
+     * n'apparaissent qu'après une première connexion du service.
      */
     val appStatuses: StateFlow<List<AppStatus>> get() = graph.versionChecker.statuses
 
