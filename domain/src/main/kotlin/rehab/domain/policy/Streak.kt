@@ -22,7 +22,16 @@ class Streak(
         return count
     }
 
-    fun best(now: Instant): Int {
+    /**
+     * Retourne le meilleur streak, et **persiste** un nouveau record si [current] le dépasse. Le nom
+     * précédent (`best`) suggérait une simple lecture ; or c'est une lecture-modification-écriture sur
+     * [record], appelée à la fois depuis le thread "rehab-engine" (`RehabAccessibilityService`) et depuis
+     * `Dispatchers.IO` (`RehabViewModel.compute()`). `@Synchronized` sérialise ces deux appelants : sans ça,
+     * deux threads pouvaient lire le même `bestDays()` avant que l'un des deux n'écrive, perdant la mise à
+     * jour de l'autre (write clobbering classique d'un read-modify-write non protégé).
+     */
+    @Synchronized
+    fun recordAndGetBest(now: Instant): Int {
         val c = current(now)
         val b = record.bestDays()
         if (c > b) {
