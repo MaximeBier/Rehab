@@ -3,7 +3,6 @@ package rehab.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -33,19 +32,16 @@ enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), J
  * depuis n'importe quel thread. Les accès base de données (streak, quota, settings) passent par
  * `Dispatchers.IO` car les adaptateurs Room sont bloquants et la base est ouverte sans
  * `allowMainThreadQueries`.
+ *
+ * Le rafraîchissement périodique n'est pas déclenché ici : une boucle `while(true)` dans
+ * `init` tournerait tant que le `ViewModel` existe, y compris écran éteint ou app en arrière-plan
+ * (une lecture Room par seconde en continu). C'est l'UI (voir `RehabApp` dans `MainActivity.kt`)
+ * qui pilote l'appel à [refreshNow] sur un `repeatOnLifecycle(STARTED)`, donc uniquement quand
+ * l'écran Accueil est visible.
  */
 class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     private val _home = MutableStateFlow(HomeUiState())
     val home: StateFlow<HomeUiState> = _home
-
-    init {
-        viewModelScope.launch {
-            while (true) {
-                _home.value = withContext(Dispatchers.IO) { compute() }
-                delay(1000)
-            }
-        }
-    }
 
     fun refreshNow() { viewModelScope.launch { _home.value = withContext(Dispatchers.IO) { compute() } } }
 
@@ -59,7 +55,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
             if (!serviceConnected) add("Rehab est inactif : active le service d'accessibilité.")
             graph.versionChecker.statuses.value.forEach { s ->
                 if (!s.installed) add("${s.packageName} n'est pas installée.")
-                else if (!s.inRange) add("${s.packageName} ${s.version} hors plage testée : feed Instagram bloqué en entier.")
+                else if (!s.inRange) add(HomeText.outOfRangeMessage(s.packageName, s.version))
             }
             val last = graph.detectionState.last.value
             when (last?.degradedReason) {

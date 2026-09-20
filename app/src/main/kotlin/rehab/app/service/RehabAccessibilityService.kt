@@ -179,6 +179,11 @@ class RehabAccessibilityService : AccessibilityService() {
         graph.usageTracker.closeOpen(graph.clock.now())
         overlay.hide()
         stopTicker()
+        // On quitte une app catalogue (ou l'écran s'éteint) : le dernier `LastDetection` publié
+        // ne décrit plus l'état courant. Sans ce reset, une alerte "mode dégradé" resterait
+        // affichée indéfiniment côté UI (RehabViewModel) après que l'utilisateur a quitté
+        // Instagram/X, alors qu'elle ne concerne plus rien de courant.
+        graph.detectionState.last.value = null
     }
 
     private fun startTicker() {

@@ -11,15 +11,21 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import rehab.app.RehabApp
 
 class MainActivity : ComponentActivity() {
@@ -39,6 +45,19 @@ class MainActivity : ComponentActivity() {
 fun RehabApp(vm: RehabViewModel) {
     var tab by rememberSaveable { mutableStateOf(Tab.Accueil) }
     val home by vm.home.collectAsState()
+
+    // Rafraîchissement lié au cycle de vie : ne tourne (une lecture Room par seconde) que tant
+    // que l'écran est visible (STARTED), pas en continu écran éteint ou app en arrière-plan.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(vm, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (isActive) {
+                vm.refreshNow()
+                delay(1000)
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar {

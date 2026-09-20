@@ -23,14 +23,17 @@ fun HomeScreen(state: HomeUiState) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
             ) { Text(alert, Modifier.padding(12.dp)) }
         }
-        Text("${state.streak} jours", style = MaterialTheme.typography.displayMedium)
-        Text("sans relapse · record ${state.best}", style = MaterialTheme.typography.bodyLarge)
+        Text(HomeText.plural(state.streak, "jour", "jours"), style = MaterialTheme.typography.displayMedium)
+        Text(
+            "sans relapse · record : " + HomeText.plural(state.best, "jour", "jours"),
+            style = MaterialTheme.typography.bodyLarge,
+        )
         Spacer(Modifier.height(24.dp))
         Text(state.status, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(16.dp))
         Text("Quota", style = MaterialTheme.typography.titleMedium)
         state.quotaLines.forEach { Text(it) }
         Spacer(Modifier.height(16.dp))
-        Text("Jokers restants aujourd'hui : ${state.jokersLeft}")
+        Text(HomeText.plural(state.jokersLeft, "joker restant", "jokers restants") + " aujourd'hui")
     }
 }
