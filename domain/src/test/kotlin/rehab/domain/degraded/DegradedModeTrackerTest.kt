@@ -17,26 +17,31 @@ class DegradedModeTrackerTest {
         assertEquals("version", tracker.reason(ig))
     }
 
-    @Test fun `inconnu pendant 30 s avec accueil selectionne degrade`() {
-        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0)
-        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0.plusSeconds(29))
+    @Test fun `inconnu pendant 30 s degrade`() {
+        tracker.onDetection(ig, unknownScreen = true, now = t0)
+        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(29))
         assertFalse(tracker.isDegraded(ig))
-        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0.plusSeconds(30))
+        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(30))
         assertTrue(tracker.isDegraded(ig))
         assertEquals("unknown", tracker.reason(ig))
     }
 
     @Test fun `un ecran connu reinitialise le compteur`() {
-        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0)
-        tracker.onDetection(ig, unknownScreen = false, watching = true, now = t0.plusSeconds(20))
-        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0.plusSeconds(40))
+        tracker.onDetection(ig, unknownScreen = true, now = t0)
+        tracker.onDetection(ig, unknownScreen = false, now = t0.plusSeconds(20))
+        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(40))
         assertFalse(tracker.isDegraded(ig))
     }
 
-    @Test fun `inconnu hors accueil ne compte pas`() {
-        tracker.onDetection(ig, unknownScreen = true, watching = false, now = t0)
-        tracker.onDetection(ig, unknownScreen = true, watching = false, now = t0.plusSeconds(60))
-        assertFalse(tracker.isDegraded(ig))
+    /**
+     * Régression du IMPORTANT 3 de la revue finale : le compteur ne doit plus dépendre d'un onglet Accueil
+     * sélectionné, sans quoi un écran inconnu en permanence (ex. X, dont les règles ne posent pas de contrainte
+     * d'onglet Accueil pour les écrans hors cible) n'armait jamais le mode dégradé.
+     */
+    @Test fun `inconnu hors accueil compte aussi`() {
+        tracker.onDetection(ig, unknownScreen = true, now = t0)
+        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(30))
+        assertTrue(tracker.isDegraded(ig))
     }
 
     @Test fun `version revenue dans la plage leve le mode version`() {
@@ -46,9 +51,9 @@ class DegradedModeTrackerTest {
     }
 
     @Test fun `l etat degrade par inconnu survit au retour d ecrans connus`() {
-        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0)
-        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0.plusSeconds(30))
-        tracker.onDetection(ig, unknownScreen = false, watching = true, now = t0.plusSeconds(40))
+        tracker.onDetection(ig, unknownScreen = true, now = t0)
+        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(30))
+        tracker.onDetection(ig, unknownScreen = false, now = t0.plusSeconds(40))
         assertTrue(tracker.isDegraded(ig))
         assertEquals("unknown", tracker.reason(ig))
     }
