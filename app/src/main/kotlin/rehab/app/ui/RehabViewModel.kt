@@ -39,7 +39,7 @@ enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), J
  * qui pilote l'appel à [refreshNow] sur un `repeatOnLifecycle(STARTED)`, donc uniquement quand
  * l'écran Accueil est visible.
  */
-class RehabViewModel(private val graph: AppGraph) : ViewModel() {
+class RehabViewModel(val graph: AppGraph) : ViewModel() {
     private val _home = MutableStateFlow(HomeUiState())
     val home: StateFlow<HomeUiState> = _home
 
