@@ -56,18 +56,40 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     data class SettingsScreenState(
         val form: SettingsForm,
         val zone: ZoneId,
+        val locks: SettingsLocks,
+    )
+
+    /**
+     * Verrous d'édition (nuit active, quota en cours), séparés du formulaire pour pouvoir être
+     * rafraîchis périodiquement pendant que l'écran Réglages est ouvert sans jamais toucher à la
+     * saisie en cours de l'utilisateur (voir [loadLocks] et son usage dans `SettingsScreen`).
+     */
+    data class SettingsLocks(
         val lockedNightRow: DayOfWeek?,
         val lockedNightEnd: Instant?,
         val quotaUnlockAt: Instant?,
     )
 
     suspend fun loadSettingsScreen(): SettingsScreenState = withContext(Dispatchers.IO) {
-        val now = graph.clock.now()
-        val activeNight = graph.schedule.activeNight(now)
-        val quotaBlock = (graph.policy.evaluate(now) as? Decision.Block)?.takeIf { it.reason == BlockReason.Quota }
         SettingsScreenState(
             form = SettingsForm.from(graph.settingsRepo.get()),
             zone = graph.clock.zone(),
+            locks = currentLocks(),
+        )
+    }
+
+    /**
+     * Recalcule uniquement les verrous, avec un `now` frais. À appeler périodiquement pendant que
+     * l'écran Réglages est visible : contrairement à [loadSettingsScreen], ne touche jamais au
+     * formulaire, donc ne peut pas écraser une saisie en cours.
+     */
+    suspend fun loadLocks(): SettingsLocks = withContext(Dispatchers.IO) { currentLocks() }
+
+    private fun currentLocks(): SettingsLocks {
+        val now = graph.clock.now()
+        val activeNight = graph.schedule.activeNight(now)
+        val quotaBlock = (graph.policy.evaluate(now) as? Decision.Block)?.takeIf { it.reason == BlockReason.Quota }
+        return SettingsLocks(
             lockedNightRow = activeNight?.row?.dayOfWeek,
             lockedNightEnd = activeNight?.end,
             quotaUnlockAt = quotaBlock?.unlockAt,
