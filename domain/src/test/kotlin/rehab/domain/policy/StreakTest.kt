@@ -52,9 +52,9 @@ class StreakTest {
 
     @Test fun `best persiste le record et ne descend jamais`() {
         val (s, record) = streak(at(15, 12))
-        assertEquals(7, s.best(at(21, 18)))
+        assertEquals(7, s.recordAndGetBest(at(21, 18)))
         assertEquals(7, record.bestDays())
         record.setBestDays(23)
-        assertEquals(23, s.best(at(21, 18)))
+        assertEquals(23, s.recordAndGetBest(at(21, 18)))
     }
 }

@@ -161,7 +161,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
         }
         return HomeUiState(
             streak = graph.streak.current(now),
-            best = graph.streak.best(now),
+            best = graph.streak.recordAndGetBest(now),
             status = HomeText.status(decision, graph.unlock.activeUnlockUntil(now), graph.clock.zone()),
             quotaLines = quota.perWindow.map(HomeText::quotaLine),
             jokersLeft = (settings.jokersPerDay - graph.unlock.jokersUsed(graph.schedule.dayOf(now))).coerceAtLeast(0),
