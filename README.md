@@ -25,7 +25,7 @@ En cours de développement (V1). Cible : Pixel, Android 14+, installation par AP
 
 ## Construire
 
-Prérequis : JDK 17 et le SDK Android (platform 35, build-tools 35). Puis :
+Prérequis : JDK 17 et le SDK Android (platform 37, build-tools 36). Puis :
 
 ```
 ./gradlew :domain:test :rules:test :app:testDebugUnitTest :app:assembleDebug

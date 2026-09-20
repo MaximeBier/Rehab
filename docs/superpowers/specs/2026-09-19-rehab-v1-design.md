@@ -112,6 +112,7 @@ Chaque jeu de règles porte une plage de versions testées de l'app cible. Si la
 - **Redémarrage du téléphone** : journaux persistés, quota et déblocage en cours survivent.
 - **Service désactivé puis réactivé** : événements `ServiceOff` / `ServiceOn` journalisés, bandeau dans l'app, aucune pénalité.
 - **Écran cible visible pendant la transition Autorisé → Bloqué** : overlay affiché au tick suivant (≤ 1 s).
+- **Changement d'horaire après coup** : la journée Rehab d'un événement passé (joker, relapse) est recalculée avec les réglages courants, donc un relapse à 01:00 peut changer de journée si l'heure de lever est modifiée ensuite. Accepté : ne pas stocker le jour à l'écriture.
 
 ## 3. Architecture
 
