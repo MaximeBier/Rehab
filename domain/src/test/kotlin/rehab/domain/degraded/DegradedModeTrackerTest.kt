@@ -44,4 +44,12 @@ class DegradedModeTrackerTest {
         tracker.onVersionCheck(ig, inRange = true)
         assertFalse(tracker.isDegraded(ig))
     }
+
+    @Test fun `l etat degrade par inconnu survit au retour d ecrans connus`() {
+        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0)
+        tracker.onDetection(ig, unknownScreen = true, watching = true, now = t0.plusSeconds(30))
+        tracker.onDetection(ig, unknownScreen = false, watching = true, now = t0.plusSeconds(40))
+        assertTrue(tracker.isDegraded(ig))
+        assertEquals("unknown", tracker.reason(ig))
+    }
 }

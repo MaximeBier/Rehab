@@ -63,4 +63,22 @@ class PolicyEngineTest {
         assertIs<Decision.Block>(d)
         assertEquals(BlockReason.Night, d.reason)
     }
+
+    @Test fun `unlockAt du blocage quota est propage`() {
+        val i = usage.open(reels, at(21, 15))
+        usage.update(i.copy(end = at(21, 15, 5), open = false))
+        val d = engine.evaluate(at(21, 15, 5))
+        assertIs<Decision.Block>(d)
+        assertEquals(at(21, 15, 30).plusSeconds(1), d.unlockAt)
+    }
+
+    @Test fun `apres un relapse dont le temps a ete compte le quota rebloque aussitot`() {
+        unlock.commit(at(21, 15))                                   // joker 15:00 → 15:05
+        val i = usage.open(reels, at(21, 15))
+        usage.update(i.copy(end = at(21, 15, 5), open = false))     // 5 min de scroll pendant le joker
+        assertEquals(Decision.Allow, engine.evaluate(at(21, 15, 4)))
+        val d = engine.evaluate(at(21, 15, 5))
+        assertIs<Decision.Block>(d)
+        assertEquals(BlockReason.Quota, d.reason)
+    }
 }

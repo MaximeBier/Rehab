@@ -70,4 +70,13 @@ class SlidingQuotaTest {
         assertEquals(Duration.ofMinutes(3), r.perWindow[0].used)
         assertEquals(Duration.ofMinutes(3), r.perWindow[1].used)
     }
+
+    @Test fun `unlockAt avec usage fragmente et intervalle ouvert`() {
+        // [0,2] fermé + [10, now=13] ouvert → 5 min dans la fenêtre 30 min → dépassé.
+        // Le premier instant sous 5 min : quand [0,2] a perdu une seconde, soit t0 + 30 min + 1 s.
+        val now = t0.plusSeconds(13 * 60)
+        val r = quota.evaluate(listOf(w30), listOf(iv(0, 2), iv(10, 13, open = true)), now)
+        assertTrue(r.exceeded)
+        assertEquals(t0.plusSeconds(30 * 60 + 1), r.unlockAt)
+    }
 }
