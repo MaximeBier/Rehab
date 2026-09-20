@@ -42,4 +42,15 @@ class SnapshotBuilderTest {
         assertEquals(10, s.nodes.size)
         assertTrue(s.truncated)
     }
+
+    @Test fun `le noeud racine (profondeur 0) survit toujours a la troncature`() {
+        // Invariant dont dépend Matcher.NearBottom pour estimer la hauteur d'écran : la racine est toujours
+        // ajoutée en premier (nodes.size vaut 0 au moment de sa visite), donc jamais elle-même tronquée,
+        // même quand des descendants le sont.
+        val root = FakeTreeNode(id = "root", bounds = Bounds(0, 0, 1080, 2400), children = (1..50).map { FakeTreeNode(id = "c$it") })
+        val s = SnapshotBuilder(maxNodes = 10).build(root, "pkg", "1", 0L)
+        assertTrue(s.truncated)
+        assertEquals(0, s.nodes.first().depth)
+        assertEquals(Bounds(0, 0, 1080, 2400), s.nodes.first().bounds)
+    }
 }

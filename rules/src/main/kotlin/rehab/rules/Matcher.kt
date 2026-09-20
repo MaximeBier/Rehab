@@ -46,13 +46,26 @@ sealed interface Matcher {
     }
 
     /**
-     * Le haut du nœud est situé dans la fraction basse de l'écran (hauteur déduite du plus grand `bottom`
-     * du snapshot, faute de dimensions d'écran explicites). Sert à distinguer une barre de navigation basse
-     * d'un contrôle de même forme (onglets internes, sélecteurs) situé ailleurs à l'écran.
+     * Le haut du nœud est situé dans la fraction basse de l'écran. Sert à distinguer une barre de navigation
+     * basse d'un contrôle de même forme (onglets internes, sélecteurs) situé ailleurs à l'écran.
+     *
+     * La hauteur de référence est celle du nœud de profondeur 0 (`depth == 0`), c'est-à-dire la racine du
+     * snapshot — jamais le maximum de `bounds.bottom` sur tous les nœuds : ce maximum serait faussé par un
+     * nœud scrollable hors-viewport dont les bounds dépassent la hauteur réelle de l'écran (il gonflerait la
+     * hauteur estimée et déplacerait le seuil vers le bas, faisant rater la vraie barre de navigation).
+     * La racine, elle, est un choix sûr même sous troncature (`Snapshot.truncated`) : `SnapshotBuilder.visit`
+     * l'ajoute toujours en premier, avant tout test de la limite `maxNodes`, donc elle n'est jamais elle-même
+     * tronquée — voir `SnapshotBuilderTest` (« le nœud racine (profondeur 0) survit toujours à la troncature »).
+     * Elle est absente uniquement si l'appelant fournit un snapshot sans nœud de profondeur 0, auquel cas le
+     * matcher répond `false` plutôt que de deviner.
+     *
+     * [minFraction] par défaut (0,75) : observé sur les captures Instagram/X (Pixel 6a, 2400 px de haut), la
+     * barre de navigation basse commence vers 2127-2148 px (≈ 0,89), largement au-delà des contrôles internes
+     * en haut d'écran (≈ 0,12-0,17) — voir `TwitterRules.bottomTabActive`.
      */
     data class NearBottom(val minFraction: Double = 0.75) : Matcher {
         override fun matches(node: Node, all: List<Node>): Boolean {
-            val screenHeight = all.maxOfOrNull { it.bounds.bottom } ?: return false
+            val screenHeight = all.firstOrNull { it.depth == 0 }?.bounds?.bottom ?: return false
             if (screenHeight <= 0) return false
             return node.bounds.top >= minFraction * screenHeight
         }
