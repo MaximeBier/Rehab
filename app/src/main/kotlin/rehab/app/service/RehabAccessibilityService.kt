@@ -119,17 +119,22 @@ class RehabAccessibilityService : AccessibilityService() {
         )
         graph.capture.maybeSave(snapshot)
 
-        val degraded = graph.degraded.isDegraded(pkg)
+        val degradedReasonBefore = graph.degraded.reason(pkg)
+        val degraded = degradedReasonBefore != null
         val detection = graph.detector.detect(snapshot, degraded)
         graph.degraded.onDetection(pkg, detection.unknownScreen, detection.homeTabSelected, now)
+        // Relu après onDetection() : le seuil de 30s peut faire basculer en dégradé pendant cet
+        // appel ; on publie l'état à jour, toujours calculé ici sur le thread "rehab-engine".
+        val degradedReasonAfter = graph.degraded.reason(pkg)
         graph.detectionState.last.value = LastDetection(
-            pkg,
-            snapshot.appVersion,
-            detection.target?.value,
-            detection.screenId,
-            detection.unknownScreen,
-            degraded,
-            now.toEpochMilli(),
+            packageName = pkg,
+            appVersion = snapshot.appVersion,
+            target = detection.target?.value,
+            screenId = detection.screenId,
+            unknownScreen = detection.unknownScreen,
+            degraded = degradedReasonAfter != null,
+            atMillis = now.toEpochMilli(),
+            degradedReason = degradedReasonAfter,
         )
 
         apply(detection)

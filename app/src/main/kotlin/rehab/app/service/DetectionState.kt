@@ -10,6 +10,14 @@ data class LastDetection(
     val unknownScreen: Boolean,
     val degraded: Boolean,
     val atMillis: Long,
+    /**
+     * Raison du mode dégradé ("version" | "unknown" | null), lue une fois pour toutes sur le
+     * thread "rehab-engine" via [rehab.domain.degraded.DegradedModeTracker.reason] puis publiée
+     * ici. Un lecteur hors moteur (ex. [rehab.app.ui.RehabViewModel]) ne doit jamais appeler
+     * `DegradedModeTracker.reason` lui-même : cette classe n'est pas synchronisée et n'est sûre
+     * que confinée à un seul thread. Passer par ce champ, qui traverse un StateFlow.
+     */
+    val degradedReason: String? = null,
 )
 
 class DetectionState { val last = MutableStateFlow<LastDetection?>(null) }

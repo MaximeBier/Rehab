@@ -1,6 +1,8 @@
 package rehab.app.service
 
 import android.content.pm.PackageManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import rehab.domain.degraded.DegradedModeTracker
 import rehab.domain.model.Event
 import rehab.domain.ports.EventLog
@@ -35,6 +37,17 @@ class VersionChecker(
     // (ex. 400 -> 410, jamais repassé en plage entre les deux) ne serait jamais signalé.
     private val lastNotifiedVersion = mutableMapOf<String, String?>()
 
+    /**
+     * Dernier résultat de [checkAll], publié pour des lecteurs hors thread "rehab-engine" (ex.
+     * [rehab.app.ui.RehabViewModel]). `checkAll()` lui-même reste appelé uniquement depuis ce
+     * thread (voir `RehabAccessibilityService.onServiceConnected`) : c'est ce qui rend correct
+     * l'accès sans verrou à `lastNotifiedVersion` et à [degraded] pendant son exécution. Un
+     * lecteur externe ne doit jamais appeler `checkAll()` lui-même ; il lit `statuses.value`, un
+     * `StateFlow` sûr à lire depuis n'importe quel thread.
+     */
+    val statuses: StateFlow<List<AppStatus>> get() = _statuses
+    private val _statuses = MutableStateFlow<List<AppStatus>>(emptyList())
+
     fun checkAll(): List<AppStatus> = catalog.packageNames.map { pkg ->
         val rules = catalog.forPackage(pkg)!!
         val version = versions.versionOf(pkg)
@@ -60,7 +73,7 @@ class VersionChecker(
             lastNotifiedVersion[pkg] = version
         }
         AppStatus(pkg, installed = true, version = version, inRange = inRange)
-    }
+    }.also { _statuses.value = it }
 
     fun versionOf(packageName: String): String = versions.versionOf(packageName) ?: "?"
 
