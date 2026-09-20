@@ -32,9 +32,9 @@ private val Danger = Color(0xFFE53935)
 private val Calm = Color(0xFF4CAF50)
 
 @Composable
-fun BlockOverlay(state: OverlayState, onBack: () -> Unit, onHoldCompleted: () -> Unit) {
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(Unit) { while (true) { now = System.currentTimeMillis(); delay(1000) } }
+fun BlockOverlay(state: OverlayState, nowMillis: () -> Long, onBack: () -> Unit, onHoldCompleted: () -> Unit) {
+    var now by remember { mutableLongStateOf(nowMillis()) }
+    LaunchedEffect(Unit) { while (true) { now = nowMillis(); delay(1000) } }
 
     val danger = state.outcome is PressOutcome.Relapse
     val bg = if (danger) Color(0xFF3A0D0D) else if (state.reason == BlockReason.Night) NightBg else QuotaBg
