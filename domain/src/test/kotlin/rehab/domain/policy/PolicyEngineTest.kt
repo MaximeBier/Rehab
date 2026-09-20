@@ -72,7 +72,7 @@ class PolicyEngineTest {
         assertEquals(at(21, 15, 30).plusSeconds(1), d.unlockAt)
     }
 
-    @Test fun `apres un relapse dont le temps a ete compte le quota rebloque aussitot`() {
+    @Test fun `apres un joker dont le temps a ete compte le quota rebloque aussitot`() {
         unlock.commit(at(21, 15))                                   // joker 15:00 → 15:05
         val i = usage.open(reels, at(21, 15))
         usage.update(i.copy(end = at(21, 15, 5), open = false))     // 5 min de scroll pendant le joker
