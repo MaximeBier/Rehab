@@ -22,4 +22,10 @@ data class LastDetection(
 
 class DetectionState { val last = MutableStateFlow<LastDetection?>(null) }
 
-class ServiceState { val connected = MutableStateFlow(false) }
+/**
+ * [initiallyConnected] devrait toujours venir de `Prerequisites.accessibilityEnabled()` (source fiable côté
+ * système), pas d'une valeur figée à `false` : au démarrage du processus, avant toute connexion du service
+ * d'accessibilité, `false` fait afficher à tort le bandeau « Rehab est inactif » même quand le service tourne
+ * déjà côté système et se reconnectera dans l'instant (revue finale, mineur). Voir `AppGraph`.
+ */
+class ServiceState(initiallyConnected: Boolean = false) { val connected = MutableStateFlow(initiallyConnected) }

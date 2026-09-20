@@ -13,6 +13,7 @@ import rehab.app.service.PackageManagerVersions
 import rehab.app.service.ServiceState
 import rehab.app.service.VersionChecker
 import rehab.app.time.SystemClock
+import rehab.app.ui.Prerequisites
 import rehab.domain.degraded.DegradedModeTracker
 import rehab.domain.policy.PolicyEngine
 import rehab.domain.policy.Schedule
@@ -48,7 +49,9 @@ class AppGraph(context: Context) {
     val snapshotBuilder = SnapshotBuilder()
     val capture = CaptureCoordinator(File(context.filesDir, "captures"))
     val detectionState = DetectionState()
-    val serviceState = ServiceState()
+    // Voir la doc de ServiceState : évite le bandeau "Rehab est inactif" affiché à tort au tout
+    // début du processus, avant la première connexion (ou reconnexion) du service.
+    val serviceState = ServiceState(Prerequisites(context).accessibilityEnabled())
 
     val notifier = AndroidRulesNotifier(context)
     val versionChecker = VersionChecker(PackageManagerVersions(context.packageManager), catalog, degraded, eventLog, notifier, clock)

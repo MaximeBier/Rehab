@@ -1,10 +1,9 @@
 package rehab.app.ui
 
+import rehab.app.AppDisplayNames
 import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.policy.SlidingQuota
-import rehab.rules.catalog.InstagramRules
-import rehab.rules.catalog.TwitterRules
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -22,11 +21,7 @@ object HomeText {
         "$n " + if (n <= 1) singular else plural
 
     fun outOfRangeMessage(packageName: String, version: String?): String {
-        val app = when (packageName) {
-            InstagramRules.PACKAGE -> "Instagram"
-            TwitterRules.PACKAGE -> "X"
-            else -> packageName
-        }
+        val app = AppDisplayNames.of(packageName)
         return "$app $version hors plage testée : les règles de détection ne couvrent plus cette version, le blocage peut être incomplet en attendant une mise à jour des règles."
     }
 
