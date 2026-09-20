@@ -12,8 +12,16 @@ class DegradedModeTracker(private val threshold: Duration = Duration.ofSeconds(3
         if (inRange) versionOutOfRange -= packageName else versionOutOfRange += packageName
     }
 
-    fun onDetection(packageName: String, unknownScreen: Boolean, watching: Boolean, now: Instant) {
-        if (!unknownScreen || !watching) {
+    /**
+     * [unknownScreen] doit être vrai dès que l'écran n'est pas reconnu **ou** que le snapshot a été tronqué
+     * (`Snapshot.truncated`) : un arbre amputé est indiscernable de « rien à bloquer » et doit être traité en
+     * échec fermé (spec §2.8), pas en silence. Auparavant, ce compteur exigeait aussi `watching` (l'onglet
+     * Accueil sélectionné) : ce drapeau n'a de sens que pour la cible Instagram Accueil, donc sur X — ou sur
+     * tout écran Instagram hors Accueil — `unknownScreen` pouvait rester vrai indéfiniment sans jamais armer
+     * le compteur, rendant le mode dégradé "unknown" inatteignable sur ces écrans.
+     */
+    fun onDetection(packageName: String, unknownScreen: Boolean, now: Instant) {
+        if (!unknownScreen) {
             unknownSince.remove(packageName)
             return
         }

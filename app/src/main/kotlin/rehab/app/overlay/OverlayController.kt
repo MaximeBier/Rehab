@@ -88,7 +88,11 @@ class OverlayController(
                 callbacks.onBack()
             }
         } else if (height != currentHeight) {
-            wm.updateViewLayout(existing, params(height))
+            // Comme addView/removeViewImmediate ci-dessus : un appel WindowManager peut lever (fenêtre déjà
+            // détachée, service en cours d'arrêt...). Ne pas protéger celui-ci laisserait une exception non
+            // capturée remonter sur le thread principal (IMPORTANT 5, revue finale).
+            runCatching { wm.updateViewLayout(existing, params(height)) }
+                .onFailure { Log.e("Rehab", "Overlay updateViewLayout impossible", it) }
             currentHeight = height
         }
     }
