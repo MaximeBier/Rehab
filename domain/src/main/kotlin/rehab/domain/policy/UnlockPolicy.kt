@@ -1,6 +1,7 @@
 package rehab.domain.policy
 
 import rehab.domain.model.Event
+import rehab.domain.model.Settings
 import rehab.domain.ports.EventLog
 import rehab.domain.ports.SettingsRepo
 import java.time.Instant
@@ -31,21 +32,22 @@ class UnlockPolicy(
     fun jokersUsed(day: LocalDate): Int =
         events.all().filterIsInstance<Event.Joker>().count { schedule.dayOf(it.at) == day }
 
-    fun preview(now: Instant): PressOutcome {
-        val s = settings.get()
-        val used = jokersUsed(schedule.dayOf(now))
-        val isNight = schedule.activeNight(now) != null
-        return if (!isNight && used < s.jokersPerDay) PressOutcome.Joker(s.jokersPerDay - used - 1)
-        else PressOutcome.Relapse(streak.current(now))
-    }
+    fun preview(now: Instant): PressOutcome = outcome(now, settings.get())
 
     fun commit(now: Instant): Event {
         val s = settings.get()
-        val event = when (preview(now)) {
+        val event = when (outcome(now, s)) {
             is PressOutcome.Joker -> Event.Joker(now, now.plus(s.jokerDuration))
             is PressOutcome.Relapse -> Event.Relapse(now, now.plus(s.relapseDuration))
         }
         events.append(event)
         return event
+    }
+
+    private fun outcome(now: Instant, s: Settings): PressOutcome {
+        val used = jokersUsed(schedule.dayOf(now))
+        val isNight = schedule.activeNight(now) != null
+        return if (!isNight && used < s.jokersPerDay) PressOutcome.Joker(s.jokersPerDay - used - 1)
+        else PressOutcome.Relapse(streak.current(now))
     }
 }
