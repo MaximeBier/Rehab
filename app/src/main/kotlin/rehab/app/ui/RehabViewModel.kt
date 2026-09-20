@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rehab.app.di.AppGraph
+import rehab.app.service.AppStatus
 import rehab.app.service.LastDetection
 import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
@@ -129,6 +130,13 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
 
     /** Liste les captures enregistrées sur disque : I/O fichier, donc hors thread principal. */
     suspend fun captureCount(): Int = withContext(Dispatchers.IO) { graph.capture.list().size }
+
+    /**
+     * Dernier résultat de `versionChecker.checkAll()` (écran d'onboarding). `checkAll()` lui-même
+     * n'est appelé que par le thread "rehab-engine" (voir `onServiceConnected`) ; ce ViewModel se
+     * contente de lire `.value`, publié à chaque connexion du service.
+     */
+    val appStatuses: StateFlow<List<AppStatus>> get() = graph.versionChecker.statuses
 
     private fun compute(): HomeUiState {
         val now = graph.clock.now()
