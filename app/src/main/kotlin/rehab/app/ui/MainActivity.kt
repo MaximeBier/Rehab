@@ -67,9 +67,11 @@ fun RehabApp(vm: RehabViewModel) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // La lecture de `tick` ici (même inutilisée en tant que valeur) fait dépendre cette
-    // recomposition du retour au premier plan, pour retester `accessibilityEnabled()` à jour.
-    val accessibilityEnabled = tick.let { prerequisites.accessibilityEnabled() }
+    // `remember(tick)` : sans lui, cette ligne s'exécutait à chaque recomposition de RehabApp, y
+    // compris celles déclenchées par `home` (une par seconde via vm.refreshNow(), voir plus bas) —
+    // soit une requête `Settings.Secure` sur le thread principal chaque seconde (IMPORTANT/mineur
+    // de la revue finale). `remember(tick)` ne relit ce prérequis qu'au retour au premier plan.
+    val accessibilityEnabled = remember(tick) { prerequisites.accessibilityEnabled() }
     if (!onboardingDone || !accessibilityEnabled) {
         OnboardingScreen(prerequisites, vm) {
             prefs.edit().putBoolean("onboarding_done", true).apply()

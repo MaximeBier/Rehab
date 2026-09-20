@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import rehab.app.AppDisplayNames
 import rehab.app.R
 
 fun interface RulesNotifier {
@@ -16,11 +17,7 @@ fun interface RulesNotifier {
 class AndroidRulesNotifier(private val context: Context) : RulesNotifier {
     override fun notifyOutOfRange(packageName: String, version: String) {
         if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-        val appName = when (packageName) {
-            "com.instagram.android" -> "Instagram"
-            "com.twitter.android" -> "X"
-            else -> packageName
-        }
+        val appName = AppDisplayNames.of(packageName)
         val n = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(context.getString(R.string.app_name))
