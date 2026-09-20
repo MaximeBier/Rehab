@@ -67,4 +67,16 @@ class SettingsFormTest {
         val form = SettingsForm.from(Settings.DEFAULT).copy(quotas = listOf("0" to "0"))
         assertTrue(form.toSettings().isFailure)
     }
+
+    // Verrouille la convention (durée, plafond) de `quotas` : un appel d'UI qui écrirait dans le
+    // mauvais slot ferait échouer ces deux tests plutôt que de permuter silencieusement les valeurs.
+    @Test fun withQuotaCapKeepsDurationUnchanged() {
+        val quotas = listOf("30" to "5", "360" to "30")
+        assertEquals(listOf("30" to "7", "360" to "30"), SettingsForm.withQuotaCap(quotas, 0, "7"))
+    }
+
+    @Test fun withQuotaDurationKeepsCapUnchanged() {
+        val quotas = listOf("30" to "5", "360" to "30")
+        assertEquals(listOf("30" to "5", "400" to "30"), SettingsForm.withQuotaDuration(quotas, 1, "400"))
+    }
 }

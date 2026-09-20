@@ -12,21 +12,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import rehab.app.di.AppGraph
 
 @Composable
-fun JournalScreen(graph: AppGraph) {
+fun JournalScreen(vm: RehabViewModel) {
     var lines by remember { mutableStateOf<List<JournalLine>>(emptyList()) }
-    LaunchedEffect(Unit) {
-        lines = withContext(Dispatchers.IO) {
-            val zone = graph.clock.zone()
-            val events = graph.eventLog.all().map { JournalLine(it.at.toEpochMilli(), JournalText.line(it, zone)) }
-            val usage = graph.usageLog.latest(200).map { JournalLine(it.start.toEpochMilli(), JournalText.line(it, zone)) }
-            (events + usage).sortedByDescending { it.atMillis }
-        }
-    }
+    LaunchedEffect(Unit) { lines = vm.loadJournal() }
     LazyColumn(Modifier.padding(16.dp)) {
         items(lines) { Text(it.text, Modifier.padding(vertical = 4.dp)) }
     }
