@@ -8,10 +8,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rehab.app.di.AppGraph
+import rehab.app.service.LastDetection
 import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
+import java.io.File
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneId
@@ -109,6 +111,24 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
         val usage = graph.usageLog.latest(200).map { JournalLine(it.start.toEpochMilli(), JournalText.line(it, zone)) }
         (events + usage).sortedByDescending { it.atMillis }
     }
+
+    // ---- écran Debug ----
+    // `graph` reste privé : l'écran Debug ne reçoit que ce ViewModel et ces expositions dédiées,
+    // jamais `graph` lui-même (voir le commentaire de tête sur le confinement au thread
+    // "rehab-engine"). `detectionLast`/`capturePendingAt`/`captureLastFile` sont des StateFlow
+    // publiés par ce thread ou par `CaptureCoordinator` (simple état en mémoire, pas Room) :
+    // sûrs à lire depuis le thread principal via `.collectAsState()`.
+    val detectionLast: StateFlow<LastDetection?> get() = graph.detectionState.last
+    val capturePendingAt: StateFlow<Long?> get() = graph.capture.pendingAt
+    val captureLastFile: StateFlow<File?> get() = graph.capture.lastFile
+
+    fun zone(): ZoneId = graph.clock.zone()
+
+    /** Demande une capture de structure dans [delayMillis] ms, sur l'horloge du graphe (jamais `System.currentTimeMillis()`). */
+    fun requestCapture(delayMillis: Long) { graph.capture.request(delayMillis, graph.clock.now().toEpochMilli()) }
+
+    /** Liste les captures enregistrées sur disque : I/O fichier, donc hors thread principal. */
+    suspend fun captureCount(): Int = withContext(Dispatchers.IO) { graph.capture.list().size }
 
     private fun compute(): HomeUiState {
         val now = graph.clock.now()
