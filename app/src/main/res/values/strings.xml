@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Rehab</string>
+    <string name="accessibility_service_description">Rehab lit l\'écran d\'Instagram et de X pour masquer les Reels, les posts suggérés et l\'accueil de X selon tes horaires et ton quota. Aucune donnée ne quitte le téléphone.</string>
 </resources>
