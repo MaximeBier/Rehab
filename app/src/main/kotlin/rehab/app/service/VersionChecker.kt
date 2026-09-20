@@ -6,6 +6,7 @@ import rehab.domain.model.Event
 import rehab.domain.ports.EventLog
 import rehab.domain.time.Clock
 import rehab.rules.RuleCatalog
+import java.time.Duration
 
 fun interface InstalledVersions {
     fun versionOf(packageName: String): String?
@@ -33,11 +34,19 @@ class VersionChecker(
             degraded.onVersionCheck(pkg, inRange = true)
             return@map AppStatus(pkg, installed = false, version = null, inRange = false)
         }
+        // Capturé avant la mutation : sert à détecter la transition « en plage / hors plage »,
+        // seul moment où l'on doit (re)notifier — y compris si l'app repasse en plage puis en
+        // ressort avec la même version.
+        val wasOutOfRangeOnVersion = degraded.reason(pkg) == "version"
         val inRange = rules.testedVersions.contains(version)
         degraded.onVersionCheck(pkg, inRange)
-        if (!inRange) {
-            val alreadyLogged = events.all().any { it is Event.RulesOutOfRange && it.packageName == pkg && it.version == version }
-            if (!alreadyLogged) {
+        if (!inRange && !wasOutOfRangeOnVersion) {
+            // Lecture bornée (et non events.all()) : garde-fou contre un double appel très
+            // rapproché de checkAll() pour la même entrée hors plage, sans bloquer un nouveau
+            // cycle en-plage -> hors-plage plus tard (couvert par wasOutOfRangeOnVersion ci-dessus).
+            val recentlyLogged = events.since(clock.now().minus(DEDUPE_WINDOW))
+                .any { it is Event.RulesOutOfRange && it.packageName == pkg && it.version == version }
+            if (!recentlyLogged) {
                 events.append(Event.RulesOutOfRange(clock.now(), pkg, version))
                 notifier.notifyOutOfRange(pkg, version)
             }
@@ -46,4 +55,8 @@ class VersionChecker(
     }
 
     fun versionOf(packageName: String): String = versions.versionOf(packageName) ?: "?"
+
+    private companion object {
+        val DEDUPE_WINDOW: Duration = Duration.ofSeconds(5)
+    }
 }

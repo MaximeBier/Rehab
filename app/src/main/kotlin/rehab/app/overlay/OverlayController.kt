@@ -15,8 +15,13 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import rehab.domain.time.Clock
 
-class OverlayController(private val service: AccessibilityService, private val callbacks: Callbacks) {
+class OverlayController(
+    private val service: AccessibilityService,
+    private val clock: Clock,
+    private val callbacks: Callbacks,
+) {
     interface Callbacks {
         fun onBack()
         fun onHoldCompleted()
@@ -24,10 +29,14 @@ class OverlayController(private val service: AccessibilityService, private val c
 
     private val main = Handler(Looper.getMainLooper())
     private val wm get() = service.getSystemService(WindowManager::class.java)
-    private var view: ComposeView? = null
-    private var owner: OverlayLifecycleOwner? = null
+
+    // Lus depuis isShowing, potentiellement depuis un autre thread que celui du Handler principal
+    // (p. ex. le thread moteur du service d'accessibilité de la tâche 22) : volatile pour éviter
+    // qu'un appelant hors du thread principal voie une valeur périmée juste après un show()/hide() posté.
+    @Volatile private var view: ComposeView? = null
+    @Volatile private var owner: OverlayLifecycleOwner? = null
+    @Volatile private var currentHeight: Int = WindowManager.LayoutParams.MATCH_PARENT
     private var state by mutableStateOf<OverlayState?>(null)
-    private var currentHeight: Int = WindowManager.LayoutParams.MATCH_PARENT
 
     val isShowing: Boolean get() = view != null
 
@@ -56,7 +65,14 @@ class OverlayController(private val service: AccessibilityService, private val c
                 setViewTreeViewModelStoreOwner(lifecycle)
                 setContent {
                     MaterialTheme {
-                        state?.let { BlockOverlay(it, onBack = callbacks::onBack, onHoldCompleted = callbacks::onHoldCompleted) }
+                        state?.let {
+                            BlockOverlay(
+                                it,
+                                nowMillis = { clock.now().toEpochMilli() },
+                                onBack = callbacks::onBack,
+                                onHoldCompleted = callbacks::onHoldCompleted,
+                            )
+                        }
                     }
                 }
             }
@@ -68,6 +84,7 @@ class OverlayController(private val service: AccessibilityService, private val c
             } catch (e: Exception) {
                 Log.e("Rehab", "Overlay impossible", e)
                 lifecycle.stop()
+                state = null
                 callbacks.onBack()
             }
         } else if (height != currentHeight) {
