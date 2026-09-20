@@ -18,7 +18,15 @@ android {
         versionName = "0.1.0"
     }
     buildTypes {
-        release { isMinifyEnabled = false }
+        release {
+            isMinifyEnabled = false
+            // Signature debug réutilisée pour le release (revue finale, mineur) : sans signingConfig,
+            // assembleRelease produit un APK non signé, installable nulle part. Ce n'est pas une clé de
+            // production — juste ce qu'il faut pour qu'assembleRelease produise un artefact installable
+            // en V1 (usage personnel, pas de publication sur un store). À remplacer par une vraie
+            // signingConfig de release avant toute distribution hors du téléphone de développement.
+            signingConfig = signingConfigs.getByName("debug")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -53,4 +61,7 @@ dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    // FakeClock / InMemory*Repo vivent en java-test-fixtures du module domain (revue finale, mineur) :
+    // elles ne doivent pas partir dans l'APK (le build release n'est pas minifié).
+    testImplementation(testFixtures(project(":domain")))
 }
