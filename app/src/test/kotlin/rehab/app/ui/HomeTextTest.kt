@@ -46,11 +46,11 @@ class HomeTextTest {
 
     @Test fun outOfRangeMessageDependsOnPackage() {
         assertEquals(
-            "Instagram 500.0 hors plage testée : Instagram est bloqué en entier en attendant une mise à jour des règles.",
+            "Instagram 500.0 hors plage testée : les règles de détection ne couvrent plus cette version, le blocage peut être incomplet en attendant une mise à jour des règles.",
             HomeText.outOfRangeMessage("com.instagram.android", "500.0"),
         )
         assertEquals(
-            "X 20.0 hors plage testée : X est bloqué en entier en attendant une mise à jour des règles.",
+            "X 20.0 hors plage testée : les règles de détection ne couvrent plus cette version, le blocage peut être incomplet en attendant une mise à jour des règles.",
             HomeText.outOfRangeMessage("com.twitter.android", "20.0"),
         )
     }

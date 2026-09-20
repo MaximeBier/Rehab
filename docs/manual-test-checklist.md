@@ -176,9 +176,11 @@ l'enlever rendrait le téléphone inutilisable. Provoquer un blocage (quota ou n
 
 **Piège connu, pas un bug** : les lignes Instagram/X de l'onboarding (« Instagram reconnue »,
 « Instagram hors plage testée », etc.) restent vides tant que le service d'accessibilité n'a
-jamais tourné au moins une fois — ces informations viennent de l'observation réelle des deux
-apps par le service, qui n'a encore rien observé sur une installation neuve. Elles apparaissent
-après la première activation du service et un premier passage sur Instagram ou X.
+jamais été activé (ou pendant le bref instant où le système est en train de le connecter) — ces
+informations viennent d'une vérification de version faite une fois à la connexion du service
+(`VersionChecker.checkAll()`, appelée depuis `onServiceConnected()`), une simple lecture du
+gestionnaire de paquets Android, sans rapport avec l'ouverture d'Instagram ou de X. Elles
+apparaissent dès l'activation du service, sans qu'il soit nécessaire d'ouvrir les deux apps.
 
 ---
 

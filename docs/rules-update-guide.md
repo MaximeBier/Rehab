@@ -8,8 +8,9 @@ vérifier que rien d'autre ne casse.
 
 **Symptômes qui doivent déclencher cette procédure :**
 - Reels ou l'accueil X ne sont plus bloqués (le quota ou la nuit n'ont pourtant pas expiré).
-- L'Accueil de Rehab affiche un bandeau « … hors plage testée : … est bloqué en entier en
-  attendant une mise à jour des règles. ».
+- L'Accueil de Rehab affiche un bandeau « … hors plage testée : les règles de détection ne
+  couvrent plus cette version, le blocage peut être incomplet en attendant une mise à jour des
+  règles. ».
 - L'écran Debug affiche « Écran : inconnu » sur un écran qui devrait pourtant être reconnu
   (accueil, DM, profil…).
 - Une notification Android « Règles à mettre à jour pour Instagram/X … » apparaît.
@@ -43,6 +44,25 @@ Rehab considère qu'il ne peut plus faire confiance à ses propres règles pour 
 Une notification est envoyée (une seule fois par nouvelle version, cf. `VersionChecker`), et
 l'Accueil affiche le message d'avertissement. C'est volontaire : mieux vaut prévenir que bloquer
 au hasard un écran mal reconnu, ou pire, laisser passer un Reels non détecté sans le signaler.
+
+**Ce que le mode dégradé fait réellement aujourd'hui, à ne pas surestimer** : passer en mode
+dégradé ne bloque **pas** l'application en entier. Techniquement, il ne fait qu'une chose : pour
+une `TargetRule` qui déclare `degradedFallback = true`, l'écran est considéré comme atteint même
+si son `triggerMatchers` habituel ne matche rien (`ScreenDetector.detect`, voir
+`RuleModel.TargetRule`). Dans le catalogue actuel :
+- **Instagram** : seule `InstagramRules.SUGGESTED` (l'accueil, poussé en mode « suggestions »)
+  déclare `degradedFallback = true` — c'est le seul écran renforcé par le mode dégradé. Reels est
+  bloqué de toute façon, dégradé ou non (son `triggerMatchers` est vide, donc toujours déclenché
+  dès que l'écran Reels est reconnu). DM, profil et recherche restent des `knownScreens` : jamais
+  bloqués, dégradé ou non.
+- **X** : aucune règle de `TwitterRules.kt` ne déclare `degradedFallback = true`. Sortir de
+  `testedVersions` sur X ajoute donc **la notification et le bandeau, mais aucun blocage
+  supplémentaire** — `TwitterHome` continue de bloquer normalement tant que sa règle reconnaît
+  encore l'écran (son `triggerMatchers` est aussi vide), mais rien d'autre n'est renforcé.
+
+Une nouvelle règle qui doit rester bloquée même en mode dégradé (par exemple si un futur écran a
+un `triggerMatchers` non vide) doit donc explicitement poser `degradedFallback = true` — ce n'est
+jamais automatique.
 
 ## Piège n°1 : un matcher qui attrape le mauvais élément
 
