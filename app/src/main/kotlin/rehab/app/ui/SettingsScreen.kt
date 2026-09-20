@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,27 +23,41 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import rehab.app.di.AppGraph
-import rehab.domain.model.BlockReason
-import rehab.domain.model.Decision
+import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
 import java.time.DayOfWeek
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/**
+ * Toutes les données qui exigent une lecture Room (réglages, verrous nuit/quota) sont chargées une
+ * fois via [RehabViewModel.loadSettingsScreen] dans un `LaunchedEffect`, jamais dans le corps du
+ * Composable : celui-ci s'exécute sur le thread principal à chaque recomposition (chaque frappe),
+ * et la base de production n'autorise pas les requêtes sur ce thread.
+ */
 @Composable
-fun SettingsScreen(graph: AppGraph) {
+fun SettingsScreen(vm: RehabViewModel) {
     val scope = rememberCoroutineScope()
-    var form by remember { mutableStateOf(SettingsForm.from(graph.settingsRepo.get())) }
+    var form by remember { mutableStateOf(SettingsForm.from(Settings.DEFAULT)) }
+    var zone by remember { mutableStateOf(ZoneId.systemDefault()) }
+    var lockedNightRow by remember { mutableStateOf<DayOfWeek?>(null) }
+    var lockedNightEnd by remember { mutableStateOf<Instant?>(null) }
+    var quotaUnlockAt by remember { mutableStateOf<Instant?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
 
-    val now = graph.clock.now()
+    LaunchedEffect(Unit) {
+        val state = vm.loadSettingsScreen()
+        form = state.form
+        zone = state.zone
+        lockedNightRow = state.lockedNightRow
+        lockedNightEnd = state.lockedNightEnd
+        quotaUnlockAt = state.quotaUnlockAt
+    }
+
     val hm = DateTimeFormatter.ofPattern("HH:mm")
-    val lockedNightRow: DayOfWeek? = graph.schedule.activeNight(now)?.row?.dayOfWeek
-    val lockedNightUntil = graph.schedule.activeNight(now)?.end?.atZone(graph.clock.zone())?.format(hm)
-    val quotaBlock = (graph.policy.evaluate(now) as? Decision.Block)?.takeIf { it.reason == BlockReason.Quota }
+    val lockedNightUntil = lockedNightEnd?.atZone(zone)?.format(hm)
 
     Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp)) {
         Text("Nuit (coucher → lever du lendemain)", style = MaterialTheme.typography.titleMedium)
@@ -60,12 +75,12 @@ fun SettingsScreen(graph: AppGraph) {
 
         Spacer(Modifier.height(16.dp))
         Text("Quota glissant (minutes)", style = MaterialTheme.typography.titleMedium)
-        if (quotaBlock != null) Text("Quota en cours : plafonds non relevables avant ${quotaBlock.unlockAt.atZone(graph.clock.zone()).format(hm)}.", style = MaterialTheme.typography.bodySmall)
+        quotaUnlockAt?.let { Text("Quota en cours : plafonds non relevables avant ${it.atZone(zone).format(hm)}.", style = MaterialTheme.typography.bodySmall) }
         form.quotas.forEachIndexed { i, (dur, cap) ->
             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                OutlinedTextField(cap, { form = form.copy(quotas = form.quotas.toMutableList().also { l -> l[i] = it to dur }) }, Modifier.width(96.dp), label = { Text("Max") }, singleLine = true)
+                OutlinedTextField(cap, { form = form.copy(quotas = SettingsForm.withQuotaCap(form.quotas, i, it)) }, Modifier.width(96.dp), label = { Text("Max") }, singleLine = true)
                 Spacer(Modifier.width(8.dp))
-                OutlinedTextField(dur, { form = form.copy(quotas = form.quotas.toMutableList().also { l -> l[i] = cap to it }) }, Modifier.width(96.dp), label = { Text("Sur") }, singleLine = true)
+                OutlinedTextField(dur, { form = form.copy(quotas = SettingsForm.withQuotaDuration(form.quotas, i, it)) }, Modifier.width(96.dp), label = { Text("Sur") }, singleLine = true)
                 Spacer(Modifier.width(8.dp))
                 OutlinedButton({ form = form.copy(quotas = form.quotas.filterIndexed { j, _ -> j != i }) }, Modifier.padding(top = 8.dp)) { Text("−") }
             }
@@ -84,10 +99,9 @@ fun SettingsScreen(graph: AppGraph) {
             val parsed = form.toSettings()
             parsed.onFailure { message = it.message }.onSuccess { proposed ->
                 scope.launch {
-                    val result = withContext(Dispatchers.IO) { graph.settingsGuard.validate(proposed, graph.clock.now()) }
-                    when (result) {
-                        GuardResult.Accepted -> { graph.settingsRepo.set(proposed); message = "Enregistré." }
-                        is GuardResult.Rejected -> message = "${result.reason} : modifiable à partir de ${result.unlockAt.atZone(graph.clock.zone()).format(hm)}."
+                    when (val result = vm.saveSettings(proposed)) {
+                        GuardResult.Accepted -> message = "Enregistré."
+                        is GuardResult.Rejected -> message = "${result.reason} : modifiable à partir de ${result.unlockAt.atZone(zone).format(hm)}."
                     }
                 }
             }

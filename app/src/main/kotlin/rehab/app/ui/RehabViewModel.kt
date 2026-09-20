@@ -8,6 +8,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rehab.app.di.AppGraph
+import rehab.domain.model.BlockReason
+import rehab.domain.model.Decision
+import rehab.domain.model.Settings
+import rehab.domain.policy.GuardResult
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.ZoneId
 
 data class HomeUiState(
     val streak: Int = 0,
@@ -39,11 +46,47 @@ enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), J
  * qui pilote l'appel à [refreshNow] sur un `repeatOnLifecycle(STARTED)`, donc uniquement quand
  * l'écran Accueil est visible.
  */
-class RehabViewModel(val graph: AppGraph) : ViewModel() {
+class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     private val _home = MutableStateFlow(HomeUiState())
     val home: StateFlow<HomeUiState> = _home
 
     fun refreshNow() { viewModelScope.launch { _home.value = withContext(Dispatchers.IO) { compute() } } }
+
+    /** État initial de l'écran Réglages : réglages courants + verrous actifs, calculés hors thread principal. */
+    data class SettingsScreenState(
+        val form: SettingsForm,
+        val zone: ZoneId,
+        val lockedNightRow: DayOfWeek?,
+        val lockedNightEnd: Instant?,
+        val quotaUnlockAt: Instant?,
+    )
+
+    suspend fun loadSettingsScreen(): SettingsScreenState = withContext(Dispatchers.IO) {
+        val now = graph.clock.now()
+        val activeNight = graph.schedule.activeNight(now)
+        val quotaBlock = (graph.policy.evaluate(now) as? Decision.Block)?.takeIf { it.reason == BlockReason.Quota }
+        SettingsScreenState(
+            form = SettingsForm.from(graph.settingsRepo.get()),
+            zone = graph.clock.zone(),
+            lockedNightRow = activeNight?.row?.dayOfWeek,
+            lockedNightEnd = activeNight?.end,
+            quotaUnlockAt = quotaBlock?.unlockAt,
+        )
+    }
+
+    /** Valide puis, si accepté, persiste les réglages proposés. Le `current` implicite de `SettingsGuard` reste les réglages persistés. */
+    suspend fun saveSettings(proposed: Settings): GuardResult = withContext(Dispatchers.IO) {
+        val result = graph.settingsGuard.validate(proposed, graph.clock.now())
+        if (result is GuardResult.Accepted) graph.settingsRepo.set(proposed)
+        result
+    }
+
+    suspend fun loadJournal(): List<JournalLine> = withContext(Dispatchers.IO) {
+        val zone = graph.clock.zone()
+        val events = graph.eventLog.all().map { JournalLine(it.at.toEpochMilli(), JournalText.line(it, zone)) }
+        val usage = graph.usageLog.latest(200).map { JournalLine(it.start.toEpochMilli(), JournalText.line(it, zone)) }
+        (events + usage).sortedByDescending { it.atMillis }
+    }
 
     private fun compute(): HomeUiState {
         val now = graph.clock.now()

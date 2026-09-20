@@ -55,6 +55,17 @@ data class SettingsForm(
         fun dayName(d: DayOfWeek): String =
             d.getDisplayName(TextStyle.FULL, Locale.FRENCH).replaceFirstChar { it.titlecase(Locale.FRENCH) }
 
+        /**
+         * [quotas] respecte la convention (durée, plafond). Ces deux fonctions sont le seul point
+         * d'écriture d'une ligne : elles évitent qu'un appel d'UI construise la paire dans le
+         * mauvais ordre et permute silencieusement durée et plafond.
+         */
+        fun withQuotaCap(quotas: List<Pair<String, String>>, index: Int, cap: String): List<Pair<String, String>> =
+            quotas.toMutableList().also { it[index] = it[index].first to cap }
+
+        fun withQuotaDuration(quotas: List<Pair<String, String>>, index: Int, duration: String): List<Pair<String, String>> =
+            quotas.toMutableList().also { it[index] = duration to it[index].second }
+
         private fun parseTime(text: String, label: String): LocalTime =
             runCatching { LocalTime.parse(text.trim(), hm) }.getOrElse { error("$label : heure invalide (attendu HH:mm)") }
 

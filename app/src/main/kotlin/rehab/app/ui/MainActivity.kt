@@ -70,8 +70,8 @@ fun RehabApp(vm: RehabViewModel) {
         Box(Modifier.padding(padding)) {
             when (tab) {
                 Tab.Accueil -> HomeScreen(home)
-                Tab.Reglages -> SettingsScreen(vm.graph)
-                Tab.Journal -> JournalScreen(vm.graph)
+                Tab.Reglages -> SettingsScreen(vm)
+                Tab.Journal -> JournalScreen(vm)
                 Tab.Debug -> Text("Debug (à venir)")
             }
         }
