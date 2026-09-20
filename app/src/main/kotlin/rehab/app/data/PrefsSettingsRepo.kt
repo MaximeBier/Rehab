@@ -11,7 +11,7 @@ class PrefsSettingsRepo(private val prefs: SharedPreferences) : SettingsRepo {
 
     override fun set(settings: Settings) {
         cached = settings
-        prefs.edit().putString(KEY, SettingsCodec.encode(settings)).commit()
+        prefs.edit().putString(KEY, SettingsCodec.encode(settings)).apply()
     }
 
     private companion object { const val KEY = "settings_json" }

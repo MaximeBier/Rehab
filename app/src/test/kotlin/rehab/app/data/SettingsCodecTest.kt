@@ -27,4 +27,11 @@ class SettingsCodecTest {
     @Test fun decodeGarbageFallsBackToDefault() {
         assertEquals(Settings.DEFAULT, SettingsCodec.decodeOrDefault("{not json"))
     }
+
+    /** Schéma antérieur ou migration ratée : JSON syntaxiquement valide mais champ manquant. */
+    @Test fun decodeValidJsonMissingFieldFallsBackToDefault() {
+        val encoded = SettingsCodec.encode(Settings.DEFAULT)
+        val missingField = encoded.replaceFirst(Regex(""","jokersPerDay":\d+"""), "")
+        assertEquals(Settings.DEFAULT, SettingsCodec.decodeOrDefault(missingField))
+    }
 }
