@@ -23,6 +23,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
@@ -32,10 +37,17 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /**
- * Toutes les données qui exigent une lecture Room (réglages, verrous nuit/quota) sont chargées une
- * fois via [RehabViewModel.loadSettingsScreen] dans un `LaunchedEffect`, jamais dans le corps du
+ * Toutes les données qui exigent une lecture Room (réglages, verrous nuit/quota) sont chargées
+ * via [RehabViewModel.loadSettingsScreen]/[RehabViewModel.loadLocks], jamais dans le corps du
  * Composable : celui-ci s'exécute sur le thread principal à chaque recomposition (chaque frappe),
  * et la base de production n'autorise pas les requêtes sur ce thread.
+ *
+ * Les verrous (nuit active, quota en cours) sont recalculés chaque seconde tant que l'écran est
+ * visible, sur le même principe que le rafraîchissement de l'Accueil dans `MainActivity`
+ * (`repeatOnLifecycle(STARTED)` + `delay(1000)`) : sans ça, un utilisateur qui reste sur l'écran
+ * pendant qu'une nuit ou un quota démarre ne verrait aucun cadenas et ne comprendrait pas le refus
+ * à l'enregistrement. Seuls les verrous sont rafraîchis par cette boucle, jamais `form` : la saisie
+ * en cours de l'utilisateur n'est chargée qu'une fois, à l'ouverture de l'écran.
  */
 @Composable
 fun SettingsScreen(vm: RehabViewModel) {
@@ -51,9 +63,22 @@ fun SettingsScreen(vm: RehabViewModel) {
         val state = vm.loadSettingsScreen()
         form = state.form
         zone = state.zone
-        lockedNightRow = state.lockedNightRow
-        lockedNightEnd = state.lockedNightEnd
-        quotaUnlockAt = state.quotaUnlockAt
+        lockedNightRow = state.locks.lockedNightRow
+        lockedNightEnd = state.locks.lockedNightEnd
+        quotaUnlockAt = state.locks.quotaUnlockAt
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(vm, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (isActive) {
+                val locks = vm.loadLocks()
+                lockedNightRow = locks.lockedNightRow
+                lockedNightEnd = locks.lockedNightEnd
+                quotaUnlockAt = locks.quotaUnlockAt
+                delay(1000)
+            }
+        }
     }
 
     val hm = DateTimeFormatter.ofPattern("HH:mm")
