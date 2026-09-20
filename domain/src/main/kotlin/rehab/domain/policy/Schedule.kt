@@ -9,7 +9,7 @@ import java.time.ZoneId
 
 class Schedule(
     private val nights: () -> Map<DayOfWeek, NightWindow>,
-    private val zone: ZoneId,
+    val zone: ZoneId,
 ) {
     data class NightPeriod(val row: LocalDate, val start: Instant, val end: Instant)
 
