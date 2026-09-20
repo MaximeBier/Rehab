@@ -29,6 +29,13 @@ class UsageTracker(
             lastPersist = now
             return
         }
+        // Intervalle resté ouvert (crash, service tué) : sa fin persistée est trop ancienne pour être un tick récent.
+        if (Duration.between(open.end, now) > persistEvery.multipliedBy(2)) {
+            finish(open.copy(open = false))
+            usage.open(target, now)
+            lastPersist = now
+            return
+        }
         val last = lastPersist
         if (last == null || Duration.between(last, now) >= persistEvery) {
             usage.update(open.copy(end = now))

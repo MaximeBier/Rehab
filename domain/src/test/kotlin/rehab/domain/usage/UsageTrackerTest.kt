@@ -63,4 +63,17 @@ class UsageTrackerTest {
         assertFalse(i.open)
         assertEquals(t0.plusSeconds(10), i.end)
     }
+
+    @Test fun `intervalle reste ouvert avant un crash n est pas prolonge sans recover`() {
+        tracker.onDetected(reels, t0)
+        tracker.onDetected(reels, t0.plusSeconds(10))           // dernier tick persisté : t0+10s
+        val fresh = UsageTracker(log)                            // nouveau processus, pas de recover()
+        fresh.onDetected(reels, t0.plusSeconds(2 * 3600))
+        val all = log.intervalsSince(Instant.EPOCH)
+        assertEquals(2, all.size)
+        assertEquals(t0.plusSeconds(10), all[0].end)
+        assertFalse(all[0].open)
+        assertEquals(t0.plusSeconds(2 * 3600), all[1].start)
+        assertTrue(all[1].open)
+    }
 }
