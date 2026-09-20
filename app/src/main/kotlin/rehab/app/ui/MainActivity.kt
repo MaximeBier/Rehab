@@ -72,7 +72,7 @@ fun RehabApp(vm: RehabViewModel) {
                 Tab.Accueil -> HomeScreen(home)
                 Tab.Reglages -> SettingsScreen(vm)
                 Tab.Journal -> JournalScreen(vm)
-                Tab.Debug -> Text("Debug (à venir)")
+                Tab.Debug -> DebugScreen(vm)
             }
         }
     }

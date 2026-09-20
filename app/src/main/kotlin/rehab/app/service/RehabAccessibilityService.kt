@@ -36,6 +36,18 @@ import java.time.Duration
  */
 class RehabAccessibilityService : AccessibilityService() {
 
+    companion object {
+        /**
+         * Instance courante, utilisée uniquement par l'écran Debug pour proposer un overlay de
+         * test quand le service est actif. `@Volatile` car écrite depuis le thread principal
+         * (cycle de vie du service) et lue depuis un Composable, potentiellement sur un autre
+         * thread de recomposition. Remise à `null` dans `onUnbind` : sans ça, cette référence
+         * statique retiendrait le service (et tout `graph`) indéfiniment après sa fin de vie.
+         */
+        @Volatile var instance: RehabAccessibilityService? = null
+            private set
+    }
+
     private lateinit var graph: AppGraph
     private lateinit var overlay: OverlayController
     private val engineThread = HandlerThread("rehab-engine").apply { start() }
@@ -51,6 +63,7 @@ class RehabAccessibilityService : AccessibilityService() {
     }
 
     override fun onServiceConnected() {
+        instance = this
         // Le système peut rappeler onServiceConnected() sur la même instance sans onUnbind()
         // intermédiaire (observé sur certains OEM après un crash du service d'accessibilité
         // système) : on ne suppose pas un appel unique, on rend l'initialisation idempotente.
@@ -95,12 +108,37 @@ class RehabAccessibilityService : AccessibilityService() {
                 graph.eventLog.append(Event.ServiceOff(graph.clock.now()))
             }
         }
+        instance = null
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
         engineThread.quitSafely()
         super.onDestroy()
+    }
+
+    /**
+     * Affiche un overlay de blocage factice pendant 5 s, pour vérifier son rendu sans attendre
+     * une vraie nuit/un vrai quota (écran Debug). L'appui long dessus déclenche un vrai
+     * `commit()` (joker ou relapse) : c'est le même chemin que l'overlay réel, volontairement.
+     */
+    fun showTestOverlay() = engine.post {
+        val now = graph.clock.now()
+        val settings = graph.settingsRepo.get()
+        overlay.show(
+            OverlayState(
+                reason = rehab.domain.model.BlockReason.Quota,
+                unlockAtMillis = now.plusSeconds(90).toEpochMilli(),
+                streak = graph.streak.current(now),
+                best = graph.streak.best(now),
+                outcome = graph.unlock.preview(now),
+                holdMillis = settings.holdDuration.toMillis(),
+                navBarTop = null,
+                zone = graph.clock.zone(),
+                jokerMinutes = settings.jokerDuration.toMinutes(),
+            ),
+        )
+        engine.postDelayed({ overlay.hide() }, 5000)
     }
 
     // ---- moteur (thread rehab-engine) ----
