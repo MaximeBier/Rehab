@@ -36,8 +36,26 @@ sealed interface Matcher {
         override fun matches(node: Node, all: List<Node>) = options.any { it.matches(node, all) }
     }
 
+    /** Le nœud doit matcher tous les [options] (contrairement à [AnyOf], qui n'en exige qu'un). */
+    data class AllOf(val options: List<Matcher>) : Matcher {
+        override fun matches(node: Node, all: List<Node>) = options.all { it.matches(node, all) }
+    }
+
     data object Any : Matcher {
         override fun matches(node: Node, all: List<Node>) = true
+    }
+
+    /**
+     * Le haut du nœud est situé dans la fraction basse de l'écran (hauteur déduite du plus grand `bottom`
+     * du snapshot, faute de dimensions d'écran explicites). Sert à distinguer une barre de navigation basse
+     * d'un contrôle de même forme (onglets internes, sélecteurs) situé ailleurs à l'écran.
+     */
+    data class NearBottom(val minFraction: Double = 0.75) : Matcher {
+        override fun matches(node: Node, all: List<Node>): Boolean {
+            val screenHeight = all.maxOfOrNull { it.bounds.bottom } ?: return false
+            if (screenHeight <= 0) return false
+            return node.bounds.top >= minFraction * screenHeight
+        }
     }
 
     /** Le nœud matche [inner] et il existe un autre nœud matchant [outer] dont les bounds englobent les siens. */

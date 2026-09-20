@@ -14,7 +14,14 @@ object TwitterRules {
     // X 12.27 est en Compose : aucun resource-id. La barre du bas est une suite de conteneurs android.view.View ;
     // le conteneur de l'onglet actif porte selected=true sans libellé, et contient un nœud dont le content-desc
     // est le nom de l'onglet (« Accueil », « Explorer », « Grok », « Onglet Notifications », « Messages »).
-    private fun bottomTabActive(label: Regex) = Matcher.Within(Matcher.Selected(Matcher.Any), Matcher.ContentDesc(label))
+    // Un sélecteur d'onglets interne (ex. « Pour vous »/« Abonnements » en haut de x_home_*.xml, ou le sélecteur
+    // de x_search.xml en bounds [21,300][254,426]) peut aussi porter selected=true avec le même libellé imbriqué :
+    // on borne donc le conteneur sélectionné à la fraction basse de l'écran pour ne retenir que la vraie barre
+    // de navigation (top ≈ 2127 sur une hauteur d'écran de 2400, contre top ≈ 300 pour un sélecteur interne).
+    private fun bottomTabActive(label: Regex) = Matcher.Within(
+        outer = Matcher.AllOf(listOf(Matcher.Selected(Matcher.Any), Matcher.NearBottom())),
+        inner = Matcher.ContentDesc(label),
+    )
 
     private val homeTab = bottomTabActive(Regex("^(Accueil|Home)$"))
 
