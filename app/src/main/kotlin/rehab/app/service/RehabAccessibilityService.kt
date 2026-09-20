@@ -26,6 +26,13 @@ import java.time.Duration
  * Tout le travail de décision tourne sur le HandlerThread "rehab-engine", jamais sur le thread
  * principal ; [OverlayController] repasse lui-même sur le thread principal pour les opérations
  * de fenêtre.
+ *
+ * `graph.usageTracker`, `graph.degraded` et `graph.versionChecker` ne sont accédés que depuis ce
+ * thread "rehab-engine" (via [process], [onServiceConnected] et [onUnbind], qui postent
+ * systématiquement sur `engine`) : c'est ce confinement à un seul thread qui rend correcte
+ * l'absence de synchronisation dans ces classes. Un futur appelant côté UI/thread principal ne
+ * doit pas les toucher directement — passer par un `engine.post { … }` ou par un état exposé en
+ * `StateFlow` (`detectionState`, `serviceState`) comme le reste du service.
  */
 class RehabAccessibilityService : AccessibilityService() {
 
@@ -44,7 +51,11 @@ class RehabAccessibilityService : AccessibilityService() {
     }
 
     override fun onServiceConnected() {
+        // Le système peut rappeler onServiceConnected() sur la même instance sans onUnbind()
+        // intermédiaire (observé sur certains OEM après un crash du service d'accessibilité
+        // système) : on ne suppose pas un appel unique, on rend l'initialisation idempotente.
         graph = (application as RehabApp).graph
+        if (::overlay.isInitialized) overlay.hide()
         overlay = OverlayController(
             this,
             graph.clock,
@@ -53,6 +64,7 @@ class RehabAccessibilityService : AccessibilityService() {
                 override fun onHoldCompleted() { engine.post { graph.unlock.commit(graph.clock.now()); process() } }
             },
         )
+        runCatching { unregisterReceiver(screenOff) }
         registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
         graph.serviceState.connected.value = true
         engine.post {
