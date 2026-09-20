@@ -63,7 +63,7 @@ Défauts :
 | 30 min | 5 min |
 | 6 h | 30 min |
 
-**Verrou d'édition.** Tant que la décision courante est `Block(Quota)`, on ne peut ni relever un plafond, ni supprimer une fenêtre en dépassement, ni modifier la durée d'une fenêtre en dépassement. Durcir (baisser un plafond, ajouter une fenêtre) reste possible. L'écran Réglages affiche les champs verrouillés avec la raison (« Modifiable dans 18 min »).
+**Verrou d'édition.** Tant qu'au moins une fenêtre de quota est en dépassement (même si un joker, un relapse ou la plage nocturne masque ce blocage), on ne peut ni relever un plafond, ni supprimer une fenêtre en dépassement, ni modifier la durée d'une fenêtre en dépassement. Durcir (baisser un plafond, ajouter une fenêtre) reste possible. L'écran Réglages affiche les champs verrouillés avec la raison (« Modifiable dans 18 min »). Le déverrouillage indiqué est l'instant où toutes les fenêtres repassent sous leur plafond.
 
 `unlockAt` par fenêtre : premier instant `t ≥ now` tel que la somme sur `[t - durée, t]` repasse strictement sous le plafond. Calcul par balayage des bornes de début d'intervalles (la somme ne décroît qu'à ces instants). `unlockAt` global = max des fenêtres en dépassement.
 

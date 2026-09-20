@@ -28,31 +28,31 @@ class SettingsGuardTest {
     private val usage = InMemoryUsageLog()
     private val unlock = UnlockPolicy(settings, schedule, events, Streak(schedule, events, InMemoryStreakRecordRepo(at(10, 12))))
     private val engine = PolicyEngine(settings, schedule, SlidingQuota(), unlock, usage)
-    private val guard = SettingsGuard(zone, engine)
+    private val guard = SettingsGuard(schedule, engine)
 
     private fun withMonday(w: NightWindow) = current.copy(nights = nights + (DayOfWeek.MONDAY to w))
 
     @Test fun `raccourcir la plage en cours est refuse`() {
-        val r = guard.validate(current, withMonday(NightWindow(LocalTime.of(23, 0), LocalTime.of(6, 0))), at(21, 23, 30))
+        val r = guard.validate(withMonday(NightWindow(LocalTime.of(23, 0), LocalTime.of(6, 0))), at(21, 23, 30))
         assertIs<GuardResult.Rejected>(r)
         assertEquals(at(22, 7, 30), r.unlockAt)
     }
 
     @Test fun `allonger la plage en cours est accepte`() {
-        assertEquals(GuardResult.Accepted, guard.validate(current, withMonday(NightWindow(LocalTime.of(22, 0), LocalTime.of(8, 0))), at(21, 23, 30)))
+        assertEquals(GuardResult.Accepted, guard.validate(withMonday(NightWindow(LocalTime.of(22, 0), LocalTime.of(8, 0))), at(21, 23, 30)))
     }
 
     @Test fun `vider la plage en cours est refuse`() {
-        assertIs<GuardResult.Rejected>(guard.validate(current, withMonday(NightWindow(LocalTime.of(8, 0), LocalTime.of(8, 0))), at(21, 23, 30)))
+        assertIs<GuardResult.Rejected>(guard.validate(withMonday(NightWindow(LocalTime.of(8, 0), LocalTime.of(8, 0))), at(21, 23, 30)))
     }
 
     @Test fun `modifier un autre jour pendant la nuit est accepte`() {
         val proposed = current.copy(nights = nights + (DayOfWeek.WEDNESDAY to NightWindow(LocalTime.of(1, 0), LocalTime.of(5, 0))))
-        assertEquals(GuardResult.Accepted, guard.validate(current, proposed, at(21, 23, 30)))
+        assertEquals(GuardResult.Accepted, guard.validate(proposed, at(21, 23, 30)))
     }
 
     @Test fun `hors nuit tout changement d horaire est accepte`() {
-        assertEquals(GuardResult.Accepted, guard.validate(current, withMonday(NightWindow(LocalTime.of(23, 0), LocalTime.of(6, 0))), at(21, 15)))
+        assertEquals(GuardResult.Accepted, guard.validate(withMonday(NightWindow(LocalTime.of(23, 0), LocalTime.of(6, 0))), at(21, 15)))
     }
 
     private fun exceedQuota() {
@@ -63,23 +63,39 @@ class SettingsGuardTest {
     @Test fun `relever un plafond pendant un blocage quota est refuse`() {
         exceedQuota()
         val proposed = current.copy(quotaWindows = listOf(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(10)), current.quotaWindows[1]))
-        assertIs<GuardResult.Rejected>(guard.validate(current, proposed, at(21, 15, 5)))
+        assertIs<GuardResult.Rejected>(guard.validate(proposed, at(21, 15, 5)))
     }
 
     @Test fun `supprimer la fenetre depassee est refuse`() {
         exceedQuota()
         val proposed = current.copy(quotaWindows = listOf(current.quotaWindows[1]))
-        assertIs<GuardResult.Rejected>(guard.validate(current, proposed, at(21, 15, 5)))
+        assertIs<GuardResult.Rejected>(guard.validate(proposed, at(21, 15, 5)))
     }
 
     @Test fun `baisser un plafond ou ajouter une fenetre pendant le blocage est accepte`() {
         exceedQuota()
         val proposed = current.copy(quotaWindows = listOf(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(3)), current.quotaWindows[1], QuotaWindow(Duration.ofHours(1), Duration.ofMinutes(10))))
-        assertEquals(GuardResult.Accepted, guard.validate(current, proposed, at(21, 15, 5)))
+        assertEquals(GuardResult.Accepted, guard.validate(proposed, at(21, 15, 5)))
     }
 
     @Test fun `hors blocage quota tout changement est accepte`() {
         val proposed = current.copy(quotaWindows = emptyList())
-        assertEquals(GuardResult.Accepted, guard.validate(current, proposed, at(21, 15)))
+        assertEquals(GuardResult.Accepted, guard.validate(proposed, at(21, 15)))
+    }
+
+    @Test fun `quota depasse pendant un joker actif reste verrouille`() {
+        exceedQuota()
+        unlock.commit(at(21, 15, 5))                       // joker : evaluate() renvoie Allow
+        val proposed = current.copy(quotaWindows = listOf(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(10)), current.quotaWindows[1]))
+        val r = guard.validate(proposed, at(21, 15, 7))
+        assertIs<GuardResult.Rejected>(r)
+        assertEquals(at(21, 15, 30).plusSeconds(1), r.unlockAt)   // fin du dépassement de la fenêtre 30 min, pas la fin du joker
+    }
+
+    @Test fun `quota depasse pendant la nuit reste verrouille`() {
+        val i = usage.open(TargetId("InstagramReels"), at(21, 22, 50))
+        usage.update(i.copy(end = at(21, 22, 55), open = false))
+        val proposed = current.copy(quotaWindows = listOf(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(10)), current.quotaWindows[1]))
+        assertIs<GuardResult.Rejected>(guard.validate(proposed, at(21, 23, 5)))   // Block(Night) côté engine, verrou quota quand même
     }
 }
