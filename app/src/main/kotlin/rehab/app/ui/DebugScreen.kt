@@ -38,7 +38,9 @@ fun DebugScreen(vm: RehabViewModel) {
     val last by vm.detectionLast.collectAsState()
     val pending by vm.capturePendingAt.collectAsState()
     val lastFile by vm.captureLastFile.collectAsState()
-    val zone = remember { vm.zone() }
+    // Lu à chaque recomposition (appel pur, sans I/O) plutôt que figé avec `remember` : le
+    // fuseau ne doit pas rester bloqué sur sa valeur de la première composition de l'écran.
+    val zone = vm.zone()
     val hms = remember { DateTimeFormatter.ofPattern("HH:mm:ss") }
     var captureCount by remember { mutableStateOf(0) }
 
