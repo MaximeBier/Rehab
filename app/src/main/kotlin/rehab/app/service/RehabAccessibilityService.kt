@@ -19,6 +19,30 @@ import rehab.rules.Detection
 import java.time.Duration
 
 /**
+ * Décide si le compteur d'écran inconnu ([rehab.domain.degraded.DegradedModeTracker.onDetection])
+ * doit s'armer pour ce tick.
+ *
+ * Les `knownScreens` d'Instagram (voir `InstagramRules`) ne couvrent que les écrans avec barre
+ * d'onglets (`search`, `profile`, `dm`) : toute vue plein écran sans barre d'onglets (stories,
+ * détail de publication, commentaires, réglages, caméra) est donc "inconnue" au sens de
+ * [Detection.unknownScreen] alors qu'il s'agit d'un usage parfaitement ordinaire. Regarder des
+ * stories 30 s d'affilée ne doit pas faire basculer l'app en `degradedByUnknown` — un état qui ne
+ * se vide jamais et déclencherait ensuite la règle `SUGGESTED` (`degradedFallback = true`) sur
+ * tout l'onglet Accueil, fil d'abonnements compris.
+ *
+ * On n'arme donc le compteur sur un écran inconnu que lorsque la barre de navigation est présente
+ * ([Detection.navBarBounds] non nul) : c'est le signal que la structure de l'app a changé sous nos
+ * règles (spec §2.8), pas que l'utilisateur est simplement sur une vue plein écran connue pour ne
+ * pas en avoir.
+ *
+ * La troncature ([rehab.rules.Snapshot.truncated]) arme le compteur indépendamment de cette garde :
+ * une troncature sévère peut justement faire disparaître la barre de navigation de l'arbre capturé
+ * (nœuds coupés avant `maxDepth`/`maxNodes`), et doit rester fail-closed (voir [process]).
+ */
+internal fun shouldArmUnknownScreen(detection: Detection, truncated: Boolean): Boolean =
+    truncated || (detection.unknownScreen && detection.navBarBounds != null)
+
+/**
  * Pièce d'assemblage du pipeline : reçoit les événements d'accessibilité d'Instagram et de X,
  * construit un snapshot borné de l'arbre, détecte l'écran/la cible, applique la politique
  * (déblocage actif > nuit > quota) et pilote l'overlay de blocage.
@@ -206,7 +230,7 @@ class RehabAccessibilityService : AccessibilityService() {
         val degradedReasonBefore = graph.degraded.reason(pkg)
         val degraded = degradedReasonBefore != null
         val detection = graph.detector.detect(snapshot, degraded)
-        graph.degraded.onDetection(pkg, detection.unknownScreen || snapshot.truncated, now)
+        graph.degraded.onDetection(pkg, shouldArmUnknownScreen(detection, snapshot.truncated), now)
         // Relu après onDetection() : le seuil de 30s peut faire basculer en dégradé pendant cet
         // appel ; on publie l'état à jour, toujours calculé ici sur le thread "rehab-engine".
         val degradedReasonAfter = graph.degraded.reason(pkg)
