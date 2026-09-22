@@ -10,7 +10,6 @@ import kotlinx.coroutines.withContext
 import rehab.app.di.AppGraph
 import rehab.app.service.AppStatus
 import rehab.app.service.LastDetection
-import rehab.domain.model.Decision
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
 import rehab.domain.policy.StreakSummary
