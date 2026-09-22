@@ -1,0 +1,170 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "DS.dc.html": {
+      "h": 900,
+      "title": "Design system — Bronze mat",
+      "w": 560,
+      "x": 0,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 844,
+      "title": "Accueil — libre, record en cours",
+      "w": 390,
+      "x": 640,
+      "y": 0,
+      "is_interactive": true
+    },
+    "Accueil-Bloque.dc.html": {
+      "h": 844,
+      "title": "Accueil — bloqué, fenêtre 30 min pleine",
+      "w": 390,
+      "x": 0,
+      "y": 1260,
+      "is_interactive": true
+    },
+    "Accueil-Alertes.dc.html": {
+      "h": 844,
+      "title": "Accueil — service inactif + version hors plage (hors record)",
+      "w": 390,
+      "x": 470,
+      "y": 1260,
+      "is_interactive": true
+    },
+    "Reglages.dc.html": {
+      "h": 1240,
+      "title": "Réglages — verrous nuit et quota",
+      "w": 390,
+      "x": 0,
+      "y": 2520,
+      "is_interactive": true
+    },
+    "Journal.dc.html": {
+      "h": 844,
+      "title": "Journal — événements et usages",
+      "w": 390,
+      "x": 470,
+      "y": 2520,
+      "is_interactive": true
+    },
+    "Debug.dc.html": {
+      "h": 1000,
+      "title": "Debug — capture, détection, exports",
+      "w": 390,
+      "x": 940,
+      "y": 2520,
+      "is_interactive": true
+    },
+    "Overlay-Nuit.dc.html": {
+      "h": 844,
+      "title": "Overlay — Nuit (appui = relapse)",
+      "w": 390,
+      "x": 0,
+      "y": 4120
+    },
+    "Overlay-Quota.dc.html": {
+      "h": 844,
+      "title": "Overlay — Quota, joker disponible",
+      "w": 390,
+      "x": 470,
+      "y": 4120
+    },
+    "Overlay-Relapse.dc.html": {
+      "h": 844,
+      "title": "Overlay — Quota, jokers épuisés (appui = relapse)",
+      "w": 390,
+      "x": 940,
+      "y": 4120
+    },
+    "Etats-Bouton.dc.html": {
+      "h": 620,
+      "title": "Overlay — états du bouton d'appui long",
+      "w": 900,
+      "x": 2350,
+      "y": 4120
+    },
+    "Overlay-HorsRecord.dc.html": {
+      "h": 844,
+      "title": "Overlay — Nuit, hors record (anneau gris, pas de mention Record)",
+      "w": 390,
+      "x": 1410,
+      "y": 4120
+    },
+    "Overlay-Proto.dc.html": {
+      "h": 844,
+      "title": "Overlay — prototype interactif : maintenir pour voir l'escalade",
+      "w": 390,
+      "x": 1880,
+      "y": 4120,
+      "is_interactive": true
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-20T18:40:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "repo": {
+      "color": "blue",
+      "text": "Sources du projet\n\nRepo GitHub (public) :\nhttps://github.com/MaximeBier/Rehab\n\nSpec : docs/superpowers/specs/2026-09-19-rehab-v1-design.md\nPlan : docs/superpowers/plans/2026-09-19-rehab-v1.md\n\nPour toute nouvelle conversation sur ce canevas : cloner le repo et relire la spec avant de dessiner.",
+      "w": 340,
+      "x": 1110,
+      "y": 0
+    },
+    "titre-ds": {
+      "kind": "title1",
+      "maxW": 1030,
+      "text": "Rehab — design system et Accueil",
+      "w": 240,
+      "x": 0,
+      "y": -240
+    },
+    "titre-etats": {
+      "kind": "title1",
+      "maxW": 860,
+      "text": "Accueil — autres états",
+      "w": 240,
+      "x": 0,
+      "y": 1020
+    },
+    "titre-onglets": {
+      "kind": "title1",
+      "maxW": 1330,
+      "text": "Onglets — Réglages, Journal, Debug",
+      "w": 240,
+      "x": 0,
+      "y": 2280
+    },
+    "titre-overlay": {
+      "kind": "title1",
+      "maxW": 3250,
+      "text": "Overlay de blocage — par condition, hors record, prototype, états du bouton",
+      "w": 240,
+      "x": 0,
+      "y": 3880
+    }
+  },
+  "order": [
+    "DS.dc.html",
+    "Main.dc.html",
+    "Accueil-Bloque.dc.html",
+    "Accueil-Alertes.dc.html",
+    "Reglages.dc.html",
+    "Journal.dc.html",
+    "Debug.dc.html",
+    "Overlay-Nuit.dc.html",
+    "Overlay-Quota.dc.html",
+    "Overlay-Relapse.dc.html",
+    "Overlay-HorsRecord.dc.html",
+    "Overlay-Proto.dc.html",
+    "Etats-Bouton.dc.html"
+  ],
+  "pages": [],
+  "title": "Rehab"
+}

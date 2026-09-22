@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Option F Graphite — design system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Public Sans',system-ui,sans-serif;background:#1A1917;color:#EDE6D8}
+a{color:#EDE6D8}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 560px; height: 900px; box-sizing: border-box; padding: 36px 40px; display: flex; flex-direction: column; gap: 26px; background: #1A1917; color: #EDE6D8; font-family: 'Public Sans', system-ui, sans-serif;">
+
+<div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #EDE6D8; padding-bottom: 14px;">
+<div style="font-family: 'Young Serif', Georgia, serif; font-size: 36px; line-height: 1.05;">Graphite</div>
+<div style="font-size: 13px; color: #A19A8E;">Gris chaud, serif à empattements sur fond sombre, aucune couleur d'accent : la hiérarchie vient de la typo. Le rouge et l'ambre n'apparaissent que pour relapse et alertes.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-family: 'Courier Prime', monospace; font-size: 12px; color: #A19A8E;">COULEURS</div>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px;">
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #1A1917; border: 1px solid #33312C;"></div><div style="font-size: 11px; line-height: 1.3;">Graphite<br><span style="font-family: 'Courier Prime', monospace; color: #A19A8E;">1A1917</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #33312C;"></div><div style="font-size: 11px; line-height: 1.3;">Filet<br><span style="font-family: 'Courier Prime', monospace; color: #A19A8E;">33312C</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #A19A8E;"></div><div style="font-size: 11px; line-height: 1.3;">Discret<br><span style="font-family: 'Courier Prime', monospace; color: #A19A8E;">A19A8E</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #EDE6D8;"></div><div style="font-size: 11px; line-height: 1.3;">Lin<br><span style="font-family: 'Courier Prime', monospace; color: #A19A8E;">EDE6D8</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #E0525E;"></div><div style="font-size: 11px; line-height: 1.3;">Relapse<br><span style="font-family: 'Courier Prime', monospace; color: #A19A8E;">E0525E</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #E6B85C;"></div><div style="font-size: 11px; line-height: 1.3;">Alerte<br><span style="font-family: 'Courier Prime', monospace; color: #A19A8E;">E6B85C</span></div></div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-family: 'Courier Prime', monospace; font-size: 12px; color: #A19A8E;">TYPOGRAPHIE</div>
+<div style="display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #33312C; padding-bottom: 10px;">
+<div style="font-family: 'Young Serif', Georgia, serif; font-size: 72px; line-height: 1;">12</div>
+<div style="font-family: 'Young Serif', Georgia, serif; font-size: 22px;">jours sans relapse</div>
+<div style="font-size: 12px; color: #A19A8E; margin-left: auto;">Young Serif</div>
+</div>
+<div style="display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #33312C; padding-bottom: 10px;">
+<div style="font-size: 15px; line-height: 1.4;">Le blocage reprend à l'expiration du déblocage.</div>
+<div style="font-size: 12px; color: #A19A8E; margin-left: auto;">Public Sans 15</div>
+</div>
+<div style="display: flex; align-items: baseline; gap: 20px;">
+<div style="font-family: 'Courier Prime', monospace; font-size: 16px;">07:30 · 05:42:18 · 3 / 5 min</div>
+<div style="font-size: 12px; color: #A19A8E; margin-left: auto;">Courier Prime 16</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-family: 'Courier Prime', monospace; font-size: 12px; color: #A19A8E;">COMPOSANTS</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<button style="height: 48px; border: 0; background: #EDE6D8; color: #1A1917; font-family: 'Young Serif', Georgia, serif; font-size: 16px; border-radius: 6px; cursor: pointer;">Retour</button>
+<button style="height: 48px; border: 1px solid #A19A8E; background: transparent; color: #EDE6D8; font-family: 'Public Sans', sans-serif; font-size: 15px; font-weight: 500; border-radius: 6px; cursor: pointer;">Ouvrir les paramètres</button>
+<div style="display: flex; justify-content: space-between; border-top: 1px solid #33312C; padding-top: 12px; font-family: 'Young Serif', Georgia, serif; font-size: 15px;">
+<a href="#" style="color: #EDE6D8; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 5px;">Accueil<span style="width: 5px; height: 5px; border-radius: 50%; background: #EDE6D8;"></span></a>
+<a href="#" style="color: #A19A8E; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 5px;">Réglages<span style="width: 5px; height: 5px;"></span></a>
+<a href="#" style="color: #A19A8E; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 5px;">Journal<span style="width: 5px; height: 5px;"></span></a>
+<a href="#" style="color: #A19A8E; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 5px;">Debug<span style="width: 5px; height: 5px;"></span></a>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 0;">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #33312C; font-size: 14px;">
+<span>Lundi</span><span style="font-family: 'Courier Prime', monospace; font-size: 15px;">23:00 – 07:30</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #33312C; font-size: 14px; color: #A19A8E;">
+<span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="1"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Dimanche</span>
+<span style="display: flex; flex-direction: column; align-items: flex-end;"><span style="font-family: 'Courier Prime', monospace; font-size: 15px;">23:00 – 07:30</span><span style="font-size: 11px; font-style: italic;">modifiable à partir de 07:30</span></span>
+</div>
+<div style="padding: 10px 12px; margin-top: 8px; border: 1px solid #E6B85C; color: #E6B85C; font-size: 13px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px;"><span>Service d'accessibilité inactif</span><span style="font-family: 'Young Serif', Georgia, serif;">Activer</span></div>
+</div>
+
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: center;">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; justify-content: space-between; font-size: 13px;"><span style="color: #A19A8E;">Sur 30 min</span><span style="font-family: 'Courier Prime', monospace; font-size: 15px;">3 / 5 min</span></div>
+<div style="height: 4px; background: #33312C; display: flex;"><div style="width: 60%; background: #EDE6D8;"></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px;"><span style="color: #A19A8E;">Sur 6 h</span><span style="font-family: 'Courier Prime', monospace; font-size: 15px; color: #E0525E;">30 / 30 min</span></div>
+<div style="height: 4px; background: #33312C; display: flex;"><div style="width: 100%; background: #E0525E;"></div></div>
+</div>
+<div style="display: flex; align-items: center; gap: 14px;">
+<button aria-label="Maintenir pour débloquer" style="width: 96px; height: 96px; border-radius: 50%; border: 1px solid #A19A8E; background: transparent; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="96" height="96" viewBox="0 0 96 96" style="position: absolute; inset: 0;"><circle cx="48" cy="48" r="44" fill="none" stroke="#EDE6D8" stroke-width="4" stroke-dasharray="110 276" transform="rotate(-90 48 48)"></circle></svg>
+<span style="font-family: 'Young Serif', Georgia, serif; font-size: 17px; color: #EDE6D8; position: relative;">Tenir</span>
+</button>
+<div style="font-size: 12px; line-height: 1.4; color: #A19A8E;">Appui long 10 s<br>Jauge lin sur cercle discret</div>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":560,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

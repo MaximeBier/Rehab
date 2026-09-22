@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Overlay — états du bouton</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@300;400;500;700&family=Chivo+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Chivo',system-ui,sans-serif;background:#171513;color:#EDE7DB}
+a{color:#B98457}a:hover{color:#CD9A6C}
+</style>
+</helmet>
+<div style="width: 900px; height: 620px; box-sizing: border-box; padding: 36px 40px; display: flex; flex-direction: column; background: #171513; color: #EDE7DB; font-family: 'Chivo', system-ui, sans-serif;">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 18px;">
+<div style="font-size: 22px; font-weight: 500;">Bouton d'appui long — états</div>
+<div style="font-size: 13px; color: #A0978A;">Fond et structure de l'overlay identiques quelle que soit la condition. Seuls changent la couleur du bouton (bronze pour un joker, rouge pour un relapse) et le texte qui annonce l'effet. Jauge : un tour complet en 10 s, relâcher avant la fin annule.</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px;"><div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 16px; background: #24211D; border-radius: 20px;">
+<button aria-label="Maintenir pour débloquer" style="width: 112px; height: 112px; border-radius: 50%; border: 0; background: #171513; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="112" height="112" viewBox="0 0 112 112" style="position: absolute; inset: 0;"><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#33302B" stroke-width="8"></circle></svg>
+<span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #EDE7DB;">Joker</span></span>
+</button>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;"><div style="font-size: 13px; font-weight: 500;">Joker · repos</div><div style="font-size: 11px; color: #A0978A; line-height: 1.4;">Piste neutre, libellé « Joker »</div></div>
+</div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 16px; background: #24211D; border-radius: 20px;">
+<button aria-label="Maintenir pour débloquer" style="width: 112px; height: 112px; border-radius: 50%; border: 0; background: #171513; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="112" height="112" viewBox="0 0 112 112" style="position: absolute; inset: 0;"><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#33302B" stroke-width="8"></circle><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#B98457" stroke-width="8" stroke-linecap="round" stroke-dasharray="181.0 301.6" transform="rotate(-90 56.0 56.0)"></circle></svg>
+<span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="font-family: 'Chivo Mono', monospace; font-size: 26px; line-height: 1; color: #EDE7DB;">4</span><span style="font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #A0978A;">sec</span></span>
+</button>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;"><div style="font-size: 13px; font-weight: 500;">Joker · appui en cours</div><div style="font-size: 11px; color: #A0978A; line-height: 1.4;">Jauge bronze, décompte au centre · relâcher annule</div></div>
+</div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 16px; background: #24211D; border-radius: 20px;">
+<button aria-label="Maintenir pour débloquer" style="width: 112px; height: 112px; border-radius: 50%; border: 0; background: #B98457; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="112" height="112" viewBox="0 0 112 112" style="position: absolute; inset: 0;"><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#B98457" stroke-width="8"></circle><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#B98457" stroke-width="8" stroke-linecap="round" stroke-dasharray="301.6 301.6" transform="rotate(-90 56.0 56.0)"></circle></svg>
+<span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="font-family: 'Chivo Mono', monospace; font-size: 26px; line-height: 1; color: #171513;">+5</span><span style="font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #171513;">min</span></span>
+</button>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;"><div style="font-size: 13px; font-weight: 500;">Joker · terminé</div><div style="font-size: 11px; color: #A0978A; line-height: 1.4;">Bouton bronze plein · déblocage 5 min</div></div>
+</div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 16px; background: #24211D; border-radius: 20px;">
+<button aria-label="Maintenir pour débloquer" style="width: 112px; height: 112px; border-radius: 50%; border: 0; background: #6B211B; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="112" height="112" viewBox="0 0 112 112" style="position: absolute; inset: 0;"><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#9A3A30" stroke-width="8"></circle></svg>
+<span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #F6E4E0;">Relapse</span></span>
+</button>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;"><div style="font-size: 13px; font-weight: 500;">Relapse · repos</div><div style="font-size: 11px; color: #A0978A; line-height: 1.4;">Disque rouge sombre, piste rouge, libellé « Relapse »</div></div>
+</div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 16px; background: #24211D; border-radius: 20px;">
+<button aria-label="Maintenir pour débloquer" style="width: 112px; height: 112px; border-radius: 50%; border: 0; background: #6B211B; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="112" height="112" viewBox="0 0 112 112" style="position: absolute; inset: 0;"><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#9A3A30" stroke-width="8"></circle><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#E4614F" stroke-width="8" stroke-linecap="round" stroke-dasharray="181.0 301.6" transform="rotate(-90 56.0 56.0)"></circle></svg>
+<span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="font-family: 'Chivo Mono', monospace; font-size: 26px; line-height: 1; color: #F6E4E0;">4</span><span style="font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #D9A9A2;">sec</span></span>
+</button>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;"><div style="font-size: 13px; font-weight: 500;">Relapse · appui en cours</div><div style="font-size: 11px; color: #A0978A; line-height: 1.4;">Jauge rouge vive sur le disque sombre, décompte au centre</div></div>
+</div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 16px; background: #24211D; border-radius: 20px;">
+<button aria-label="Maintenir pour débloquer" style="width: 112px; height: 112px; border-radius: 50%; border: 0; background: #E4614F; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="112" height="112" viewBox="0 0 112 112" style="position: absolute; inset: 0;"><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#E4614F" stroke-width="8"></circle><circle cx="56.0" cy="56.0" r="48.0" fill="none" stroke="#E4614F" stroke-width="8" stroke-linecap="round" stroke-dasharray="301.6 301.6" transform="rotate(-90 56.0 56.0)"></circle></svg>
+<span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="font-family: 'Chivo Mono', monospace; font-size: 26px; line-height: 1; color: #171513;">+15</span><span style="font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #171513;">min</span></span>
+</button>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;"><div style="font-size: 13px; font-weight: 500;">Relapse · terminé</div><div style="font-size: 11px; color: #A0978A; line-height: 1.4;">Bouton rouge plein · déblocage 15 min · streak à 0</div></div>
+</div></div>
+<div style="display: flex; gap: 14px; padding-top: 18px; align-items: center;">
+<button aria-label="Maintenir pour débloquer" style="width: 72px; height: 72px; border-radius: 50%; border: 0; background: #171513; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="72" height="72" viewBox="0 0 72 72" style="position: absolute; inset: 0;"><circle cx="36.0" cy="36.0" r="28.0" fill="none" stroke="#33302B" stroke-width="8"></circle><circle cx="36.0" cy="36.0" r="28.0" fill="none" stroke="#A0978A" stroke-width="8" stroke-linecap="round" stroke-dasharray="44.0 175.9" transform="rotate(-90 36.0 36.0)"></circle></svg>
+<span style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;"><span style="font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #A0978A;">Annulé</span></span>
+</button>
+<div style="font-size: 12px; color: #A0978A; line-height: 1.5; flex-grow: 1;">Relâché trop tôt : la jauge se vide, aucun effet. « Quitter » ramène à l’écran d’accueil du téléphone (action primaire, pleine, dans la zone du pouce).</div>
+<button style="height: 56px; padding: 0 28px; border: 0; background: #EDE7DB; color: #171513; font-family: 'Chivo', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 18px; cursor: pointer;">Quitter</button>
+<button style="height: 56px; padding: 0 28px; border: 0; background: #A0978A; color: #171513; font-family: 'Chivo', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 18px; cursor: pointer;">Quitter · pressé</button>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":620}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

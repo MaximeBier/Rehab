@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Option B Instrument — design system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@300;400;500;700&family=Chivo+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Chivo',system-ui,sans-serif;background:#141311;color:#EFE9DE}
+a{color:#D08B57}a:hover{color:#E3A472}
+</style>
+</helmet>
+<div style="width: 560px; height: 900px; box-sizing: border-box; padding: 36px 40px; display: flex; flex-direction: column; gap: 28px; background: #141311; color: #EFE9DE; font-family: 'Chivo', system-ui, sans-serif;">
+
+<div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #33302B; padding-bottom: 14px;">
+<div style="font-size: 30px; line-height: 1.05; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase;">Instrument</div>
+<div style="font-size: 13px; color: #A69C8C;">Panneau sombre, jauges à graduations, cuivre pour ce qui est actif. Rail de navigation en bas.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #A69C8C;">Couleurs</div>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px;">
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #141311; border: 1px solid #33302B;"></div><div style="font-size: 11px; line-height: 1.3;">Fond<br><span style="font-family: 'Chivo Mono', monospace; color: #A69C8C;">141311</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #1F1D1A; border: 1px solid #33302B;"></div><div style="font-size: 11px; line-height: 1.3;">Panneau<br><span style="font-family: 'Chivo Mono', monospace; color: #A69C8C;">1F1D1A</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #EFE9DE;"></div><div style="font-size: 11px; line-height: 1.3;">Texte<br><span style="font-family: 'Chivo Mono', monospace; color: #A69C8C;">EFE9DE</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #D08B57;"></div><div style="font-size: 11px; line-height: 1.3;">Cuivre<br><span style="font-family: 'Chivo Mono', monospace; color: #A69C8C;">D08B57</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #E4614F;"></div><div style="font-size: 11px; line-height: 1.3;">Relapse<br><span style="font-family: 'Chivo Mono', monospace; color: #A69C8C;">E4614F</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #9FB3E6;"></div><div style="font-size: 11px; line-height: 1.3;">Nuit<br><span style="font-family: 'Chivo Mono', monospace; color: #A69C8C;">9FB3E6</span></div></div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #A69C8C;">Typographie</div>
+<div style="display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #33302B; padding-bottom: 10px;">
+<div style="font-family: 'Chivo Mono', monospace; font-size: 64px; line-height: 1; font-weight: 300;">12</div>
+<div style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #A69C8C;">jours sans relapse</div>
+<div style="font-size: 12px; color: #A69C8C; margin-left: auto;">Chivo Mono 300</div>
+</div>
+<div style="display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #33302B; padding-bottom: 10px;">
+<div style="font-size: 15px; line-height: 1.4;">Le blocage reprend à l'expiration du déblocage.</div>
+<div style="font-size: 12px; color: #A69C8C; margin-left: auto;">Chivo 15</div>
+</div>
+<div style="display: flex; align-items: baseline; gap: 20px;">
+<div style="font-family: 'Chivo Mono', monospace; font-size: 15px;">07:30 · 05:42:18 · 3 / 5 min</div>
+<div style="font-size: 12px; color: #A69C8C; margin-left: auto;">Chivo Mono 15</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #A69C8C;">Composants</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<button style="height: 48px; border: 0; background: #EFE9DE; color: #141311; font-family: 'Chivo', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 4px; cursor: pointer;">Retour</button>
+<button style="height: 48px; border: 1px solid #A69C8C; background: transparent; color: #EFE9DE; font-family: 'Chivo', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 4px; cursor: pointer;">Ouvrir les paramètres</button>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #33302B; padding-top: 10px;">
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #D08B57; text-decoration: none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"></path></svg>Accueil</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A69C8C; text-decoration: none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>Réglages</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A69C8C; text-decoration: none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>Journal</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A69C8C; text-decoration: none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 7h6a4 4 0 0 1 4 4v3a7 7 0 0 1-14 0v-3a4 4 0 0 1 4-4zM3 13h2M19 13h2M12 7v14"></path></svg>Debug</a>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; justify-content: space-between; align-items: center; background: #1F1D1A; padding: 12px 14px; border-radius: 4px; font-size: 14px;">
+<span>Lundi</span><span style="font-family: 'Chivo Mono', monospace;">23:00 → 07:30</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; background: #1F1D1A; padding: 12px 14px; border-radius: 4px; font-size: 14px; color: #A69C8C;">
+<span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="1"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Dimanche</span>
+<span style="display: flex; flex-direction: column; align-items: flex-end;"><span style="font-family: 'Chivo Mono', monospace;">23:00 → 07:30</span><span style="font-size: 11px;">Modifiable à partir de 07:30</span></span>
+</div>
+<div style="padding: 10px 14px; background: #2A2418; color: #E2B45A; font-size: 13px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px;"><span>Service d'accessibilité inactif</span><span style="font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 11px;">Activer</span></div>
+</div>
+
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: center;">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; justify-content: space-between; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #A69C8C;"><span>30 min</span><span style="font-family: 'Chivo Mono', monospace; color: #EFE9DE;">3 / 5 min</span></div>
+<div style="height: 10px; background: #1F1D1A; display: flex; position: relative; border-radius: 2px;"><div style="width: 60%; background: #D08B57; border-radius: 2px;"></div><div style="position: absolute; inset: 0; display: flex; justify-content: space-between; padding: 0 20%;"><span style="width: 1px; background: #141311;"></span><span style="width: 1px; background: #141311;"></span><span style="width: 1px; background: #141311;"></span></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #A69C8C;"><span>6 h</span><span style="font-family: 'Chivo Mono', monospace; color: #E4614F;">30 / 30 min</span></div>
+<div style="height: 10px; background: #1F1D1A; display: flex; border-radius: 2px;"><div style="width: 100%; background: #E4614F; border-radius: 2px;"></div></div>
+</div>
+<div style="display: flex; align-items: center; gap: 14px;">
+<button aria-label="Maintenir pour débloquer" style="width: 96px; height: 96px; border-radius: 50%; border: 0; background: #1F1D1A; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="96" height="96" viewBox="0 0 96 96" style="position: absolute; inset: 0;"><circle cx="48" cy="48" r="43" fill="none" stroke="#33302B" stroke-width="6"></circle><circle cx="48" cy="48" r="43" fill="none" stroke="#D08B57" stroke-width="6" stroke-dasharray="108 270" transform="rotate(-90 48 48)"></circle></svg>
+<span style="font-family: 'Chivo Mono', monospace; font-size: 20px; color: #EFE9DE; position: relative;">6 s</span>
+</button>
+<div style="font-size: 12px; line-height: 1.4; color: #A69C8C;">Appui long 10 s<br>Compte à rebours au centre</div>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":560,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

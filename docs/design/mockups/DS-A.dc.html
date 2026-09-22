@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Option A Registre — design system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F5F0E6;color:#1A1710}
+a{color:#21418F}a:hover{color:#182F68}
+</style>
+</helmet>
+<div style="width: 560px; height: 900px; box-sizing: border-box; padding: 36px 40px; display: flex; flex-direction: column; gap: 28px; background: #F5F0E6; color: #1A1710; font-family: 'IBM Plex Sans', system-ui, sans-serif;">
+
+<div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #1A1710; padding-bottom: 14px;">
+<div style="font-family: 'Newsreader', Georgia, serif; font-size: 34px; line-height: 1.05; font-weight: 500;">Registre</div>
+<div style="font-size: 13px; color: #6B6357;">Papier, encre, filets. Onglets texte en haut. Chiffres en serif, temps en mono.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6357;">Couleurs</div>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px;">
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #F5F0E6; border: 1px solid #CFC6B6;"></div><div style="font-size: 11px; line-height: 1.3;">Papier<br><span style="font-family: 'IBM Plex Mono', monospace; color: #6B6357;">F5F0E6</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #1A1710;"></div><div style="font-size: 11px; line-height: 1.3;">Encre<br><span style="font-family: 'IBM Plex Mono', monospace; color: #6B6357;">1A1710</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #21418F;"></div><div style="font-size: 11px; line-height: 1.3;">Encre bleue<br><span style="font-family: 'IBM Plex Mono', monospace; color: #6B6357;">21418F</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #9E2A1F;"></div><div style="font-size: 11px; line-height: 1.3;">Relapse<br><span style="font-family: 'IBM Plex Mono', monospace; color: #6B6357;">9E2A1F</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #8A5A00;"></div><div style="font-size: 11px; line-height: 1.3;">Alerte<br><span style="font-family: 'IBM Plex Mono', monospace; color: #6B6357;">8A5A00</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 48px; background: #1B2033;"></div><div style="font-size: 11px; line-height: 1.3;">Nuit<br><span style="font-family: 'IBM Plex Mono', monospace; color: #6B6357;">1B2033</span></div></div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6357;">Typographie</div>
+<div style="display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #CFC6B6; padding-bottom: 10px;">
+<div style="font-family: 'Newsreader', Georgia, serif; font-size: 72px; line-height: 1; font-weight: 400;">12</div>
+<div style="font-family: 'Newsreader', Georgia, serif; font-size: 22px; line-height: 1.2;">jours sans relapse</div>
+<div style="font-size: 12px; color: #6B6357; margin-left: auto;">Newsreader</div>
+</div>
+<div style="display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #CFC6B6; padding-bottom: 10px;">
+<div style="font-size: 15px; line-height: 1.4;">Le blocage reprend à l'expiration du déblocage.</div>
+<div style="font-size: 12px; color: #6B6357; margin-left: auto;">Plex Sans 15</div>
+</div>
+<div style="display: flex; align-items: baseline; gap: 20px;">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">07:30 · 05:42:18 · 3 / 5 min</div>
+<div style="font-size: 12px; color: #6B6357; margin-left: auto;">Plex Mono 15</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6357;">Composants</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<button style="height: 48px; border: 1px solid #1A1710; background: #1A1710; color: #F5F0E6; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 500; border-radius: 2px; cursor: pointer;">Retour</button>
+<button style="height: 48px; border: 1px solid #1A1710; background: transparent; color: #1A1710; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 500; border-radius: 2px; cursor: pointer;">Ouvrir les paramètres</button>
+<div style="display: flex; gap: 0; border-bottom: 1px solid #1A1710;">
+<a href="#" style="padding: 8px 0; margin-right: 18px; font-size: 14px; font-weight: 600; color: #1A1710; text-decoration: none; border-bottom: 2px solid #21418F;">Accueil</a>
+<a href="#" style="padding: 8px 0; margin-right: 18px; font-size: 14px; color: #6B6357; text-decoration: none;">Réglages</a>
+<a href="#" style="padding: 8px 0; margin-right: 18px; font-size: 14px; color: #6B6357; text-decoration: none;">Journal</a>
+<a href="#" style="padding: 8px 0; font-size: 14px; color: #6B6357; text-decoration: none;">Debug</a>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px dotted #CFC6B6; padding: 10px 0; font-size: 14px;">
+<span>Lundi</span><span style="font-family: 'IBM Plex Mono', monospace;">23:00 → 07:30</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dotted #CFC6B6; padding: 10px 0; font-size: 14px; color: #6B6357;">
+<span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="1"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Dimanche</span>
+<span style="display: flex; flex-direction: column; align-items: flex-end;"><span style="font-family: 'IBM Plex Mono', monospace;">23:00 → 07:30</span><span style="font-size: 11px;">Modifiable à partir de 07:30</span></span>
+</div>
+<div style="padding: 10px 12px; border: 1px solid #8A5A00; color: #8A5A00; font-size: 13px; display: flex; justify-content: space-between; align-items: center;"><span>Service d'accessibilité inactif</span><span style="font-weight: 600;">Activer</span></div>
+</div>
+
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: center;">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Fenêtre 30 min</span><span style="font-family: 'IBM Plex Mono', monospace;">3 / 5 min</span></div>
+<div style="height: 6px; background: #E6DFD0; display: flex;"><div style="width: 60%; background: #21418F;"></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: #9E2A1F;"><span>Fenêtre 6 h</span><span style="font-family: 'IBM Plex Mono', monospace;">30 / 30 min</span></div>
+<div style="height: 6px; background: #E6DFD0; display: flex;"><div style="width: 100%; background: #9E2A1F;"></div></div>
+</div>
+<div style="display: flex; align-items: center; gap: 14px;">
+<button aria-label="Maintenir pour débloquer" style="width: 96px; height: 96px; border-radius: 50%; border: 0; background: transparent; padding: 0; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;">
+<svg width="96" height="96" viewBox="0 0 96 96" style="position: absolute; inset: 0;"><circle cx="48" cy="48" r="44" fill="none" stroke="#CFC6B6" stroke-width="3"></circle><circle cx="48" cy="48" r="44" fill="none" stroke="#21418F" stroke-width="3" stroke-dasharray="110 276" stroke-linecap="butt" transform="rotate(-90 48 48)"></circle></svg>
+<span style="font-family: 'Newsreader', Georgia, serif; font-size: 16px; color: #1A1710; position: relative;">Maintenir</span>
+</button>
+<div style="font-size: 12px; line-height: 1.4; color: #6B6357;">Appui long 10 s<br>Jauge en filet, 40 % ici</div>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":560,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
