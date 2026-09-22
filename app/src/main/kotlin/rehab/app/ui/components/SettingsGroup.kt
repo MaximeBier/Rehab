@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -50,10 +51,14 @@ fun SettingsGroup(rows: List<RowSpec>, modifier: Modifier = Modifier) {
 @Composable
 private fun SettingsRow(row: RowSpec) {
     val locked = row.lockedReason != null
+    val onClick = row.onClick.takeIf { !locked }
+    // defaultMinSize garantit la cible tactile >= 44 dp (DESIGN §2) sur les lignes cliquables ;
+    // le padding vertical de 14 dp seul suffit déjà dans la plupart des cas mais pas toujours
+    // (libellé sans sous-titre en petite taille de police).
     val rowModifier = Modifier
         .fillMaxWidth()
         .background(RehabColors.Panel)
-        .let { if (row.onClick != null && !locked) it.clickable(onClick = row.onClick) else it }
+        .let { if (onClick != null) it.clickable(onClick = onClick).defaultMinSize(minHeight = 44.dp) else it }
         .padding(vertical = 14.dp, horizontal = 16.dp)
     Row(rowModifier, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Row(Modifier.weight(1f, fill = false), verticalAlignment = Alignment.CenterVertically) {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -31,14 +33,17 @@ fun RehabNavBar(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
         labels.forEachIndexed { i, label ->
             val active = i == selected
             Box(
+                // defaultMinSize garantit la cible tactile >= 44 dp (DESIGN §2) même si le padding
+                // vertical (14 dp) + le texte 11 sp ne l'atteignent pas tout seuls (~42-43 dp).
                 Modifier.weight(1f).clip(RoundedCornerShape(16.dp))
                     .background(if (active) RehabColors.Accent else Color.Transparent)
                     .clickable(role = Role.Tab) { onSelect(i) }
+                    .defaultMinSize(minHeight = 44.dp)
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    label.uppercase(), maxLines = 1, softWrap = false,
+                    label.uppercase(), maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
                     style = TextStyle(
                         fontFamily = Chivo, fontSize = 11.sp, letterSpacing = 0.1.em,
                         fontWeight = if (active) FontWeight.W700 else FontWeight.W400,

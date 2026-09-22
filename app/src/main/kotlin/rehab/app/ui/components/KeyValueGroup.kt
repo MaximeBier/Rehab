@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,10 +43,12 @@ fun KeyValueGroup(items: List<KeyValue>) {
 
 @Composable
 private fun KeyValueRow(item: KeyValue) {
+    // defaultMinSize garantit la cible tactile >= 44 dp (DESIGN §2) sur les lignes cliquables :
+    // le padding vertical de 11 dp seul ne les amène qu'à ~39 dp.
     val rowModifier = Modifier
         .fillMaxWidth()
         .background(RehabColors.Panel)
-        .let { if (item.onClick != null) it.clickable(onClick = item.onClick) else it }
+        .let { if (item.onClick != null) it.clickable(onClick = item.onClick).defaultMinSize(minHeight = 44.dp) else it }
         .padding(vertical = 11.dp, horizontal = 16.dp)
     Row(rowModifier, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(
