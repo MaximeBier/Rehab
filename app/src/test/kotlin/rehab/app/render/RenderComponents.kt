@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.text.TextStyle
@@ -53,10 +54,10 @@ class RenderComponents {
     @Before fun gate() = assumeRendering()
 
     @Test fun `components home parts`() = compose.renderPng("components-home-parts") {
-        Column(Modifier.width(390.dp).padding(top = 24.dp)) {
+        Column(Modifier.width(390.dp).padding(top = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             RehabHeader { StatusPill("Libre", RehabColors.Accent) }
             RecordRing(220.dp, 12.dp, RehabColors.Accent) {
-                Text("RECORD", style = RehabText.ringLabel)
+                Text("RECORD", style = RehabText.ringLabel.copy(color = RehabColors.Accent))
                 Text(
                     "24",
                     style = TextStyle(fontFamily = ChivoMono, fontSize = 84.sp, fontWeight = FontWeight.W300, color = RehabColors.Text),

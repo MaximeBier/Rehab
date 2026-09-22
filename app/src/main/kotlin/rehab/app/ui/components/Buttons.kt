@@ -57,7 +57,7 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.06.em, color = textColor)
+        Text(text.uppercase(), fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.06.em, color = textColor)
     }
 }
 
@@ -73,6 +73,6 @@ fun AccentButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, fontSize = 13.sp, fontWeight = FontWeight.W700, letterSpacing = 0.06.em, color = textColor)
+        Text(text.uppercase(), fontSize = 13.sp, fontWeight = FontWeight.W700, letterSpacing = 0.06.em, color = textColor)
     }
 }
