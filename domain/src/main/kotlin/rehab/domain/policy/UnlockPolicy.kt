@@ -12,26 +12,33 @@ sealed interface PressOutcome {
     data class Relapse(val streakLost: Int) : PressOutcome
 }
 
+/** Déblocage en cours (joker ou relapse), avec son échéance. */
+data class ActiveUnlock(val kind: Kind, val until: Instant) {
+    enum class Kind { Joker, Relapse }
+}
+
 class UnlockPolicy(
     private val settings: SettingsRepo,
     private val schedule: Schedule,
     private val events: EventLog,
     private val streak: Streak,
 ) {
-    fun activeUnlockUntil(now: Instant): Instant? {
+    fun activeUnlock(now: Instant): ActiveUnlock? {
         val s = settings.get()
         val horizon = now.minus(maxOf(s.jokerDuration, s.relapseDuration))
         return events.since(horizon)
             .mapNotNull {
                 when (it) {
-                    is Event.Joker -> it.unlockUntil
-                    is Event.Relapse -> it.unlockUntil
+                    is Event.Joker -> ActiveUnlock(ActiveUnlock.Kind.Joker, it.unlockUntil)
+                    is Event.Relapse -> ActiveUnlock(ActiveUnlock.Kind.Relapse, it.unlockUntil)
                     else -> null
                 }
             }
-            .filter { it > now }
-            .maxOrNull()
+            .filter { it.until > now }
+            .maxByOrNull { it.until }
     }
+
+    fun activeUnlockUntil(now: Instant): Instant? = activeUnlock(now)?.until
 
     fun jokersUsed(day: LocalDate): Int =
         events.since(schedule.dayStart(day)).filterIsInstance<Event.Joker>().count { schedule.dayOf(it.at) == day }

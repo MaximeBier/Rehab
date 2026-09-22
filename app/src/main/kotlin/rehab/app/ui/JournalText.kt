@@ -1,5 +1,6 @@
 package rehab.app.ui
 
+import rehab.domain.model.BlockReason
 import rehab.domain.model.Event
 import rehab.domain.model.UsageInterval
 import java.time.Duration
@@ -20,6 +21,8 @@ object JournalText {
         is Event.ServiceOff -> "Service désactivé"
         is Event.RulesOutOfRange -> "Règles hors plage : ${event.packageName} ${event.version}"
         is Event.Error -> "Erreur : ${event.message}"
+        // Branche provisoire : réécrite en tâche 5.
+        is Event.Block -> "Blocage ${if (event.reason == BlockReason.Night) "nuit" else "quota"}"
     }
 
     fun line(interval: UsageInterval, zone: ZoneId): String {

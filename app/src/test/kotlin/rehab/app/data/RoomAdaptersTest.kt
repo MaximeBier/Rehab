@@ -11,6 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import rehab.app.data.db.RehabDatabase
+import rehab.domain.model.BlockReason
 import rehab.domain.model.Event
 import rehab.domain.model.TargetId
 import rehab.domain.time.FakeClock
@@ -60,6 +61,14 @@ class RoomAdaptersTest {
         val errors = log.all().filterIsInstance<Event.Error>()
         assertEquals(500, errors.size)
         assertEquals("e5", errors.first().message)
+    }
+
+    @Test fun eventLogRoundTripsBlock() {
+        val log = RoomEventLog(db.events())
+        val e = Event.Block(t0, BlockReason.Quota, t0.plusSeconds(1080))
+        log.append(e)
+        log.append(Event.Block(t0.plusSeconds(10), BlockReason.Night, t0.plusSeconds(3600)))
+        assertEquals(listOf(e, Event.Block(t0.plusSeconds(10), BlockReason.Night, t0.plusSeconds(3600))), log.all())
     }
 
     @Test fun streakRecordInitialisesInstalledAt() {

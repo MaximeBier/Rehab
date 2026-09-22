@@ -40,4 +40,12 @@ class Schedule(
         val d = now.atZone(zone).toLocalDate()
         return if (now >= dayStart(d)) d else d.minusDays(1)
     }
+
+    /** Nuit active à [now], sinon la prochaine (au plus 7 jours devant). Null si toutes les nuits sont désactivées. */
+    fun nextNight(now: Instant): NightPeriod? {
+        val today = now.atZone(zone).toLocalDate()
+        return (-1L..7L).asSequence()
+            .mapNotNull { periodForRow(today.plusDays(it)) }
+            .firstOrNull { it.end > now }
+    }
 }
