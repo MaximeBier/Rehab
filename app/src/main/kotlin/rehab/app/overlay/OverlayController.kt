@@ -7,7 +7,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,6 +14,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import rehab.app.ui.theme.RehabTheme
 import rehab.domain.time.Clock
 
 class OverlayController(
@@ -64,7 +64,7 @@ class OverlayController(
                 setViewTreeSavedStateRegistryOwner(lifecycle)
                 setViewTreeViewModelStoreOwner(lifecycle)
                 setContent {
-                    MaterialTheme {
+                    RehabTheme {
                         state?.let {
                             BlockOverlay(
                                 it,
