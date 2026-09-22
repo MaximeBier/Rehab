@@ -2,7 +2,6 @@ package rehab.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import rehab.app.ui.theme.ChivoMono
 import rehab.app.ui.theme.RehabColors
@@ -50,11 +50,20 @@ private fun KeyValueRow(item: KeyValue) {
         .background(RehabColors.Panel)
         .let { if (item.onClick != null) it.clickable(onClick = item.onClick).defaultMinSize(minHeight = 44.dp) else it }
         .padding(vertical = 11.dp, horizontal = 16.dp)
-    Row(rowModifier, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    // La clé (gauche) ne porte aucun weight : elle garde sa largeur de contenu. La valeur (droite)
+    // porte le weight(1f) et s'aligne à droite : une valeur longue (ex. « com.instagram.android »)
+    // passe à la ligne dans son propre espace plutôt que de compresser la clé (même règle que
+    // SettingsGroup pour la ligne « Dimanche »).
+    Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
             item.key,
             style = RehabText.body13.copy(color = RehabColors.Muted, fontFamily = if (item.keyMono) ChivoMono else RehabText.body13.fontFamily),
         )
-        Text(item.value, style = RehabText.mono13.copy(color = item.valueColor))
+        Text(
+            item.value,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f).padding(start = 12.dp),
+            style = RehabText.mono13.copy(color = item.valueColor),
+        )
     }
 }

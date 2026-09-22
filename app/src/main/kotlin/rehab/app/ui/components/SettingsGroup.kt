@@ -2,7 +2,6 @@ package rehab.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import rehab.app.ui.theme.RehabColors
 
@@ -60,8 +60,11 @@ private fun SettingsRow(row: RowSpec) {
         .background(RehabColors.Panel)
         .let { if (onClick != null) it.clickable(onClick = onClick).defaultMinSize(minHeight = 44.dp) else it }
         .padding(vertical = 14.dp, horizontal = 16.dp)
-    Row(rowModifier, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Row(Modifier.weight(1f, fill = false), verticalAlignment = Alignment.CenterVertically) {
+    // Le libellé (gauche) ne porte aucun weight : il garde toujours sa largeur de contenu. La colonne
+    // de droite (valeur + raison de verrouillage) porte le weight(1f) et s'aligne à droite : si la
+    // raison est longue, c'est elle qui passe à la ligne, jamais le libellé (ex. « Dimanche »).
+    Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             if (locked) {
                 Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(14.dp), tint = RehabColors.Muted)
                 Spacer(Modifier.width(8.dp))
@@ -71,14 +74,25 @@ private fun SettingsRow(row: RowSpec) {
                 row.subtitle?.let { Text(it, style = RehabText.small11) }
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(horizontalAlignment = Alignment.End) {
-                Text(row.value, style = RehabText.mono14.copy(color = if (locked) RehabColors.Muted else row.valueColor ?: RehabColors.Text))
-                if (locked) Text(row.lockedReason.orEmpty(), style = RehabText.small11)
+        Column(Modifier.weight(1f).padding(start = 12.dp), horizontalAlignment = Alignment.End) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    row.value,
+                    textAlign = TextAlign.End,
+                    style = RehabText.mono14.copy(color = if (locked) RehabColors.Muted else row.valueColor ?: RehabColors.Text),
+                )
+                if (!locked && row.onClick != null) {
+                    Spacer(Modifier.width(10.dp))
+                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(16.dp), tint = RehabColors.Muted)
+                }
             }
-            if (!locked && row.onClick != null) {
-                Spacer(Modifier.width(10.dp))
-                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(16.dp), tint = RehabColors.Muted)
+            if (locked) {
+                Text(
+                    row.lockedReason.orEmpty(),
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = RehabText.small11,
+                )
             }
         }
     }
