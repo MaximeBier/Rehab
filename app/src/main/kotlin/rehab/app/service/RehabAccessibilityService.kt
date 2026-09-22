@@ -13,10 +13,14 @@ import rehab.app.RehabApp
 import rehab.app.di.AppGraph
 import rehab.app.overlay.OverlayController
 import rehab.app.overlay.OverlayState
+import rehab.app.overlay.OverlayText
+import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.model.Event
+import rehab.domain.policy.PressOutcome
 import rehab.rules.Detection
 import java.time.Duration
+import java.time.Instant
 
 /**
  * Décide si le compteur d'écran inconnu ([rehab.domain.degraded.DegradedModeTracker.onDetection])
@@ -102,6 +106,9 @@ class RehabAccessibilityService : AccessibilityService() {
      * "rehab-engine". */
     private val truncatedLogged = mutableSetOf<String>()
 
+    /** Dernier blocage journalisé (raison, fin), pour n'écrire qu'un Event.Block par blocage. Accédé depuis "rehab-engine" seulement. */
+    private var lastBlockKey: Pair<BlockReason, Instant>? = null
+
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) { engine.post { safely { leaveTargets() } } }
     }
@@ -116,7 +123,9 @@ class RehabAccessibilityService : AccessibilityService() {
             this,
             graph.clock,
             object : OverlayController.Callbacks {
-                override fun onBack() { performGlobalAction(GLOBAL_ACTION_BACK) }
+                // Accueil du téléphone, pas BACK : BACK peut ramener sur une cible et refaire apparaître
+                // l'overlay aussitôt (DESIGN §6.2).
+                override fun onQuit() { performGlobalAction(GLOBAL_ACTION_HOME) }
                 override fun onHoldCompleted() { engine.post { graph.unlock.commit(graph.clock.now()); process() } }
             },
         )
@@ -181,21 +190,47 @@ class RehabAccessibilityService : AccessibilityService() {
      */
     fun showTestOverlay() = engine.post {
         val now = graph.clock.now()
-        val settings = graph.settingsRepo.get()
-        overlay.show(
-            OverlayState(
-                reason = rehab.domain.model.BlockReason.Quota,
-                unlockAtMillis = now.plusSeconds(90).toEpochMilli(),
-                streak = graph.streak.current(now),
-                best = graph.streak.recordAndGetBest(now),
-                outcome = graph.unlock.preview(now),
-                holdMillis = settings.holdDuration.toMillis(),
-                navBarTop = null,
-                zone = graph.clock.zone(),
-                jokerMinutes = settings.jokerDuration.toMinutes(),
-            ),
-        )
+        // Pas de journalisation : ce blocage factice n'a pas eu lieu (pas d'Event.Block).
+        overlay.show(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
         engine.postDelayed({ overlay.hide() }, 5000)
+    }
+
+    /** État de l'overlay pour [decision], commun au blocage réel ([apply]) et à l'overlay de test. Thread "rehab-engine". */
+    private fun overlayState(decision: Decision.Block, now: Instant, navBarTop: Int?): OverlayState {
+        val settings = graph.settingsRepo.get()
+        val outcome = graph.unlock.preview(now)
+        val detail = when {
+            decision.reason == BlockReason.Night -> graph.schedule.activeNight(now)
+                ?.let { n -> settings.nights[n.row.dayOfWeek]?.let { OverlayText.nightDetail(n.row.dayOfWeek, it) } } ?: ""
+            outcome is PressOutcome.Relapse -> OverlayText.jokersExhausted(settings.jokersPerDay)
+            else -> graph.policy.quotaStatus(now).perWindow.firstOrNull { it.exceeded }?.window?.let(OverlayText::quotaDetail)
+                ?: settings.quotaWindows.firstOrNull()?.let(OverlayText::quotaDetail) ?: ""
+        }
+        return OverlayState(
+            reason = decision.reason,
+            unlockAtMillis = decision.unlockAt.toEpochMilli(),
+            detail = detail,
+            streak = graph.streak.summary(now),
+            outcome = outcome,
+            holdMillis = settings.holdDuration.toMillis(),
+            jokerMinutes = settings.jokerDuration.toMinutes(),
+            relapseMinutes = settings.relapseDuration.toMinutes(),
+            navBarTop = navBarTop,
+            zone = graph.clock.zone(),
+        )
+    }
+
+    /** Écrit un seul Event.Block par blocage, même si l'overlay est réaffiché à chaque tick. Thread "rehab-engine". */
+    private fun logBlockOnce(decision: Decision.Block, now: Instant) {
+        val key = decision.reason to decision.unlockAt
+        if (key == lastBlockKey) return
+        lastBlockKey = key
+        // Après un redémarrage du service, ne pas réécrire un blocage déjà journalisé (tolérance d'une minute sur la fin).
+        val previous = graph.eventLog.since(now.minus(Duration.ofDays(1))).filterIsInstance<Event.Block>().lastOrNull()
+        if (previous != null && previous.reason == decision.reason &&
+            Duration.between(previous.until, decision.unlockAt).abs() < Duration.ofMinutes(1)
+        ) return
+        graph.eventLog.append(Event.Block(now, decision.reason, decision.unlockAt))
     }
 
     // ---- moteur (thread rehab-engine) ----
@@ -281,20 +316,8 @@ class RehabAccessibilityService : AccessibilityService() {
             }
             is Decision.Block -> {
                 graph.usageTracker.closeOpen(now)
-                val settings = graph.settingsRepo.get()
-                overlay.show(
-                    OverlayState(
-                        reason = decision.reason,
-                        unlockAtMillis = decision.unlockAt.toEpochMilli(),
-                        streak = graph.streak.current(now),
-                        best = graph.streak.recordAndGetBest(now),
-                        outcome = graph.unlock.preview(now),
-                        holdMillis = settings.holdDuration.toMillis(),
-                        navBarTop = detection.navBarBounds?.top,
-                        zone = graph.clock.zone(),
-                        jokerMinutes = settings.jokerDuration.toMinutes(),
-                    ),
-                )
+                logBlockOnce(decision, now)
+                overlay.show(overlayState(decision, now, detection.navBarBounds?.top))
             }
         }
         startTicker()

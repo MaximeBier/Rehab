@@ -4,10 +4,13 @@ import android.accessibilityservice.AccessibilityService
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
@@ -23,8 +26,14 @@ class OverlayController(
     private val callbacks: Callbacks,
 ) {
     interface Callbacks {
-        fun onBack()
+        /** « Quitter » : retour à l'écran d'accueil du téléphone (DESIGN §6.2). */
+        fun onQuit()
         fun onHoldCompleted()
+    }
+
+    companion object {
+        /** Durée pendant laquelle l'état terminé (bouton plein, fond figé) reste affiché après un appui complet. */
+        const val DONE_MILLIS = 1500L
     }
 
     private val main = Handler(Looper.getMainLooper())
@@ -38,10 +47,47 @@ class OverlayController(
     @Volatile private var currentHeight: Int = WindowManager.LayoutParams.MATCH_PARENT
     private var state by mutableStateOf<OverlayState?>(null)
 
+    /**
+     * Incrémenté à la fin d'un gel si l'overlay est toujours affiché : `key(session)` recrée alors
+     * BlockOverlay, qui repart de son état de repos au lieu de rester figé sur « terminé » (bouton inactif)
+     * si le blocage persiste malgré l'appui (p. ex. échec du commit). Thread principal uniquement.
+     */
+    private var session by mutableIntStateOf(0)
+
+    /** Horloge du Handler (uptime) : pilotable par Robolectric. Accédés uniquement sur le thread principal. */
+    private var frozenUntil = 0L
+    private var deferred: (() -> Unit)? = null
+    private val flush = Runnable {
+        frozenUntil = 0L
+        val action = deferred
+        deferred = null
+        action?.invoke()
+        if (view != null) session++
+    }
+
     val isShowing: Boolean get() = view != null
 
-    fun show(newState: OverlayState) = main.post { showOnMain(newState) }
-    fun hide() = main.post { hideOnMain() }
+    /**
+     * Pendant [DONE_MILLIS] après un appui complet, l'overlay reste dans son état final (bouton plein,
+     * fond rouge figé) : les show()/hide() du moteur sont différés, seul le dernier est appliqué à la fin
+     * du gel, par [flush] que [holdCompleted] a planifié.
+     */
+    private fun runOrDefer(action: () -> Unit) {
+        if (SystemClock.uptimeMillis() < frozenUntil) deferred = action else action()
+    }
+
+    fun show(newState: OverlayState) = main.post { runOrDefer { showOnMain(newState) } }
+    fun hide() = main.post { runOrDefer { hideOnMain() } }
+
+    /** Appelé par BlockOverlay à la fin de l'appui (thread principal). Ignoré pendant un gel déjà en cours. */
+    fun holdCompleted() = main.post {
+        val now = SystemClock.uptimeMillis()
+        if (now < frozenUntil) return@post
+        frozenUntil = now + DONE_MILLIS
+        main.removeCallbacks(flush)
+        main.postDelayed(flush, DONE_MILLIS)
+        callbacks.onHoldCompleted()
+    }
 
     private fun params(height: Int) = WindowManager.LayoutParams(
         WindowManager.LayoutParams.MATCH_PARENT,
@@ -66,12 +112,14 @@ class OverlayController(
                 setContent {
                     RehabTheme {
                         state?.let {
-                            BlockOverlay(
-                                it,
-                                nowMillis = { clock.now().toEpochMilli() },
-                                onBack = callbacks::onBack,
-                                onHoldCompleted = callbacks::onHoldCompleted,
-                            )
+                            key(session) {
+                                BlockOverlay(
+                                    it,
+                                    nowMillis = { clock.now().toEpochMilli() },
+                                    onQuit = callbacks::onQuit,
+                                    onHoldCompleted = ::holdCompleted,
+                                )
+                            }
                         }
                     }
                 }
@@ -85,7 +133,7 @@ class OverlayController(
                 Log.e("Rehab", "Overlay impossible", e)
                 lifecycle.stop()
                 state = null
-                callbacks.onBack()
+                callbacks.onQuit()
             }
         } else if (height != currentHeight) {
             // Comme addView/removeViewImmediate ci-dessus : un appel WindowManager peut lever (fenêtre déjà
@@ -98,6 +146,10 @@ class OverlayController(
     }
 
     private fun hideOnMain() {
+        // Un nouvel overlay repart propre : ni gel ni demande différée hérités du précédent.
+        frozenUntil = 0L
+        deferred = null
+        main.removeCallbacks(flush)
         val v = view ?: return
         runCatching { wm.removeViewImmediate(v) }
         owner?.stop()

@@ -1,11 +1,13 @@
 package rehab.app.overlay
 
 import android.accessibilityservice.AccessibilityService
+import android.os.Looper
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -15,7 +17,9 @@ import org.robolectric.shadow.api.Shadow
 import org.robolectric.shadows.ShadowWindowManagerImpl
 import rehab.domain.model.BlockReason
 import rehab.domain.policy.PressOutcome
+import rehab.domain.policy.StreakSummary
 import rehab.domain.time.FakeClock
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
@@ -33,71 +37,105 @@ class OverlayControllerTest {
     private fun state() = OverlayState(
         reason = BlockReason.Night,
         unlockAtMillis = clock.now().toEpochMilli(),
-        streak = 1,
-        best = 1,
+        detail = "",
+        streak = StreakSummary(1, 1, 0),
         outcome = PressOutcome.Joker(1),
         holdMillis = 10_000,
+        jokerMinutes = 5,
+        relapseMinutes = 15,
         navBarTop = null,
         zone = zone,
     )
-
-    private fun service(): AccessibilityService =
-        Robolectric.buildService(TestAccessibilityService::class.java).create().get()
 
     private fun shadowWm(service: AccessibilityService): ShadowWindowManagerImpl {
         val wm = service.getSystemService(WindowManager::class.java)
         return Shadow.extract(wm)
     }
 
+    private fun idleMain() = shadowOf(Looper.getMainLooper()).idle()
+
     private class RecordingCallbacks : OverlayController.Callbacks {
-        var backCalls = 0
-        override fun onBack() { backCalls++ }
-        override fun onHoldCompleted() = Unit
+        var quit = 0
+        var holdCompleted = 0
+        override fun onQuit() { quit++ }
+        override fun onHoldCompleted() { holdCompleted++ }
+    }
+
+    private lateinit var svc: AccessibilityService
+    private lateinit var callbacks: RecordingCallbacks
+    private lateinit var controller: OverlayController
+
+    @Before fun setUp() {
+        svc = Robolectric.buildService(TestAccessibilityService::class.java).create().get()
+        callbacks = RecordingCallbacks()
+        controller = OverlayController(svc, clock, callbacks)
     }
 
     @Test fun secondShowUpdatesTheExistingWindowWithoutStackingASecondOne() {
-        val svc = service()
-        val callbacks = RecordingCallbacks()
-        val controller = OverlayController(svc, clock, callbacks)
-
         controller.show(state())
-        shadowOf(android.os.Looper.getMainLooper()).idle()
+        idleMain()
         assertEquals(1, shadowWm(svc).views.size)
         assertTrue(controller.isShowing)
 
-        controller.show(state().copy(streak = 2))
-        shadowOf(android.os.Looper.getMainLooper()).idle()
+        controller.show(state().copy(streak = StreakSummary(2, 2, 0)))
+        idleMain()
 
         assertEquals(1, shadowWm(svc).views.size)
         assertTrue(controller.isShowing)
-        assertEquals(0, callbacks.backCalls)
+        assertEquals(0, callbacks.quit)
     }
 
     @Test fun hideRemovesTheViewAndResetsInternalState() {
-        val svc = service()
-        val callbacks = RecordingCallbacks()
-        val controller = OverlayController(svc, clock, callbacks)
-
         controller.show(state())
-        shadowOf(android.os.Looper.getMainLooper()).idle()
+        idleMain()
         assertTrue(controller.isShowing)
         assertEquals(1, shadowWm(svc).views.size)
 
         controller.hide()
-        shadowOf(android.os.Looper.getMainLooper()).idle()
+        idleMain()
 
         assertFalse(controller.isShowing)
         assertEquals(0, shadowWm(svc).views.size)
     }
 
     @Test fun hideWithoutAPriorShowIsANoOp() {
-        val svc = service()
-        val controller = OverlayController(svc, clock, RecordingCallbacks())
-
         controller.hide()
-        shadowOf(android.os.Looper.getMainLooper()).idle()
+        idleMain()
 
         assertFalse(controller.isShowing)
         assertEquals(0, shadowWm(svc).views.size)
+    }
+
+    @Test fun hideIsDeferredDuringDoneState() {
+        controller.show(state()); idleMain()
+        controller.holdCompleted(); idleMain()
+        assertEquals(1, callbacks.holdCompleted)
+        controller.hide(); idleMain()
+        assertTrue(controller.isShowing)                          // gelé 1,5 s
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(OverlayController.DONE_MILLIS))
+        assertFalse(controller.isShowing)
+    }
+
+    @Test fun lastRequestWinsAfterFreeze() {
+        controller.show(state()); idleMain()
+        controller.holdCompleted(); idleMain()
+        controller.hide(); controller.show(state()); idleMain()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(OverlayController.DONE_MILLIS))
+        assertTrue(controller.isShowing)
+    }
+
+    @Test fun secondCompletionDuringFreezeIsIgnored() {
+        controller.show(state()); idleMain()
+        controller.holdCompleted(); controller.holdCompleted(); idleMain()
+        assertEquals(1, callbacks.holdCompleted)
+    }
+
+    @Test fun afterTheFreezeRequestsApplyImmediately() {
+        controller.show(state()); idleMain()
+        controller.holdCompleted(); idleMain()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(OverlayController.DONE_MILLIS))
+        assertTrue(controller.isShowing)                          // aucune demande pendant le gel : rien ne change
+        controller.hide(); idleMain()
+        assertFalse(controller.isShowing)
     }
 }
