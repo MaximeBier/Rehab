@@ -114,11 +114,14 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
         result
     }
 
-    suspend fun loadJournal(): List<JournalLine> = withContext(Dispatchers.IO) {
-        val zone = graph.clock.zone()
-        val events = graph.eventLog.all().map { JournalLine(it.at.toEpochMilli(), JournalText.line(it, zone)) }
-        val usage = graph.usageLog.latest(200).map { JournalLine(it.start.toEpochMilli(), JournalText.line(it, zone)) }
-        (events + usage).sortedByDescending { it.atMillis }
+    suspend fun loadJournal(): List<JournalDay> = withContext(Dispatchers.IO) {
+        val now = graph.clock.now()
+        val from = now.minus(Duration.ofDays(30))
+        val rows = JournalText.rows(
+            graph.eventLog.since(from), graph.usageLog.intervalsSince(from),
+            graph.settingsRepo.get().jokersPerDay, graph.schedule::dayOf, now, graph.clock.zone(),
+        )
+        JournalText.days(rows, graph.schedule::dayOf, graph.schedule.dayOf(now))
     }
 
     // ---- écran Debug ----
