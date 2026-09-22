@@ -1,12 +1,13 @@
 package rehab.app.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
@@ -104,17 +106,26 @@ fun NightDialog(
         onConfirm = { onConfirm(LocalTime.of(bedState.hour, bedState.minute), LocalTime.of(wakeState.hour, wakeState.minute)) },
     ) {
         Row {
-            Text(
-                "Coucher ${label(bedState.hour, bedState.minute)}",
-                color = if (!editingWakeup) RehabColors.Accent else RehabColors.Muted,
-                modifier = Modifier.clickable { editingWakeup = false },
-            )
-            Spacer(Modifier.width(16.dp))
-            Text(
-                "Lever ${label(wakeState.hour, wakeState.minute)}",
-                color = if (editingWakeup) RehabColors.Accent else RehabColors.Muted,
-                modifier = Modifier.clickable { editingWakeup = true },
-            )
+            // Box + defaultMinSize : cible tactile >= 44 dp (DESIGN §2), le Text seul ne fait que
+            // ~17-20 dp de haut (même remarque que SettingsGroup/KeyValueGroup).
+            Box(
+                Modifier.defaultMinSize(minHeight = 44.dp).clickable { editingWakeup = false }.padding(horizontal = 12.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "Coucher ${label(bedState.hour, bedState.minute)}",
+                    color = if (!editingWakeup) RehabColors.Accent else RehabColors.Muted,
+                )
+            }
+            Box(
+                Modifier.defaultMinSize(minHeight = 44.dp).clickable { editingWakeup = true }.padding(horizontal = 12.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "Lever ${label(wakeState.hour, wakeState.minute)}",
+                    color = if (editingWakeup) RehabColors.Accent else RehabColors.Muted,
+                )
+            }
         }
         Spacer(Modifier.height(12.dp))
         if (!editingWakeup) TimePicker(bedState, colors = colors) else TimePicker(wakeState, colors = colors)
