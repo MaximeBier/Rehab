@@ -33,7 +33,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures { compose = true }
-    testOptions { unitTests.isIncludeAndroidResources = true }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        // Rendu PNG (rehab.app.render.*) ignoré par défaut : ./gradlew test reste rapide et inchangé.
+        // Activation explicite : -Prehab.render=true.
+        unitTests.all { it.systemProperty("rehab.render", (project.findProperty("rehab.render") ?: "false").toString()) }
+    }
 }
 kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
@@ -61,6 +66,9 @@ dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
     // FakeClock / InMemory*Repo vivent en java-test-fixtures du module domain (revue finale, mineur) :
     // elles ne doivent pas partir dans l'APK (le build release n'est pas minifié).
     testImplementation(testFixtures(project(":domain")))
