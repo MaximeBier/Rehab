@@ -30,7 +30,8 @@ import rehab.app.ui.components.withMonoNumbers
 import rehab.app.ui.theme.ChivoMono
 import rehab.app.ui.theme.RehabColors
 
-private fun PillTone.color(): Color = when (this) {
+// internal (pas private) : réutilisé par OnboardingScreen (tâche 8) pour les mêmes tons de pastille.
+internal fun PillTone.color(): Color = when (this) {
     PillTone.Accent -> RehabColors.Accent
     PillTone.Muted -> RehabColors.Muted
     PillTone.Warn -> RehabColors.Warn
