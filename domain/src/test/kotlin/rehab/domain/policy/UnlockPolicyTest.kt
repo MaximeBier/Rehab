@@ -63,4 +63,28 @@ class UnlockPolicyTest {
         events.append(Event.Relapse(at(21, 10, 2), at(21, 10, 17)))
         assertEquals(at(21, 10, 17), policy.activeUnlockUntil(at(21, 10, 4)))
     }
+
+    @Test fun `activeUnlock joker en cours`() {
+        val t = at(21, 10)
+        events.append(Event.Joker(t, t.plusSeconds(300)))
+        assertEquals(ActiveUnlock(ActiveUnlock.Kind.Joker, t.plusSeconds(300)), policy.activeUnlock(t.plusSeconds(60)))
+    }
+
+    @Test fun `activeUnlock relapse en cours`() {
+        val t = at(21, 10)
+        events.append(Event.Relapse(t, t.plusSeconds(900)))
+        assertEquals(ActiveUnlock(ActiveUnlock.Kind.Relapse, t.plusSeconds(900)), policy.activeUnlock(t.plusSeconds(900 - 60)))
+    }
+
+    @Test fun `activeUnlock expire renvoie null`() {
+        val t = at(21, 10)
+        events.append(Event.Relapse(t, t.plusSeconds(900)))
+        assertNull(policy.activeUnlock(t.plusSeconds(900 + 60)))
+    }
+
+    @Test fun `activeUnlock joker et relapse superposes garde le plus tardif`() {
+        events.append(Event.Joker(at(21, 10), at(21, 10, 5)))
+        events.append(Event.Relapse(at(21, 10, 2), at(21, 10, 17)))
+        assertEquals(ActiveUnlock(ActiveUnlock.Kind.Relapse, at(21, 10, 17)), policy.activeUnlock(at(21, 10, 4)))
+    }
 }

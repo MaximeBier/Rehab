@@ -2,6 +2,7 @@ package rehab.app.data
 
 import rehab.app.data.db.EventDao
 import rehab.app.data.db.EventEntity
+import rehab.domain.model.BlockReason
 import rehab.domain.model.Event
 import rehab.domain.ports.EventLog
 import java.time.Instant
@@ -27,6 +28,7 @@ class RoomEventLog(private val dao: EventDao, private val maxErrors: Int = 500) 
         is Event.ServiceOff -> EventEntity(type = "SERVICE_OFF", atUtc = at.toEpochMilli())
         is Event.RulesOutOfRange -> EventEntity(type = "RULES_OUT_OF_RANGE", atUtc = at.toEpochMilli(), packageName = packageName, version = version)
         is Event.Error -> EventEntity(type = "ERROR", atUtc = at.toEpochMilli(), message = message)
+        is Event.Block -> EventEntity(type = "BLOCK", atUtc = at.toEpochMilli(), unlockUntilUtc = until.toEpochMilli(), message = reason.name)
     }
 
     private fun EventEntity.toDomain(): Event? {
@@ -38,6 +40,11 @@ class RoomEventLog(private val dao: EventDao, private val maxErrors: Int = 500) 
             "SERVICE_OFF" -> Event.ServiceOff(at)
             "RULES_OUT_OF_RANGE" -> Event.RulesOutOfRange(at, packageName ?: return null, version ?: return null)
             "ERROR" -> Event.Error(at, message ?: "")
+            "BLOCK" -> Event.Block(
+                at,
+                BlockReason.entries.firstOrNull { it.name == message } ?: return null,
+                Instant.ofEpochMilli(unlockUntilUtc ?: return null),
+            )
             else -> null
         }
     }

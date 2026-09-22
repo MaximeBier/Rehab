@@ -88,4 +88,31 @@ class ScheduleTest {
         assertNotNull(s.activeNight(at(2026, 9, 26, 0, 45)))
         assertEquals(at(2026, 9, 26, 9, 0), s.activeNight(at(2026, 9, 26, 0, 45))!!.end)
     }
+
+    @Test fun `nextNight a midi renvoie la nuit du soir meme`() {
+        val n = schedule.nextNight(at(2026, 9, 21, 12, 0))!!
+        assertEquals(at(2026, 9, 21, 23, 0), n.start)
+        assertEquals(at(2026, 9, 22, 7, 30), n.end)
+    }
+
+    @Test fun `nextNight pendant la nuit renvoie la nuit en cours`() {
+        val n = schedule.nextNight(at(2026, 9, 22, 3, 0))!!
+        assertEquals(at(2026, 9, 21, 23, 0), n.start)
+    }
+
+    @Test fun `nextNight a 7h30 pile passe a la nuit suivante`() {
+        val n = schedule.nextNight(at(2026, 9, 22, 7, 30))!!
+        assertEquals(at(2026, 9, 22, 23, 0), n.start)
+    }
+
+    @Test fun `nextNight saute les nuits desactivees`() {
+        val nights = weekNights + (DayOfWeek.MONDAY to NightWindow(LocalTime.of(0, 0), LocalTime.of(0, 0)))
+        val n = Schedule({ nights }, zone).nextNight(at(2026, 9, 21, 12, 0))!!
+        assertEquals(at(2026, 9, 22, 23, 0), n.start)
+    }
+
+    @Test fun `nextNight sans aucune nuit renvoie null`() {
+        val none = DayOfWeek.entries.associateWith { NightWindow(LocalTime.of(0, 0), LocalTime.of(0, 0)) }
+        assertNull(Schedule({ none }, zone).nextNight(at(2026, 9, 21, 12, 0)))
+    }
 }
