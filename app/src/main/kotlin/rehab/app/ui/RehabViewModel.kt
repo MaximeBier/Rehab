@@ -10,13 +10,13 @@ import kotlinx.coroutines.withContext
 import rehab.app.di.AppGraph
 import rehab.app.service.AppStatus
 import rehab.app.service.LastDetection
-import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
 import rehab.domain.policy.StreakSummary
 import java.io.File
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
@@ -61,25 +61,27 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
 
     /** État initial de l'écran Réglages : réglages courants + verrous actifs, calculés hors thread principal. */
     data class SettingsScreenState(
-        val form: SettingsForm,
+        val settings: Settings,
         val zone: ZoneId,
         val locks: SettingsLocks,
     )
 
     /**
-     * Verrous d'édition (nuit active, quota en cours), séparés du formulaire pour pouvoir être
+     * Verrous d'édition (nuit active, quota en cours), séparés des réglages pour pouvoir être
      * rafraîchis périodiquement pendant que l'écran Réglages est ouvert sans jamais toucher à la
      * saisie en cours de l'utilisateur (voir [loadLocks] et son usage dans `SettingsScreen`).
      */
     data class SettingsLocks(
+        val now: Instant,
         val lockedNightRow: DayOfWeek?,
         val lockedNightEnd: Instant?,
         val quotaUnlockAt: Instant?,
+        val lockedWindows: Set<Duration>,
     )
 
     suspend fun loadSettingsScreen(): SettingsScreenState = withContext(Dispatchers.IO) {
         SettingsScreenState(
-            form = SettingsForm.from(graph.settingsRepo.get()),
+            settings = graph.settingsRepo.get(),
             zone = graph.clock.zone(),
             locks = currentLocks(),
         )
@@ -87,19 +89,22 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
 
     /**
      * Recalcule uniquement les verrous, avec un `now` frais. À appeler périodiquement pendant que
-     * l'écran Réglages est visible : contrairement à [loadSettingsScreen], ne touche jamais au
-     * formulaire, donc ne peut pas écraser une saisie en cours.
+     * l'écran Réglages est visible : contrairement à [loadSettingsScreen], ne touche jamais aux
+     * réglages affichés, donc ne peut pas écraser une saisie en cours.
      */
     suspend fun loadLocks(): SettingsLocks = withContext(Dispatchers.IO) { currentLocks() }
 
     private fun currentLocks(): SettingsLocks {
         val now = graph.clock.now()
         val activeNight = graph.schedule.activeNight(now)
-        val quotaBlock = (graph.policy.evaluate(now) as? Decision.Block)?.takeIf { it.reason == BlockReason.Quota }
+        val status = graph.policy.quotaStatus(now)
         return SettingsLocks(
+            now = now,
             lockedNightRow = activeNight?.row?.dayOfWeek,
             lockedNightEnd = activeNight?.end,
-            quotaUnlockAt = quotaBlock?.unlockAt,
+            quotaUnlockAt = status.unlockAt,
+            // Même règle que SettingsGuard.checkQuota : seules les fenêtres en dépassement sont figées.
+            lockedWindows = status.perWindow.filter { it.exceeded }.map { it.window.duration }.toSet(),
         )
     }
 
