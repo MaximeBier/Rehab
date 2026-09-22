@@ -1,16 +1,19 @@
 package rehab.app.ui
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -33,13 +37,20 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import rehab.app.RehabApp
+import rehab.app.ui.components.RehabNavBar
+import rehab.app.ui.theme.RehabColors
+import rehab.app.ui.theme.RehabTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
         val graph = (application as RehabApp).graph
         setContent {
-            MaterialTheme {
+            RehabTheme {
                 val vm: RehabViewModel = viewModel(factory = viewModelFactory { initializer { RehabViewModel(graph) } })
                 RehabApp(vm)
             }
@@ -73,9 +84,11 @@ fun RehabApp(vm: RehabViewModel) {
     // de la revue finale). `remember(tick)` ne relit ce prérequis qu'au retour au premier plan.
     val accessibilityEnabled = remember(tick) { prerequisites.accessibilityEnabled() }
     if (!onboardingDone || !accessibilityEnabled) {
-        OnboardingScreen(prerequisites, vm) {
-            prefs.edit().putBoolean("onboarding_done", true).apply()
-            onboardingDone = true
+        Box(Modifier.fillMaxSize().background(RehabColors.Bg).statusBarsPadding().navigationBarsPadding()) {
+            OnboardingScreen(prerequisites, vm) {
+                prefs.edit().putBoolean("onboarding_done", true).apply()
+                onboardingDone = true
+            }
         }
         return
     }
@@ -94,22 +107,17 @@ fun RehabApp(vm: RehabViewModel) {
         }
     }
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                Tab.entries.forEach { t ->
-                    NavigationBarItem(selected = tab == t, onClick = { tab = t }, icon = {}, label = { Text(t.label) })
-                }
-            }
-        },
-    ) { padding ->
-        Box(Modifier.padding(padding)) {
+    Column(Modifier.fillMaxSize().background(RehabColors.Bg).statusBarsPadding().padding(top = 16.dp)) {
+        Box(Modifier.weight(1f)) {
             when (tab) {
                 Tab.Accueil -> HomeScreen(home)
                 Tab.Reglages -> SettingsScreen(vm)
                 Tab.Journal -> JournalScreen(vm)
                 Tab.Debug -> DebugScreen(vm)
             }
+        }
+        Box(Modifier.navigationBarsPadding()) {
+            RehabNavBar(Tab.entries.map { it.label }, Tab.entries.indexOf(tab)) { tab = Tab.entries[it] }
         }
     }
 }
