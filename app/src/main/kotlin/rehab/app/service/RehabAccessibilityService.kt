@@ -212,7 +212,6 @@ class RehabAccessibilityService : AccessibilityService() {
             graph.versionChecker.versionOf(pkg),
             now.toEpochMilli(),
         )
-        graph.capture.maybeSave(snapshot)
         maybeRecheckVersion(pkg, snapshot.appVersion)
 
         if (snapshot.truncated) {
@@ -230,6 +229,10 @@ class RehabAccessibilityService : AccessibilityService() {
         val degradedReasonBefore = graph.degraded.reason(pkg)
         val degraded = degradedReasonBefore != null
         val detection = graph.detector.detect(snapshot, degraded)
+        // La capture a toujours lieu, troncature comprise (écran Debug) : on lui passe le
+        // `screenId` détecté, désormais connu à ce point de `process()`, pour un nom de fichier
+        // lisible (voir CaptureNames).
+        graph.capture.maybeSave(snapshot, detection.screenId)
         graph.degraded.onDetection(pkg, shouldArmUnknownScreen(detection, snapshot.truncated), now)
         // Relu après onDetection() : le seuil de 30s peut faire basculer en dégradé pendant cet
         // appel ; on publie l'état à jour, toujours calculé ici sur le thread "rehab-engine".
