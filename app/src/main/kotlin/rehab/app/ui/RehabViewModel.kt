@@ -14,19 +14,23 @@ import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
+import rehab.domain.policy.StreakSummary
 import java.io.File
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneId
 
 data class HomeUiState(
-    val streak: Int = 0,
-    val best: Int = 0,
-    val status: String = "…",
-    val quotaLines: List<String> = emptyList(),
+    val loaded: Boolean = false,
+    val pill: Pill = Pill("…", PillTone.Muted),
+    val alerts: List<HomeAlert> = emptyList(),
+    val streak: StreakSummary = StreakSummary(0, 0, 0),
+    val statusLine: String? = null,
     val jokersLeft: Int = 0,
+    val jokersPerDay: Int = 0,
+    val gauges: List<Gauge> = emptyList(),
+    val night: NightLine = NightLine("Prochaine nuit", "—"),
     val serviceConnected: Boolean = false,
-    val alerts: List<String> = emptyList(),
 )
 
 enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), Journal("Journal"), Debug("Debug") }
@@ -143,30 +147,32 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
 
     private fun compute(): HomeUiState {
         val now = graph.clock.now()
+        val zone = graph.clock.zone()
         val settings = graph.settingsRepo.get()
         val decision = graph.policy.evaluate(now)
-        val quota = graph.policy.quotaStatus(now)
+        val unlock = graph.unlock.activeUnlock(now)
         val serviceConnected = graph.serviceState.connected.value
         val alerts = buildList {
-            if (!serviceConnected) add("Rehab est inactif : active le service d'accessibilité.")
+            if (!serviceConnected) add(HomeText.serviceAlert())
             graph.versionChecker.statuses.value.forEach { s ->
-                if (!s.installed) add("${s.packageName} n'est pas installée.")
-                else if (!s.inRange) add(HomeText.outOfRangeMessage(s.packageName, s.version))
+                if (!s.installed) add(HomeText.notInstalledAlert(s.packageName))
+                else if (!s.inRange) add(HomeText.outOfRangeAlert(s.packageName, s.version))
             }
             val last = graph.detectionState.last.value
-            when (last?.degradedReason) {
-                "unknown" -> add("${last.packageName} : écrans non reconnus, mode dégradé actif.")
-                "version" -> add("${last.packageName} : version hors plage testée, mode dégradé actif.")
-            }
+            // "version" est déjà couvert par l'alerte hors plage ci-dessus.
+            if (last?.degradedReason == "unknown") add(HomeText.unknownScreensAlert(last.packageName))
         }
         return HomeUiState(
-            streak = graph.streak.current(now),
-            best = graph.streak.recordAndGetBest(now),
-            status = HomeText.status(decision, graph.unlock.activeUnlockUntil(now), graph.clock.zone()),
-            quotaLines = quota.perWindow.map(HomeText::quotaLine),
-            jokersLeft = (settings.jokersPerDay - graph.unlock.jokersUsed(graph.schedule.dayOf(now))).coerceAtLeast(0),
-            serviceConnected = serviceConnected,
+            loaded = true,
+            pill = HomeText.pill(serviceConnected, decision, unlock, zone),
             alerts = alerts,
+            streak = graph.streak.summary(now),
+            statusLine = HomeText.statusLine(decision, unlock, now, zone),
+            jokersLeft = (settings.jokersPerDay - graph.unlock.jokersUsed(graph.schedule.dayOf(now))).coerceAtLeast(0),
+            jokersPerDay = settings.jokersPerDay,
+            gauges = graph.policy.quotaStatus(now).perWindow.map(HomeText::gauge),
+            night = HomeText.night(graph.schedule.nextNight(now), now, zone),
+            serviceConnected = serviceConnected,
         )
     }
 }

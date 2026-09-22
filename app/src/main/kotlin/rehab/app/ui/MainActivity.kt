@@ -110,7 +110,12 @@ fun RehabApp(vm: RehabViewModel) {
     Column(Modifier.fillMaxSize().background(RehabColors.Bg).statusBarsPadding().padding(top = 16.dp)) {
         Box(Modifier.weight(1f)) {
             when (tab) {
-                Tab.Accueil -> HomeScreen(home)
+                Tab.Accueil -> HomeScreen(home) { action ->
+                    when (action) {
+                        AlertAction.OpenAccessibility -> prerequisites.openAccessibilitySettings()
+                        AlertAction.OpenDebug -> tab = Tab.Debug
+                    }
+                }
                 Tab.Reglages -> SettingsScreen(vm)
                 Tab.Journal -> JournalScreen(vm)
                 Tab.Debug -> DebugScreen(vm)
