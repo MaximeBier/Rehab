@@ -47,7 +47,7 @@ class AppGraph(context: Context) {
     val catalog = DefaultCatalog.create()
     val detector = ScreenDetector(catalog)
     val snapshotBuilder = SnapshotBuilder()
-    val capture = CaptureCoordinator(File(context.filesDir, "captures"))
+    val capture = CaptureCoordinator(File(context.filesDir, "captures"), clock.zone())
     val detectionState = DetectionState()
     // Voir la doc de ServiceState : évite le bandeau "Rehab est inactif" affiché à tort au tout
     // début du processus, avant la première connexion (ou reconnexion) du service.

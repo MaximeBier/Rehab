@@ -30,7 +30,12 @@ data class HomeUiState(
     val gauges: List<Gauge> = emptyList(),
     val night: NightLine = NightLine("Prochaine nuit", "—"),
     val serviceConnected: Boolean = false,
+    val decisionSummary: String = "—",
+    val nowMillis: Long = 0,
 )
+
+/** Une capture de structure sur disque (écran Debug), avec son nom et sa taille déjà prêts pour l'affichage. */
+data class CaptureFile(val file: File, val name: String, val sizeBytes: Long)
 
 enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), Journal("Journal"), Debug("Debug") }
 
@@ -140,7 +145,9 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     fun requestCapture(delayMillis: Long) { graph.capture.request(delayMillis, graph.clock.now().toEpochMilli()) }
 
     /** Liste les captures enregistrées sur disque : I/O fichier, donc hors thread principal. */
-    suspend fun captureCount(): Int = withContext(Dispatchers.IO) { graph.capture.list().size }
+    suspend fun captures(): List<CaptureFile> = withContext(Dispatchers.IO) {
+        graph.capture.list().map { CaptureFile(it, it.name, it.length()) }
+    }
 
     /**
      * Dernier résultat de `versionChecker.checkAll()` (écran d'onboarding). `checkAll()` lui-même
@@ -159,6 +166,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
         val decision = graph.policy.evaluate(now)
         val unlock = graph.unlock.activeUnlock(now)
         val serviceConnected = graph.serviceState.connected.value
+        val quota = graph.policy.quotaStatus(now)
         val alerts = buildList {
             if (!serviceConnected) add(HomeText.serviceAlert())
             graph.versionChecker.statuses.value.forEach { s ->
@@ -177,9 +185,11 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
             statusLine = HomeText.statusLine(decision, unlock, now, zone),
             jokersLeft = (settings.jokersPerDay - graph.unlock.jokersUsed(graph.schedule.dayOf(now))).coerceAtLeast(0),
             jokersPerDay = settings.jokersPerDay,
-            gauges = graph.policy.quotaStatus(now).perWindow.map(HomeText::gauge),
+            gauges = quota.perWindow.map(HomeText::gauge),
             night = HomeText.night(graph.schedule.nextNight(now), now, zone),
             serviceConnected = serviceConnected,
+            decisionSummary = DebugText.decision(decision, unlock, quota.perWindow, zone),
+            nowMillis = now.toEpochMilli(),
         )
     }
 }

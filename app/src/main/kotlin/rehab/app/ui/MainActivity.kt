@@ -118,7 +118,7 @@ fun RehabApp(vm: RehabViewModel) {
                 }
                 Tab.Reglages -> SettingsScreen(vm)
                 Tab.Journal -> JournalScreen(vm)
-                Tab.Debug -> DebugScreen(vm)
+                Tab.Debug -> DebugScreen(vm, home)
             }
         }
         Box(Modifier.navigationBarsPadding()) {
