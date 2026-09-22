@@ -34,6 +34,10 @@ data class RowSpec(
     val lockedReason: String? = null,
     val valueColor: Color? = null,
     val onClick: (() -> Unit)? = null,
+    // DESIGN §2 réserve Chivo Mono aux durées/heures/nombres. Par défaut `true` (comportement
+    // historique inchangé pour tous les appelants existants : Réglages n'affiche que des durées ou
+    // des nombres) ; `false` pour une valeur textuelle (ex. « Ouvrir », « Actif », tâche 8).
+    val valueMono: Boolean = true,
 )
 
 @Composable
@@ -79,7 +83,8 @@ private fun SettingsRow(row: RowSpec) {
                 Text(
                     row.value,
                     textAlign = TextAlign.End,
-                    style = RehabText.mono14.copy(color = if (locked) RehabColors.Muted else row.valueColor ?: RehabColors.Text),
+                    style = (if (row.valueMono) RehabText.mono14 else RehabText.body14)
+                        .copy(color = if (locked) RehabColors.Muted else row.valueColor ?: RehabColors.Text),
                 )
                 if (!locked && row.onClick != null) {
                     Spacer(Modifier.width(10.dp))
