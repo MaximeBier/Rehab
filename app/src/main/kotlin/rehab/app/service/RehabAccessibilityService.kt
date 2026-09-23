@@ -81,6 +81,7 @@ class RehabAccessibilityService : AccessibilityService() {
 
     private lateinit var graph: AppGraph
     private lateinit var overlay: OverlayController
+    private lateinit var blockJournal: BlockJournal
     private val engineThread = HandlerThread("rehab-engine").apply { start() }
     private val engine = Handler(engineThread.looper)
     private val processRunnable = Runnable { process() }
@@ -106,9 +107,6 @@ class RehabAccessibilityService : AccessibilityService() {
      * "rehab-engine". */
     private val truncatedLogged = mutableSetOf<String>()
 
-    /** Dernier blocage journalisé (raison, fin), pour n'écrire qu'un Event.Block par blocage. Accédé depuis "rehab-engine" seulement. */
-    private var lastBlockKey: Pair<BlockReason, Instant>? = null
-
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) { engine.post { safely { leaveTargets() } } }
     }
@@ -126,9 +124,14 @@ class RehabAccessibilityService : AccessibilityService() {
                 // Accueil du téléphone, pas BACK : BACK peut ramener sur une cible et refaire apparaître
                 // l'overlay aussitôt (DESIGN §6.2).
                 override fun onQuit() { performGlobalAction(GLOBAL_ACTION_HOME) }
-                override fun onHoldCompleted() { engine.post { graph.unlock.commit(graph.clock.now()); process() } }
+                // IMPORTANT 3 (revue finale) : le commit (Room) est protégé par `safely` — une exception
+                // ici ne doit pas tuer le thread moteur ; `process()` a déjà son propre `safely`.
+                override fun onHoldCompleted() { engine.post { safely { graph.unlock.commit(graph.clock.now()) }; process() } }
             },
         )
+        // Même logique que `lastBlockKey` avant l'extraction (MINEUR/IMPORTANT 2, revue finale) : conservé
+        // entre deux appels d'onServiceConnected() sur la même instance, pas recréé à chaque reconnexion.
+        if (!::blockJournal.isInitialized) blockJournal = BlockJournal(graph.eventLog)
         // Publiée seulement une fois `graph`/`overlay` prêts : l'écran Debug lit cette instance
         // pour activer son bouton d'overlay de test, qui appelle showTestOverlay() (utilise les
         // deux). La publier plus tôt exposerait une fenêtre, même infime, où l'UI obtiendrait une
@@ -220,19 +223,6 @@ class RehabAccessibilityService : AccessibilityService() {
         )
     }
 
-    /** Écrit un seul Event.Block par blocage, même si l'overlay est réaffiché à chaque tick. Thread "rehab-engine". */
-    private fun logBlockOnce(decision: Decision.Block, now: Instant) {
-        val key = decision.reason to decision.unlockAt
-        if (key == lastBlockKey) return
-        lastBlockKey = key
-        // Après un redémarrage du service, ne pas réécrire un blocage déjà journalisé (tolérance d'une minute sur la fin).
-        val previous = graph.eventLog.since(now.minus(Duration.ofDays(1))).filterIsInstance<Event.Block>().lastOrNull()
-        if (previous != null && previous.reason == decision.reason &&
-            Duration.between(previous.until, decision.unlockAt).abs() < Duration.ofMinutes(1)
-        ) return
-        graph.eventLog.append(Event.Block(now, decision.reason, decision.unlockAt))
-    }
-
     // ---- moteur (thread rehab-engine) ----
 
     private fun process() = safely {
@@ -316,8 +306,13 @@ class RehabAccessibilityService : AccessibilityService() {
             }
             is Decision.Block -> {
                 graph.usageTracker.closeOpen(now)
-                logBlockOnce(decision, now)
+                // IMPORTANT 2 (revue finale) : afficher d'abord, journaliser ensuite — une erreur Room dans
+                // blockJournal.logOnce ne doit jamais sauter l'affichage du tick (ni startTicker() au premier
+                // tick), sous peine de fenêtre sans blocage. lastKey n'est posé qu'après un append réussi
+                // (voir BlockJournal) : un échec est donc retenté au tick suivant.
                 overlay.show(overlayState(decision, now, detection.navBarBounds?.top))
+                runCatching { blockJournal.logOnce(decision, now) }
+                    .onFailure { Log.e("Rehab", "Journalisation du blocage impossible", it) }
             }
         }
         startTicker()

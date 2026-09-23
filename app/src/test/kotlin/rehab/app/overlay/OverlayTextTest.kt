@@ -15,6 +15,8 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class OverlayTextTest {
+    /** Espace insécable utilisée par HomeText.duration entre le nombre et l'unité (MINEUR 6, revue finale). */
+    private val nbsp = " "
     private val zone = ZoneId.of("Europe/Paris")
     private fun at(d: Int, h: Int, m: Int) = ZonedDateTime.of(2026, 9, d, h, m, 0, 0, zone).toInstant()
     private val record = StreakSummary(24, 24, 23)
@@ -25,15 +27,15 @@ class OverlayTextTest {
     @Test fun titlesAreStatic() {
         assertEquals("Nuit · déblocage à 07:30", OverlayText.title(state(BlockReason.Night, at(21, 7, 30)), at(20, 23, 30).toEpochMilli()))
         val q = state(BlockReason.Quota, at(20, 22, 18))
-        assertEquals("Quota atteint · 18 min", OverlayText.title(q, at(20, 22, 0).toEpochMilli()))
-        assertEquals("Quota atteint · 18 min", OverlayText.title(q, at(20, 22, 0).toEpochMilli() + 20_000))
+        assertEquals("Quota atteint · 18${nbsp}min", OverlayText.title(q, at(20, 22, 0).toEpochMilli()))
+        assertEquals("Quota atteint · 18${nbsp}min", OverlayText.title(q, at(20, 22, 0).toEpochMilli() + 20_000))
     }
 
     @Test fun details() {
         assertEquals("Plage nocturne du dimanche : 23:00 → 07:30", OverlayText.nightDetail(DayOfWeek.SUNDAY, NightWindow(LocalTime.of(23, 0), LocalTime.of(7, 30))))
-        assertEquals("5 min sur les 30 dernières minutes, toutes cibles", OverlayText.quotaDetail(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(5))))
-        assertEquals("30 min sur les 6 dernières heures, toutes cibles", OverlayText.quotaDetail(QuotaWindow(Duration.ofHours(6), Duration.ofMinutes(30))))
-        assertEquals("10 min sur la dernière heure, toutes cibles", OverlayText.quotaDetail(QuotaWindow(Duration.ofHours(1), Duration.ofMinutes(10))))
+        assertEquals("5${nbsp}min sur les 30 dernières minutes, toutes cibles", OverlayText.quotaDetail(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(5))))
+        assertEquals("30${nbsp}min sur les 6 dernières heures, toutes cibles", OverlayText.quotaDetail(QuotaWindow(Duration.ofHours(6), Duration.ofMinutes(30))))
+        assertEquals("10${nbsp}min sur la dernière heure, toutes cibles", OverlayText.quotaDetail(QuotaWindow(Duration.ofHours(1), Duration.ofMinutes(10))))
         assertEquals("Jokers du jour épuisés (2/2)", OverlayText.jokersExhausted(2))
         assertEquals("Aucun joker prévu (0/0)", OverlayText.jokersExhausted(0))
     }

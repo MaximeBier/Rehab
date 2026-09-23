@@ -25,12 +25,15 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -165,17 +168,32 @@ fun BlockOverlay(state: OverlayState, nowMillis: () -> Long, onQuit: () -> Unit,
                 },
                 onPressChange = { if (!done) pressing = it },
             )
-            // Boîte de hauteur fixe (40 dp) : rien ne bouge quand le texte change (DESIGN §5.5).
+            // Boîte de hauteur fixe : rien ne bouge quand le texte change (DESIGN §5.5). Mesurée (pas
+            // calculée à la main en sp) : à 130 % de police système, une formule sp * dp naïve restait
+            // trop courte de près d'une ligne (métriques réelles de Chivo à cette taille, pas seulement
+            // une histoire d'arrondi) — `rememberTextMeasurer` mesure exactement ce que `Text` va rendre,
+            // donc les deux ne peuvent pas diverger (IMPORTANT 1, revue finale).
             val k = if (relapse) RelapseFx.captionScale(fx) else 1f
+            val color = if (relapse) RehabColors.Danger else RehabColors.Text
+            val style = TextStyle(
+                fontFamily = Chivo, fontSize = 13.sp, lineHeight = 19.sp, color = color, textAlign = TextAlign.Center,
+                fontWeight = if (relapse && fx > 0.5f) FontWeight.W700 else FontWeight.W400,
+            )
+            val density = LocalDensity.current
+            val textMeasurer = rememberTextMeasurer()
+            val captionHeight = remember(density, style.fontSize, style.lineHeight, style.fontWeight) {
+                val maxWidthPx = with(density) { 300.dp.roundToPx() }
+                val measured = textMeasurer.measure(
+                    text = "x\nx", // référence deux lignes : la légende tient toujours sur 1 ou 2 lignes.
+                    style = style,
+                    constraints = Constraints(maxWidth = maxWidthPx),
+                )
+                with(density) { measured.size.height.toDp() }
+            }
             Box(
-                Modifier.height(40.dp).widthIn(max = 300.dp).graphicsLayer { scaleX = k; scaleY = k },
+                Modifier.height(captionHeight).widthIn(max = 300.dp).graphicsLayer { scaleX = k; scaleY = k },
                 contentAlignment = Alignment.Center,
             ) {
-                val color = if (relapse) RehabColors.Danger else RehabColors.Text
-                val style = TextStyle(
-                    fontFamily = Chivo, fontSize = 13.sp, lineHeight = 19.sp, color = color, textAlign = TextAlign.Center,
-                    fontWeight = if (relapse && fx > 0.5f) FontWeight.W700 else FontWeight.W400,
-                )
                 when {
                     done -> Text(OverlayText.doneCaption(state), style = style)
                     holding -> Text(OverlayText.holdingCaption(state, secondsLeft), style = style)

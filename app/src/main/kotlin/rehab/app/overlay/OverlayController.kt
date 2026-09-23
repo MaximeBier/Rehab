@@ -73,7 +73,13 @@ class OverlayController(
      * du gel, par [flush] que [holdCompleted] a planifié.
      */
     private fun runOrDefer(action: () -> Unit) {
-        if (SystemClock.uptimeMillis() < frozenUntil) deferred = action else action()
+        // MINEUR 4 (revue finale) : tester frozenUntil != 0L (que seuls flush/hideOnMain remettent à 0) plutôt
+        // que de comparer à l'horloge. Comparer à SystemClock.uptimeMillis() ouvrait une course : une requête
+        // postée pendant le gel, exécutée juste après l'échéance mais avant que le Runnable `flush` (posté au
+        // même instant) n'ait tourné, se serait appliquée immédiatement — rejouée une seconde fois ensuite par
+        // flush avec un `deferred` plus ancien. frozenUntil ne redevient 0 qu'une fois flush/hideOnMain déjà
+        // passés : aucune ambiguïté possible sur l'ordre.
+        if (frozenUntil != 0L) deferred = action else action()
     }
 
     fun show(newState: OverlayState) = main.post { runOrDefer { showOnMain(newState) } }

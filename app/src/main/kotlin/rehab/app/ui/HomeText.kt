@@ -32,13 +32,17 @@ object HomeText {
     fun plural(n: Int, singular: String, plural: String = "${singular}s"): String =
         "$n " + if (n <= 1) singular else plural
 
+    /** Espace insécable entre un nombre et son unité (« 18 min », « 1 h 05 min ») : évite la coupure
+     * en fin de ligne qui isolerait l'unité seule (MINEUR 6, revue finale). */
+    private const val NBSP = " "
+
     fun duration(d: Duration): String {
         val h = d.toHours()
         val m = d.toMinutes() % 60
         return when {
-            h > 0 && m > 0 -> "$h h ${m.toString().padStart(2, '0')} min"
-            h > 0 -> "$h h"
-            else -> "$m min"
+            h > 0 && m > 0 -> "$h${NBSP}h ${m.toString().padStart(2, '0')}${NBSP}min"
+            h > 0 -> "$h${NBSP}h"
+            else -> "$m${NBSP}min"
         }
     }
 
