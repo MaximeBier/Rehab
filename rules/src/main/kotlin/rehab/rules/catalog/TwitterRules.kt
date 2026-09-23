@@ -25,11 +25,17 @@ object TwitterRules {
 
     private val homeTab = bottomTabActive(Regex("^(Accueil|Home)$"))
 
+    // En faisant défiler le fil, X masque la barre du bas et le sélecteur « Pour vous / Abonnements » : aucun onglet
+    // n'est alors sélectionné. L'identifiant Compose `scaffold_home_tabbed` (X 12.27 et 12.28) n'existe que sur
+    // l'accueil — absent de la recherche et des DM — et reste présent barres masquées. Sans lui, l'usage du fil
+    // défilé n'était jamais compté (bug du 2026-09-23 : « le temps n'avance pas sur X »).
+    private val homeScaffold = Matcher.ViewId("scaffold_home_tabbed")
+
     val PACKAGE_RULES = PackageRules(
         packageName = PACKAGE,
         testedVersions = VersionRange("12.27", "13.0"),
         targets = listOf(
-            TargetRule(id = HOME, screenId = "twitter.home", screenMatchers = listOf(homeTab)),
+            TargetRule(id = HOME, screenId = "twitter.home", screenMatchers = listOf(Matcher.AnyOf(listOf(homeTab, homeScaffold)))),
         ),
         knownScreens = listOf(
             KnownScreen("twitter.search", listOf(bottomTabActive(Regex("^(Explorer|Explore|Rechercher|Search)$")))),
