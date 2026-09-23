@@ -19,17 +19,4 @@ class ScreenDetector(private val catalog: RuleCatalog) {
         val known = rules.knownScreens.firstOrNull { k -> k.matchers.all { it.firstMatch(nodes) != null } }
         return Detection(null, known?.screenId, navBar, unknownScreen = known == null, homeTabSelected = homeTab)
     }
-
-    /**
-     * Bounds de l'onglet [tab] de l'app du snapshot : premier nœud qui correspond au matcher
-     * `PackageRules.redirectTabs[tab]`, à bounds non vides (largeur et hauteur > 0). `null` si le
-     * package n'a pas cet onglet ou s'il n'est pas dans l'arbre (ex. barres masquées en défilant sur X).
-     */
-    fun redirectBounds(snapshot: Snapshot, tab: RedirectTab): Bounds? {
-        val matcher = catalog.forPackage(snapshot.packageName)?.redirectTabs?.get(tab) ?: return null
-        val nodes = snapshot.nodes
-        return nodes.firstOrNull { n ->
-            n.bounds.right > n.bounds.left && n.bounds.bottom > n.bounds.top && matcher.matches(n, nodes)
-        }?.bounds
-    }
 }

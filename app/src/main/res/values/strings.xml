@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Rehab</string>
-    <string name="accessibility_service_description">Rehab lit l\'écran d\'Instagram et de X pour masquer les Reels, les posts suggérés et l\'accueil de X selon tes horaires et ton quota. Quand le quota est atteint, il peut toucher l\'onglet Messages à ta place. Aucune donnée ne quitte le téléphone.</string>
+    <string name="accessibility_service_description">Rehab lit l\'écran d\'Instagram et de X pour masquer les Reels, les posts suggérés et l\'accueil de X selon tes horaires et ton quota. Aucune donnée ne quitte le téléphone.</string>
 </resources>

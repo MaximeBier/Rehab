@@ -22,12 +22,7 @@ data class PackageRules(
     val knownScreens: List<KnownScreen> = emptyList(),
     val navBarMatcher: Matcher? = null,
     val homeTabMatcher: Matcher? = null,
-    /** Onglets de repli touchés au blocage quota au lieu d'afficher l'overlay (v0.3.0), voir [ScreenDetector.redirectBounds]. */
-    val redirectTabs: Map<RedirectTab, Matcher> = emptyMap(),
 )
-
-/** Onglet vers lequel Rehab bascule quand le quota bloque une cible (v0.3.0). */
-enum class RedirectTab { Messages, Search }
 
 data class Detection(
     val target: TargetId?,

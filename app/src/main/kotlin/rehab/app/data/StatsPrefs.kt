@@ -5,8 +5,7 @@ import android.content.SharedPreferences
 /**
  * Saisie manuelle « avant Rehab » (minutes/jour) par app (v0.4.0 — écran Stats/Réglages), stockée
  * dans les SharedPreferences `rehab_stats` et non dans `Settings` du domaine : ce réglage ne
- * desserre aucun verrou, il n'a donc pas à passer par `SettingsGuard` (même raisonnement que
- * `RedirectPrefs`).
+ * desserre aucun verrou, il n'a donc pas à passer par `SettingsGuard`.
  *
  * `null` = pas de saisie : la comparaison retombe sur l'historique Android (`StatsMath.effectiveBefore`).
  */

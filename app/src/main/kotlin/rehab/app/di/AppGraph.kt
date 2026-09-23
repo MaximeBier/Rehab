@@ -2,7 +2,6 @@ package rehab.app.di
 
 import android.content.Context
 import rehab.app.data.PrefsSettingsRepo
-import rehab.app.data.RedirectPrefs
 import rehab.app.data.RoomEventLog
 import rehab.app.data.RoomStreakRecordRepo
 import rehab.app.data.RoomUsageLog
@@ -39,8 +38,6 @@ class AppGraph(context: Context) {
     val eventLog = RoomEventLog(db.events())
     val streakRecord = RoomStreakRecordRepo(db.streakRecord(), clock)
     val settingsRepo = PrefsSettingsRepo(context.getSharedPreferences("rehab_settings", Context.MODE_PRIVATE))
-    // Bascule au blocage quota (v0.3.0) : réglage app, hors `Settings` du domaine (voir RedirectPrefs).
-    val redirectPrefs = RedirectPrefs(context.getSharedPreferences("rehab_redirect", Context.MODE_PRIVATE))
     // Onglet Stats (v0.4.0) : saisie manuelle « avant Rehab » et lecture de l'historique Android.
     val statsPrefs = StatsPrefs(context.getSharedPreferences("rehab_stats", Context.MODE_PRIVATE))
     val usageHistory: UsageHistory = AndroidUsageHistory(context)

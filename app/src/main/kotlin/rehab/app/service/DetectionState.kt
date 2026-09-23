@@ -20,14 +20,7 @@ data class LastDetection(
     val degradedReason: String? = null,
 )
 
-class DetectionState {
-    val last = MutableStateFlow<LastDetection?>(null)
-    /**
-     * Dernière tentative de bascule au blocage quota ([RedirectPolicy.lastAttempt]), recopiée par le thread
-     * "rehab-engine" après chaque décision : l'écran Debug la lit ici, jamais `RedirectPolicy` elle-même.
-     */
-    val redirect = MutableStateFlow<RedirectAttempt?>(null)
-}
+class DetectionState { val last = MutableStateFlow<LastDetection?>(null) }
 
 /**
  * [initiallyConnected] devrait toujours venir de `Prerequisites.accessibilityEnabled()` (source fiable côté

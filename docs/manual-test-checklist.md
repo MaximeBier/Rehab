@@ -207,29 +207,7 @@ apparaissent dès l'activation du service, sans qu'il soit nécessaire d'ouvrir 
   réinitialiser ; « Quitter » ramène bien à l'écran d'accueil du téléphone (pas un simple retour
   arrière).
 
-## 14. Bascule au blocage (v0.3.0)
-
-Après l'installation de la 0.3.0, Android peut désactiver le service d'accessibilité et demander de
-le réactiver : la capacité « effectuer des gestes » (`canPerformGestures`) a été ajoutée. Vérifier
-dans Réglages Android > Accessibilité > Rehab que le service est bien actif avant ces tests.
-
-- [ ] **Réglages** : la section « Bascule au blocage » affiche Instagram et X à « Messages » par
-  défaut ; le dialogue propose Messages / Recherche / Désactivée et le choix est conservé après
-  fermeture puis réouverture de l'app.
-- [ ] **Instagram, quota atteint** : ouvrir le fil ou les Reels → Rehab touche l'onglet Messages
-  (ou Recherche selon le réglage), sans overlay. Revenir sur Accueil → nouvelle bascule.
-- [ ] **X, quota atteint** : ouvrir l'accueil (barre du bas visible) → bascule vers Messages.
-- [ ] **X, barres masquées** : fil défilé (barre du bas cachée) au moment où le quota tombe →
-  overlay (l'onglet n'est pas visible), comme avant.
-- [ ] **Échec** : si la cible reste à l'écran 1,5 s après le toucher, l'overlay s'affiche et
-  Rehab ne retouche pas en boucle ; quitter la cible puis y revenir relance une tentative.
-- [ ] **Désactivée** : avec « Désactivée », l'overlay s'affiche comme avant.
-- [ ] **Nuit** : pendant une plage nocturne, toujours l'overlay, jamais de bascule.
-- [ ] **Joker/relapse actif** : aucune bascule, le fil reste accessible.
-- [ ] **Debug** : la ligne « Bascule » indique « Messages · il y a N s » après une bascule,
-  « échec → overlay » après un échec, « — » sinon.
-
-## 15. Onglet Stats (v0.4.0)
+## 14. Onglet Stats (v0.4.0)
 
 - [ ] **Permission absente** : après une première installation (ou révocation manuelle dans
   Réglages Android > Applications > Accès spécial > Accès aux données d'utilisation), l'onglet

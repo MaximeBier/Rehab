@@ -4,7 +4,6 @@ import rehab.domain.model.TargetId
 import rehab.rules.KnownScreen
 import rehab.rules.Matcher
 import rehab.rules.PackageRules
-import rehab.rules.RedirectTab
 import rehab.rules.TargetRule
 import rehab.rules.VersionRange
 
@@ -73,10 +72,5 @@ object InstagramRules {
         ),
         navBarMatcher = Matcher.ViewId("tab_bar"),
         homeTabMatcher = homeTab,
-        // Onglets de la barre du bas (Instagram 447, fr-FR) : direct_tab [432,2148][648,2274], search_tab à sa droite.
-        redirectTabs = mapOf(
-            RedirectTab.Messages to Matcher.ViewId("direct_tab"),
-            RedirectTab.Search to Matcher.ViewId("search_tab"),
-        ),
     )
 }

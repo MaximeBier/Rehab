@@ -15,7 +15,6 @@ import org.robolectric.annotation.GraphicsMode
 import rehab.app.ui.RehabViewModel
 import rehab.app.ui.SettingsContent
 import rehab.domain.model.Settings
-import rehab.rules.RedirectTab
 import java.time.Duration
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -51,30 +50,26 @@ class RenderSettings {
             quotaUnlockAt = now.plus(Duration.ofMinutes(18)),
             lockedWindows = setOf(Duration.ofMinutes(30)),
         )
-        val redirects = mapOf("com.instagram.android" to RedirectTab.Messages, "com.twitter.android" to null)
         val statsBefore = emptyMap<String, RehabViewModel.StatsBeforeRow>()
         Box(Modifier.size(390.dp, 1240.dp)) {
-            SettingsContent(Settings.DEFAULT, zone, locks, redirects, statsBefore) {}
+            SettingsContent(Settings.DEFAULT, zone, locks, statsBefore) {}
         }
     }
 
     /**
-     * v0.3.0 : section « Bascule au blocage » en bas de l'écran. Fenêtre plus haute (h1560dp) pour que la
-     * section, sous « Déblocage », tienne dans la capture ; pas de verrou actif ici (hors plage nocturne).
-     * v0.4.0 : la section « Avant Rehab » (Instagram saisi, X déduit de l'historique Android) suit — fenêtre
-     * encore agrandie (h1760dp) pour que les deux sections tiennent dans la capture.
+     * v0.4.0 : section « Avant Rehab » (Instagram saisi, X déduit de l'historique Android) sous « Déblocage » ;
+     * fenêtre plus haute pour qu'elle tienne dans la capture, pas de verrou actif (hors plage nocturne).
      */
-    @Config(sdk = [34], qualifiers = "w390dp-h1760dp-xxhdpi")
-    @Test fun `reglages bascule`() = compose.renderPng("reglages-bascule") {
+    @Config(sdk = [34], qualifiers = "w390dp-h1560dp-xxhdpi")
+    @Test fun `reglages avant rehab`() = compose.renderPng("reglages-avant-rehab") {
         val now = at(15, 0)
         val locks = RehabViewModel.SettingsLocks(now, null, null, null, emptySet())
-        val redirects = mapOf("com.instagram.android" to RedirectTab.Messages, "com.twitter.android" to RedirectTab.Search)
         val statsBefore = mapOf(
             "com.instagram.android" to RehabViewModel.StatsBeforeRow(Duration.ofMinutes(45), null),
             "com.twitter.android" to RehabViewModel.StatsBeforeRow(null, Duration.ofMinutes(38)),
         )
-        Box(Modifier.size(390.dp, 1760.dp)) {
-            SettingsContent(Settings.DEFAULT, zone, locks, redirects, statsBefore) {}
+        Box(Modifier.size(390.dp, 1560.dp)) {
+            SettingsContent(Settings.DEFAULT, zone, locks, statsBefore) {}
         }
     }
 }
