@@ -23,7 +23,8 @@ class RedirectPolicyTest {
         target: Boolean = true,
         redirectTab: RedirectTab? = RedirectTab.Messages,
         bounds: Bounds? = tab,
-    ) = policy.decide(pkg, decision, target, redirectTab, { bounds }, now)
+        overlayBottom: Int? = null,
+    ) = policy.decide(pkg, decision, target, redirectTab, { bounds }, now, overlayBottom)
 
     @Test fun `premiere tentative touche l onglet`() {
         assertEquals(Action.Redirect(tab), decide(1_000))
@@ -42,18 +43,17 @@ class RedirectPolicyTest {
         assertEquals(Action.ShowOverlay, decide(60_000))
     }
 
-    @Test fun `cible quittee remet a zero`() {
+    @Test fun `cible quittee apres un echec remet a zero une fois le delai de grace passe`() {
         decide(1_000)
         assertEquals(Action.ShowOverlay, decide(2_500))
         assertEquals(Action.None, decide(3_000, target = false))
-        assertEquals(Action.Redirect(tab), decide(4_000))
+        assertEquals(Action.Redirect(tab), decide(1_000 + RedirectPolicy.FAILURE_COOLDOWN_MILLIS))
     }
 
-    @Test fun `reset explicite remet a zero`() {
+    @Test fun `reset explicite remet a zero apres l intervalle minimal`() {
         decide(1_000)
-        decide(2_500)
         policy.resetAll()
-        assertEquals(Action.Redirect(tab), decide(3_000))
+        assertEquals(Action.Redirect(tab), decide(1_000 + RedirectPolicy.MIN_INTERVAL_MILLIS))
     }
 
     @Test fun `nuit overlay sans bascule`() {
@@ -63,7 +63,7 @@ class RedirectPolicyTest {
     @Test fun `passage du quota a la nuit remet a zero`() {
         decide(1_000)
         assertEquals(Action.ShowOverlay, decide(1_200, decision = night))
-        assertEquals(Action.Redirect(tab), decide(1_400))
+        assertEquals(Action.Redirect(tab), decide(1_000 + RedirectPolicy.MIN_INTERVAL_MILLIS))
     }
 
     @Test fun `onglet desactive overlay`() {
@@ -79,7 +79,7 @@ class RedirectPolicyTest {
     @Test fun `joker actif ne fait rien et remet a zero`() {
         decide(1_000)
         assertEquals(Action.None, decide(1_200, decision = Decision.Allow))
-        assertEquals(Action.Redirect(tab), decide(1_400))
+        assertEquals(Action.Redirect(tab), decide(1_000 + RedirectPolicy.MIN_INTERVAL_MILLIS))
     }
 
     @Test fun `echec du geste overlay sans attendre`() {
@@ -91,7 +91,7 @@ class RedirectPolicyTest {
     @Test fun `etat par package`() {
         decide(1_000)
         decide(2_500)
-        val other = policy.decide("com.twitter.android", quota, true, RedirectTab.Messages, { tab }, 2_600)
+        val other = policy.decide("com.twitter.android", quota, true, RedirectTab.Messages, { tab }, 2_600, null)
         assertEquals(Action.Redirect(tab), other)
     }
 
@@ -101,5 +101,59 @@ class RedirectPolicyTest {
         assertEquals(RedirectAttempt(pkg, RedirectTab.Messages, 1_000, failed = false), policy.lastAttempt)
         decide(2_500)
         assertEquals(RedirectAttempt(pkg, RedirectTab.Messages, 1_000, failed = true), policy.lastAttempt)
+    }
+
+    // ---- Fix round 1 : délai de grâce qui survit aux remises à zéro, overlay plein écran ----
+
+    @Test fun `echec puis tick sans cible puis cible pas de nouveau toucher`() {
+        decide(1_000)
+        assertEquals(Action.ShowOverlay, decide(2_500))
+        // Tick transitoire sans cible (racine nulle, arbre partiel, volet de notifications).
+        assertEquals(Action.None, decide(2_800, target = false))
+        assertEquals(Action.ShowOverlay, decide(3_000))
+        assertEquals(Action.ShowOverlay, decide(3_000 + 30_000))
+    }
+
+    @Test fun `echec puis resetAll garde le delai de grace`() {
+        decide(1_000)
+        decide(2_500)
+        policy.resetAll()
+        assertEquals(Action.ShowOverlay, decide(3_000))
+    }
+
+    @Test fun `apres le delai de grace une nouvelle tentative est permise`() {
+        decide(1_000)
+        decide(2_500)
+        decide(2_800, target = false)
+        assertEquals(Action.Redirect(tab), decide(1_000 + RedirectPolicy.FAILURE_COOLDOWN_MILLIS))
+    }
+
+    @Test fun `intervalle minimal entre deux tentatives meme reussies`() {
+        decide(1_000)
+        // Bascule réussie : la cible disparaît, puis l'utilisateur revient aussitôt sur le fil.
+        assertEquals(Action.None, decide(1_800, target = false))
+        assertEquals(Action.ShowOverlay, decide(2_000))
+        assertEquals(Action.Redirect(tab), decide(1_000 + RedirectPolicy.MIN_INTERVAL_MILLIS))
+    }
+
+    @Test fun `overlay plein ecran pas de toucher`() {
+        assertEquals(Action.ShowOverlay, decide(1_000, overlayBottom = Int.MAX_VALUE))
+        assertNull(policy.lastAttempt)
+    }
+
+    @Test fun `onglet sous l overlay affiche toucher permis`() {
+        // Overlay arrêté au-dessus de la barre (navBarTop = 2148) : le centre de l'onglet (y = 2211) est dessous.
+        assertEquals(Action.Redirect(tab), decide(1_000, overlayBottom = 2148))
+    }
+
+    @Test fun `onglet couvert par l overlay pas de toucher`() {
+        assertEquals(Action.ShowOverlay, decide(1_000, overlayBottom = 2250))
+    }
+
+    @Test fun `quitter la cible efface l echec affiche`() {
+        decide(1_000)
+        decide(2_500)
+        decide(2_800, target = false)
+        assertNull(policy.lastAttempt)
     }
 }

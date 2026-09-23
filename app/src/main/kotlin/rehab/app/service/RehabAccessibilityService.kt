@@ -123,6 +123,12 @@ class RehabAccessibilityService : AccessibilityService() {
     private val redirectPolicy = RedirectPolicy()
     /** Réévalue la cible juste après le délai de [RedirectPolicy] sans attendre le tick suivant. */
     private val redirectCheckRunnable = Runnable { process() }
+    /**
+     * Bas de l'overlay demandé en dernier via [showOverlay] (`navBarTop`, ou `Int.MAX_VALUE` pour un overlay
+     * plein écran), `null` après [hideOverlay]. Passé à [RedirectPolicy] pour ne jamais envoyer le toucher de
+     * bascule sur l'overlay lui-même (revue v0.3.0, fix 2). Thread "rehab-engine" uniquement.
+     */
+    private var overlayBottomPx: Int? = null
 
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) { engine.post { safely { leaveTargets() } } }
@@ -149,6 +155,8 @@ class RehabAccessibilityService : AccessibilityService() {
         // Même logique que `lastBlockKey` avant l'extraction (MINEUR/IMPORTANT 2, revue finale) : conservé
         // entre deux appels d'onServiceConnected() sur la même instance, pas recréé à chaque reconnexion.
         if (!::blockJournal.isInitialized) blockJournal = BlockJournal(graph.eventLog)
+        // Nouveau contrôleur, donc aucun overlay affiché : [overlayBottomPx] est confiné au thread moteur.
+        engine.post { overlayBottomPx = null }
         // Publiée seulement une fois `graph`/`overlay` prêts : l'écran Debug lit cette instance
         // pour activer son bouton d'overlay de test, qui appelle showTestOverlay() (utilise les
         // deux). La publier plus tôt exposerait une fenêtre, même infime, où l'UI obtiendrait une
@@ -211,8 +219,8 @@ class RehabAccessibilityService : AccessibilityService() {
     fun showTestOverlay() = engine.post {
         val now = graph.clock.now()
         // Pas de journalisation : ce blocage factice n'a pas eu lieu (pas d'Event.Block).
-        overlay.show(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
-        engine.postDelayed({ overlay.hide() }, 5000)
+        showOverlay(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
+        engine.postDelayed({ hideOverlay() }, 5000)
     }
 
     /** État de l'overlay pour [decision], commun au blocage réel ([apply]) et à l'overlay de test. Thread "rehab-engine". */
@@ -313,16 +321,18 @@ class RehabAccessibilityService : AccessibilityService() {
         val pkg = snapshot.packageName
         if (target == null) {
             redirectPolicy.reset(pkg)
+            graph.detectionState.redirect.value = redirectPolicy.lastAttempt
             graph.usageTracker.onDetected(null, now)
-            overlay.hide()
+            hideOverlay()
             stopTicker()
             return
         }
         when (val decision = graph.policy.evaluate(now)) {
             Decision.Allow -> {
                 redirectPolicy.reset(pkg)
+                graph.detectionState.redirect.value = redirectPolicy.lastAttempt
                 graph.usageTracker.onDetected(target, now)
-                overlay.hide()
+                hideOverlay()
             }
             is Decision.Block -> {
                 // IMPORTANT 2 (revue finale) : afficher d'abord, puis clore l'usage et journaliser — une erreur Room dans
@@ -332,7 +342,7 @@ class RehabAccessibilityService : AccessibilityService() {
                 // v0.3.0 : au blocage quota, on tente d'abord la bascule vers l'onglet de repli ; l'overlay n'est
                 // sauté que si un toucher vient d'être envoyé ou qu'une tentative est en cours (< 1,5 s).
                 if (!redirectInstead(decision, snapshot, now)) {
-                    overlay.show(overlayState(decision, now, detection.navBarBounds?.top))
+                    showOverlay(overlayState(decision, now, detection.navBarBounds?.top))
                 }
                 // Même règle pour la clôture de l'intervalle d'usage (Room) : placée avant show(), une erreur sautait
                 // l'affichage du tick (résiduel de la revue finale de la refonte).
@@ -360,6 +370,7 @@ class RehabAccessibilityService : AccessibilityService() {
                 tab = graph.redirectPrefs.get(pkg),
                 boundsOf = { graph.detector.redirectBounds(snapshot, it) },
                 nowMillis = now.toEpochMilli(),
+                overlayBottomPx = overlayBottomPx,
             )
             when (action) {
                 is RedirectPolicy.Action.Redirect -> {
@@ -405,12 +416,24 @@ class RehabAccessibilityService : AccessibilityService() {
         }, engine)
     }
 
+    /** Seuls points d'appel moteur de `overlay.show`/`hide` : tiennent [overlayBottomPx] à jour. Thread "rehab-engine". */
+    private fun showOverlay(state: OverlayState) {
+        overlayBottomPx = state.navBarTop ?: Int.MAX_VALUE
+        overlay.show(state)
+    }
+
+    private fun hideOverlay() {
+        overlayBottomPx = null
+        overlay.hide()
+    }
+
     private fun leaveTargets() {
         // overlay.hide() d'abord : c'est un simple post{} vers le thread principal (voir OverlayController),
         // alors que usageTracker.closeOpen() attaque Room. Si l'I/O lève, l'overlay doit déjà avoir été
         // retiré (IMPORTANT 5, revue finale) — l'ordre inverse laissait l'overlay affiché en cas d'échec Room.
-        overlay.hide()
+        hideOverlay()
         redirectPolicy.resetAll()
+        graph.detectionState.redirect.value = redirectPolicy.lastAttempt
         engine.removeCallbacks(redirectCheckRunnable)
         graph.usageTracker.closeOpen(graph.clock.now())
         stopTicker()
