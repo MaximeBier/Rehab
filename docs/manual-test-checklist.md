@@ -229,6 +229,28 @@ dans Réglages Android > Accessibilité > Rehab que le service est bien actif av
 - [ ] **Debug** : la ligne « Bascule » indique « Messages · il y a N s » après une bascule,
   « échec → overlay » après un échec, « — » sinon.
 
+## 15. Onglet Stats (v0.4.0)
+
+- [ ] **Permission absente** : après une première installation (ou révocation manuelle dans
+  Réglages Android > Applications > Accès spécial > Accès aux données d'utilisation), l'onglet
+  Stats affiche un bandeau « Autoriser l'accès aux données d'utilisation » avec action OUVRIR, et
+  les lignes « Avant Rehab »/« Maintenant » affichent « accès requis » (« Dont fil et Reels » reste
+  affichée, mesurée par Rehab indépendamment de cette permission).
+- [ ] **Accorder la permission** : taper OUVRIR ouvre bien l'écran système d'accès aux données
+  d'utilisation ; y activer Rehab, revenir dans l'app (bouton Retour) → l'onglet Stats se
+  rafraîchit sans avoir besoin de changer d'onglet, le bandeau disparaît et les valeurs Android
+  s'affichent.
+- [ ] **Cartes Instagram/X** : « Avant Rehab » (historique Android sur 28 jours avant
+  l'installation, ou la saisie manuelle si renseignée dans Réglages), « Maintenant » (7 derniers
+  jours, app entière), « Dont fil et Reels » (mesure Rehab), « Écart » en pourcentage — vert/accent
+  si baisse, rouge/danger si hausse, « — » si l'avant est inconnu.
+- [ ] **Bloc Total** : somme Instagram + X, même forme que les cartes par app.
+- [ ] **Réglages > Avant Rehab** : une ligne par app (« 45 min/j » si saisie, « 38 min/j · Android »
+  si déduite de l'historique, « à renseigner » sinon) ; dialogue numérique (minutes/jour), vide =
+  revenir à la valeur Android ; la valeur saisie se reflète immédiatement dans l'onglet Stats.
+- [ ] **Barre d'onglets à 5 entrées** : à 100 % et 130 % de police système, les 5 libellés
+  (Accueil, Réglages, Journal, Stats, Debug) restent lisibles, aucun chevauchement ni coupure.
+
 ---
 
 Notes de session : consigner ici les écarts trouvés, avec la commande logcat/adb correspondante,

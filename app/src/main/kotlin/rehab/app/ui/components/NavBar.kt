@@ -45,7 +45,10 @@ fun RehabNavBar(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
                 Text(
                     label.uppercase(), maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
                     style = TextStyle(
-                        fontFamily = Chivo, fontSize = 11.sp, letterSpacing = 0.1.em,
+                        // v0.4.0 : 0.1em -> 0em (5 onglets au lieu de 4, ajout de Stats) : sans cette
+                        // réduction, « RÉGLAGES » chevauche « JOURNAL » à 130 % de police système
+                        // (components-navbar-130) — 5 colonnes égales laissent moins de place par libellé.
+                        fontFamily = Chivo, fontSize = 11.sp, letterSpacing = 0.em,
                         fontWeight = if (active) FontWeight.W700 else FontWeight.W400,
                         color = if (active) RehabColors.Bg else RehabColors.Muted,
                     ),

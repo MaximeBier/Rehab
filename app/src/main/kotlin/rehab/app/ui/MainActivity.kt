@@ -118,6 +118,7 @@ fun RehabApp(vm: RehabViewModel) {
                 }
                 Tab.Reglages -> SettingsScreen(vm)
                 Tab.Journal -> JournalScreen(vm)
+                Tab.Stats -> StatsScreen(vm, prerequisites)
                 Tab.Debug -> DebugScreen(vm, home)
             }
         }

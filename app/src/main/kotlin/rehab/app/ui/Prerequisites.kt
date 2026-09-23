@@ -36,4 +36,9 @@ class Prerequisites(private val context: Context) {
             Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
+
+    /** Ouvre le réglage système d'accès aux données d'utilisation (v0.4.0, écran Stats). L'état de la permission
+     * lui-même vient de `RehabViewModel.loadStats` (`graph.usageHistory.hasPermission()`), jamais lu ici. */
+    fun openUsageAccessSettings() =
+        context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }

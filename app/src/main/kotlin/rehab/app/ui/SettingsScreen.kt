@@ -48,6 +48,8 @@ sealed interface Editor {
     data object Hold : Editor
     /** Onglet de repli de la bascule au blocage pour l'app [packageName] (v0.3.0). */
     data class Redirect(val packageName: String) : Editor
+    /** Saisie manuelle « avant Rehab » (minutes/jour) pour l'app [packageName] (v0.4.0). */
+    data class StatsBefore(val packageName: String) : Editor
 }
 
 /**
@@ -62,6 +64,7 @@ fun SettingsContent(
     zone: ZoneId,
     locks: RehabViewModel.SettingsLocks,
     redirects: Map<String, RedirectTab?>,
+    statsBefore: Map<String, RehabViewModel.StatsBeforeRow>,
     onEdit: (Editor) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -130,6 +133,20 @@ fun SettingsContent(
             },
         )
         Note("Quand le quota est atteint, Rehab ouvre cet onglet au lieu d'afficher l'écran de blocage. La nuit, l'écran de blocage s'affiche toujours.")
+
+        SectionLabel("Avant Rehab")
+        SettingsGroup(
+            SettingsText.redirectApps.map { (pkg, label) ->
+                val row = statsBefore[pkg]
+                RowSpec(
+                    label = label,
+                    value = StatsText.settingsBeforeValue(row?.manual, row?.android),
+                    valueMono = false,
+                    onClick = { onEdit(Editor.StatsBefore(pkg)) },
+                )
+            },
+        )
+        Note("Utilisé par l'onglet Stats pour comparer l'utilisation avant/après. Minutes par jour, vide = revenir à l'historique Android.")
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -156,6 +173,7 @@ fun SettingsScreen(vm: RehabViewModel) {
     var editor by remember { mutableStateOf<Editor?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var redirects by remember { mutableStateOf<Map<String, RedirectTab?>?>(null) }
+    var statsBefore by remember { mutableStateOf<Map<String, RehabViewModel.StatsBeforeRow>?>(null) }
 
     LaunchedEffect(Unit) {
         val state = vm.loadSettingsScreen()
@@ -163,6 +181,7 @@ fun SettingsScreen(vm: RehabViewModel) {
         zone = state.zone
         locks = state.locks
         redirects = vm.loadRedirects()
+        statsBefore = vm.loadStatsBefore()
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -196,8 +215,9 @@ fun SettingsScreen(vm: RehabViewModel) {
     val s = settings ?: return
     val l = locks ?: return
     val r = redirects ?: return
+    val sb = statsBefore ?: return
 
-    SettingsContent(s, zone, l, r) { e ->
+    SettingsContent(s, zone, l, r, sb) { e ->
         error = null
         editor = e
     }
@@ -262,6 +282,34 @@ fun SettingsScreen(vm: RehabViewModel) {
                 }
             }
         }
+        is Editor.StatsBefore -> NumberDialog(
+            "Avant Rehab · ${SettingsText.redirectApps.firstOrNull { it.first == e.packageName }?.second ?: e.packageName}",
+            "min/j",
+            sb[e.packageName]?.manual?.toMinutes()?.toString() ?: "",
+            error,
+            onDismiss = { editor = null },
+        ) { t ->
+            parseStatsMinutes(t).onFailure { error = it.message ?: "Valeur invalide" }.onSuccess { minutes ->
+                scope.launch {
+                    try {
+                        vm.saveStatsBefore(e.packageName, minutes)
+                        statsBefore = vm.loadStatsBefore()
+                        editor = null
+                    } catch (c: CancellationException) {
+                        throw c
+                    } catch (x: Exception) {
+                        error = "Enregistrement impossible : ${x.message ?: x.javaClass.simpleName}"
+                    }
+                }
+            }
+        }
         null -> {}
     }
+}
+
+/** Vide = revenir à la valeur Android (`null`) ; sinon un entier de minutes/jour, non négatif. */
+private fun parseStatsMinutes(text: String): Result<Int?> {
+    if (text.isBlank()) return Result.success(null)
+    val n = text.trim().toIntOrNull()
+    return if (n != null && n >= 0) Result.success(n) else Result.failure(IllegalArgumentException("Minutes par jour invalides (vide = revenir à Android)"))
 }
