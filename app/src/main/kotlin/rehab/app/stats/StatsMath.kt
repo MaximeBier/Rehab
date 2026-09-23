@@ -45,18 +45,37 @@ object StatsMath {
     fun effectiveBefore(manual: Duration?, android: Duration?): Duration? = manual ?: android
 
     /**
-     * Prépare des buckets Android bruts avant tout calcul de moyenne (fix round 1, revue v0.4.0) :
-     * dédoublonne (même borne de début — Android peut renvoyer deux fois le même bucket) puis rogne
-     * chaque bucket restant à la fenêtre [from]..[to] (un bucket peut déborder ces bornes). Un bucket
-     * qui tombe entièrement hors fenêtre est supprimé. La durée mesurée par Android n'est jamais
-     * modifiée : seules les bornes (utilisées pour les jours couverts, voir [averagePerDay]) le sont.
+     * Prépare des buckets Android bruts avant tout calcul de moyenne (fix round 1 puis 2, revue
+     * v0.4.0) : dédoublonne (même borne de début — Android peut renvoyer deux fois le même bucket)
+     * puis rogne chaque bucket restant à la fenêtre [from]..[to] (un bucket WEEKLY peut par exemple
+     * chevaucher `installedAt`, la frontière de la fenêtre « avant »).
+     *
+     * La durée est répartie au prorata de la portion de portée conservée
+     * (`durée × portée rognée / portée d'origine`) — **approximation** qui suppose l'usage
+     * uniformément réparti à l'intérieur du bucket (Android ne donne aucune résolution plus fine).
+     * Fix round 2 : le seul rognage des bornes (sans prorata) gardait la durée entière du bucket
+     * alors que sa portée était réduite, ce qui gonflait artificiellement la moyenne — un bucket
+     * WEEKLY à cheval sur `installedAt` faisait fuiter de l'usage post-installation dans « Avant
+     * Rehab ». Un bucket qui tombe entièrement hors fenêtre est supprimé ; un bucket sans portée
+     * (`start == end`, ou qui reste entièrement dans la fenêtre) garde sa durée telle quelle.
      */
     fun prepare(buckets: List<UsageBucket>, from: Instant, to: Instant): List<UsageBucket> =
         buckets
             .distinctBy { it.start }
             .mapNotNull { b ->
-                val start = maxOf(b.start, from)
-                val end = minOf(b.end, to)
-                if (!end.isAfter(start)) null else b.copy(start = start, end = end)
+                val clippedStart = maxOf(b.start, from)
+                val clippedEnd = minOf(b.end, to)
+                if (!clippedEnd.isAfter(clippedStart)) {
+                    null
+                } else {
+                    val originalSpanMillis = Duration.between(b.start, b.end).toMillis()
+                    val clippedSpanMillis = Duration.between(clippedStart, clippedEnd).toMillis()
+                    val proratedDuration = if (originalSpanMillis <= 0 || clippedSpanMillis >= originalSpanMillis) {
+                        b.duration
+                    } else {
+                        Duration.ofMillis(b.duration.toMillis() * clippedSpanMillis / originalSpanMillis)
+                    }
+                    b.copy(start = clippedStart, end = clippedEnd, duration = proratedDuration)
+                }
             }
 }

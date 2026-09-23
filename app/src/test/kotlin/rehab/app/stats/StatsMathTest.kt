@@ -71,7 +71,7 @@ class StatsMathTest {
         assertNull(StatsMath.effectiveBefore(null, null))
     }
 
-    // ---- prepare : dédoublonnage + rognage aux bornes (fix round 1, chevauchement UsageStatsManager) ----
+    // ---- prepare : dédoublonnage + rognage/prorata aux bornes (fix round 1 puis 2, chevauchement UsageStatsManager) ----
 
     @Test fun prepareDedupesBucketsWithSameStart() {
         // Ex. Android renvoie deux fois le même bucket (même borne de début) : le second est un doublon.
@@ -84,15 +84,34 @@ class StatsMathTest {
     }
 
     @Test fun prepareClipsBucketPartiallyOutsideWindow() {
-        // Bucket qui déborde des deux côtés de la fenêtre interrogée : les bornes sont rognées,
-        // la durée mesurée par Android est conservée telle quelle.
-        val bucket = UsageBucket(at(1, 22, 0), at(3, 2, 0), Duration.ofHours(5))
+        // Bucket qui déborde des deux côtés de la fenêtre interrogée (48 h de portée, dont 24 h dans
+        // la fenêtre, soit une portion conservée de 1/2) : les bornes sont rognées ET la durée est
+        // répartie au prorata de la portion conservée (fix round 2 — garder la durée entière du
+        // bucket alors que sa portée est réduite de moitié gonflerait la moyenne de x2).
+        val bucket = UsageBucket(at(1, 12, 0), at(3, 12, 0), Duration.ofHours(4))
         val prepared = StatsMath.prepare(listOf(bucket), at(2, 0, 0), at(3, 0, 0))
-        assertEquals(listOf(UsageBucket(at(2, 0, 0), at(3, 0, 0), Duration.ofHours(5))), prepared)
+        assertEquals(listOf(UsageBucket(at(2, 0, 0), at(3, 0, 0), Duration.ofHours(2))), prepared)
+    }
+
+    @Test fun prepareProratesBucketStraddlingInstallBoundary() {
+        // Simule un bucket WEEKLY qui chevauche `installedAt`, la borne de fin de la fenêtre
+        // « avant » (28 jours précédant l'installation) : bucket de 7 jours, l'installation tombe le
+        // 4ᵉ jour — seuls 4/7 de la durée mesurée doivent compter dans « avant ».
+        val bucketStart = at(1)
+        val bucketEnd = at(8) // 7 jours, granularité hebdomadaire
+        val installedAt = at(5) // 4 jours après le début du bucket
+        val from = bucketStart.minus(Duration.ofDays(21)) // largement avant : ne rogne pas ce côté
+        val prepared = StatsMath.prepare(listOf(UsageBucket(bucketStart, bucketEnd, Duration.ofHours(70))), from, installedAt)
+        assertEquals(listOf(UsageBucket(bucketStart, installedAt, Duration.ofHours(40))), prepared)
     }
 
     @Test fun prepareDropsBucketFullyOutsideWindow() {
         val bucket = UsageBucket(at(1), at(2), Duration.ofHours(1))
         assertEquals(emptyList<UsageBucket>(), StatsMath.prepare(listOf(bucket), at(5), at(6)))
+    }
+
+    @Test fun prepareKeepsDurationWhenBucketFullyInsideWindow() {
+        val bucket = UsageBucket(at(1, 10, 0), at(1, 12, 0), Duration.ofHours(2))
+        assertEquals(listOf(bucket), StatsMath.prepare(listOf(bucket), at(1), at(2)))
     }
 }
