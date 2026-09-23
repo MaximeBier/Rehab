@@ -38,6 +38,8 @@ class OverlayController(
 
     private val main = Handler(Looper.getMainLooper())
     private val wm get() = service.getSystemService(WindowManager::class.java)
+    // v0.5.1 : coupe le son du Reel/de la vidéo sous l'overlay (voir AudioSilencer).
+    private val silencer = AudioSilencer(service)
 
     // Lus depuis isShowing, potentiellement depuis un autre thread que celui du Handler principal
     // (p. ex. le thread moteur du service d'accessibilité de la tâche 22) : volatile pour éviter
@@ -135,6 +137,7 @@ class OverlayController(
                 view = v
                 owner = lifecycle
                 currentHeight = height
+                silencer.silence()
             } catch (e: Exception) {
                 Log.e("Rehab", "Overlay impossible", e)
                 lifecycle.stop()
@@ -158,6 +161,7 @@ class OverlayController(
         main.removeCallbacks(flush)
         val v = view ?: return
         runCatching { wm.removeViewImmediate(v) }
+        silencer.release()
         owner?.stop()
         view = null
         owner = null

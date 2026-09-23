@@ -6,6 +6,9 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -96,6 +99,37 @@ class OverlayControllerTest {
 
         assertFalse(controller.isShowing)
         assertEquals(0, shadowWm(svc).views.size)
+    }
+
+    /**
+     * v0.5.1 : l'overlay coupe le son du Reel / de la vidéo en cours. À l'apparition, Rehab prend la priorité
+     * audio transitoire (les lecteurs d'Instagram/X se mettent en pause) ; au masquage, il la rend.
+     */
+    @Test fun showTakesTransientAudioFocusAndHideReleasesIt() {
+        val audio = shadowOf(svc.getSystemService(android.media.AudioManager::class.java))
+
+        controller.show(state())
+        idleMain()
+        val request = audio.lastAudioFocusRequest?.audioFocusRequest
+        assertNotNull(request)
+        assertEquals(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT, request!!.focusGain)
+        assertNull(audio.lastAbandonedAudioFocusRequest)
+
+        controller.hide()
+        idleMain()
+        assertEquals(request, audio.lastAbandonedAudioFocusRequest)
+    }
+
+    @Test fun updatingAShownOverlayDoesNotRequestFocusAgain() {
+        val audio = shadowOf(svc.getSystemService(android.media.AudioManager::class.java))
+        controller.show(state())
+        idleMain()
+        val first = audio.lastAudioFocusRequest
+
+        controller.show(state().copy(streak = StreakSummary(2, 2, 0)))
+        idleMain()
+
+        assertSame(first, audio.lastAudioFocusRequest)
     }
 
     @Test fun hideWithoutAPriorShowIsANoOp() {

@@ -237,3 +237,10 @@ apparaissent dès l'activation du service, sans qu'il soit nécessaire d'ouvrir 
 Notes de session : consigner ici les écarts trouvés, avec la commande logcat/adb correspondante,
 pour faciliter le passage au [guide de mise à jour des règles](rules-update-guide.md) si l'écart
 vient d'une détection d'écran.
+
+## 15. Son coupé au blocage (v0.5.1)
+
+- [ ] **Instagram, Reel avec le son** : quand l'overlay apparaît (nuit ou quota), le Reel se met en pause ou devient muet derrière l'overlay.
+- [ ] **X, vidéo avec le son activé** : même comportement.
+- [ ] **Déblocage** (joker, relapse, fin du blocage) : l'overlay disparaît, la lecture peut reprendre.
+- [ ] **Musique d'une autre app** (Spotify…) : se met en pause pendant l'overlay puis reprend à sa disparition (priorité audio transitoire).
