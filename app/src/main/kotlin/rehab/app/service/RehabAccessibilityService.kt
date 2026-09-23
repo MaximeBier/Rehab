@@ -305,12 +305,15 @@ class RehabAccessibilityService : AccessibilityService() {
                 overlay.hide()
             }
             is Decision.Block -> {
-                graph.usageTracker.closeOpen(now)
-                // IMPORTANT 2 (revue finale) : afficher d'abord, journaliser ensuite — une erreur Room dans
+                // IMPORTANT 2 (revue finale) : afficher d'abord, puis clore l'usage et journaliser — une erreur Room dans
                 // blockJournal.logOnce ne doit jamais sauter l'affichage du tick (ni startTicker() au premier
                 // tick), sous peine de fenêtre sans blocage. lastKey n'est posé qu'après un append réussi
                 // (voir BlockJournal) : un échec est donc retenté au tick suivant.
                 overlay.show(overlayState(decision, now, detection.navBarBounds?.top))
+                // Même règle pour la clôture de l'intervalle d'usage (Room) : placée avant show(), une erreur sautait
+                // l'affichage du tick (résiduel de la revue finale de la refonte).
+                runCatching { graph.usageTracker.closeOpen(now) }
+                    .onFailure { Log.e("Rehab", "Clôture de l'usage impossible", it) }
                 runCatching { blockJournal.logOnce(decision, now) }
                     .onFailure { Log.e("Rehab", "Journalisation du blocage impossible", it) }
             }

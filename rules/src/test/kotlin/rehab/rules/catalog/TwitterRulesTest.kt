@@ -34,6 +34,31 @@ class TwitterRulesTest {
     }
 
     /**
+     * Régression (bug « le temps n'avance pas sur X », 2026-09-23) : en faisant défiler « Pour vous », X 12.28
+     * masque la barre d'onglets du bas et le sélecteur « Pour vous / Abonnements ». Il ne reste alors aucun onglet
+     * sélectionné ; seul l'identifiant Compose `scaffold_home_tabbed` (présent sur l'accueil uniquement, absent de
+     * x_dm.xml et x_search.xml) signale le fil. Structure reproduite depuis une capture réelle (contenu personnel
+     * non versionné) : racine, `MainLanding`, `scaffold_home_tabbed`, des `timeline_post`, aucun nœud sélectionné.
+     */
+    @Test fun `accueil defile barres masquees reste la cible`() {
+        val snapshot = Snapshot(
+            TwitterRules.PACKAGE, "12.28.0-prod.01", 0L,
+            listOf(
+                Node(className = "android.widget.FrameLayout", bounds = Bounds(0, 0, 1080, 2400)),
+                Node(id = "MainLanding", className = "android.view.View", bounds = Bounds(0, 0, 1080, 2400), depth = 7),
+                Node(id = "scaffold_home_tabbed", className = "android.view.View", bounds = Bounds(0, 0, 1080, 2400), depth = 8),
+                Node(id = "timeline_post", className = "android.view.View", bounds = Bounds(0, 120, 1080, 900), depth = 12),
+                Node(id = "timeline_post", className = "android.view.View", bounds = Bounds(0, 900, 1080, 1800), depth = 12),
+            ),
+        )
+
+        val d = detector.detect(snapshot)
+
+        assertEquals(TwitterRules.HOME, d.target)
+        assertFalse(d.unknownScreen)
+    }
+
+    /**
      * Régression : sur x_search.xml, le sélecteur d'onglets interne en haut d'écran (bounds [21,300][254,426])
      * porte selected=true et contient un nœud content-desc="Explorer" au même titre qu'une icône de la barre de
      * navigation basse. Ce test reproduit ce schéma avec un libellé "Grok" pour vérifier que le matcher ne
