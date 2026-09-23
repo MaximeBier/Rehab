@@ -19,7 +19,7 @@ class AndroidRulesNotifier(private val context: Context) : RulesNotifier {
         if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
         val appName = AppDisplayNames.of(packageName)
         val n = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(rehab.app.R.drawable.ic_launcher_monochrome)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText("Règles à mettre à jour pour $appName $version")
             .setSilent(true)

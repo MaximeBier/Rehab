@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rehab — logo A1 « Anneau + pause ». Viewport 108 dp, contenu dans la zone sûre (rayon 33). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:pathData="M54,31 A23,23 0 1,1 54,77 A23,23 0 1,1 54,31 Z" android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF" android:strokeWidth="7"/>
+    <path android:pathData="M45.5,46.5 A2.5,2.5 0 0,1 50.5,46.5 L50.5,61.5 A2.5,2.5 0 0,1 45.5,61.5 Z" android:fillColor="#FFFFFFFF"/>
+    <path android:pathData="M57.5,46.5 A2.5,2.5 0 0,1 62.5,46.5 L62.5,61.5 A2.5,2.5 0 0,1 57.5,61.5 Z" android:fillColor="#FFFFFFFF"/>
+</vector>
