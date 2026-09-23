@@ -182,6 +182,31 @@ informations viennent d'une vérification de version faite une fois à la connex
 gestionnaire de paquets Android, sans rapport avec l'ouverture d'Instagram ou de X. Elles
 apparaissent dès l'activation du service, sans qu'il soit nécessaire d'ouvrir les deux apps.
 
+## 13. Refonte visuelle
+
+- [ ] **Polices** : Chivo (texte courant) et Chivo Mono (chiffres — anneau, jauges, minuteur de
+  l'overlay) bien visibles partout, pas de retour à une police système.
+- [ ] **Taille de police Android à 130 %** (Réglages Android > Affichage > Taille de police) :
+  overlay (titre, légende deux lignes complètes, bouton), barre d'onglets (les quatre libellés,
+  « RÉGLAGES » compris, ne sont jamais coupés), Réglages, Journal — rien de coupé ni chevauché.
+  Remettre la taille par défaut ensuite.
+- [ ] **Accueil** : pastille de statut, anneau record (plein) ou arc hors record (partiel avec
+  ancien record en fond), jauges de quota, ligne « prochaine nuit », bandeaux ACTIVER (service
+  inactif) et DEBUG (app hors plage/écrans non reconnus) s'affichent correctement.
+- [ ] **Réglages** : un changement est appliqué immédiatement (pas de bouton « Enregistrer »
+  global) ; la ligne verrouillée (nuit en cours ou quota en cours) n'est pas cliquable et affiche
+  sa raison ; un refus de saisie (ex. raccourcir une plage en cours) est affiché dans le dialogue
+  d'édition lui-même, pas seulement en toast.
+- [ ] **Journal** : les événements sont groupés par journée Rehab (pas par jour calendaire) et les
+  lignes de blocage (Joker/RELAPSE) apparaissent avec leur typologie colorée.
+- [ ] **Debug** : le délai de capture programmé s'affiche et compte à rebours ; l'export/partage
+  d'une capture fonctionne.
+- [ ] **Overlay** : un appui court (relâché avant la fin) n'a aucun effet et relâcher ramène la
+  jauge à zéro instantanément ; en relapse, le fond rougit et l'écran tremble à l'approche de la
+  fin de l'appui ; l'état terminé (bouton plein) reste affiché 1,5 s avant de disparaître ou de se
+  réinitialiser ; « Quitter » ramène bien à l'écran d'accueil du téléphone (pas un simple retour
+  arrière).
+
 ---
 
 Notes de session : consigner ici les écarts trouvés, avec la commande logcat/adb correspondante,

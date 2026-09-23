@@ -75,7 +75,7 @@ fun SettingsContent(
                 )
             },
         )
-        Note("La ligne du jour décrit la nuit qui suit. Pendant une plage en cours, on ne peut que l'allonger.")
+        Note("La ligne du jour décrit la nuit qui suit. Pendant une plage en cours, sa ligne est verrouillée jusqu'au lever.")
 
         SectionLabel("Quota glissant")
         if (settings.quotaWindows.isEmpty()) {

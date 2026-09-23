@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.junit.Before
@@ -85,6 +88,17 @@ class RenderComponents {
         }
     }
 
+    // IMPORTANT 1 (revue finale) : « RÉGLAGES » (le plus long des libellés) ne doit pas être coupé à
+    // 130 % de police système. Vérifié en relisant le PNG.
+    @Test fun `components navbar 130`() = compose.renderPng("components-navbar-130") {
+        val density = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1.3f)) {
+            Column(Modifier.width(390.dp).padding(top = 24.dp)) {
+                RehabNavBar(listOf("Accueil", "Réglages", "Journal", "Debug"), 0) {}
+            }
+        }
+    }
+
     @Test fun `components settings parts`() = compose.renderPng("components-settings-parts") {
         Column(Modifier.width(390.dp).padding(top = 24.dp)) {
             RehabHeader { HeaderCaption("application immédiate") }
@@ -99,7 +113,7 @@ class RenderComponents {
                     ),
                 ),
             )
-            Note("La ligne du jour décrit la nuit qui suit. Pendant une plage en cours, on ne peut que l'allonger.")
+            Note("La ligne du jour décrit la nuit qui suit. Pendant une plage en cours, sa ligne est verrouillée jusqu'au lever.")
             SecondaryButton("Ajouter une fenêtre", {}, Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 16.dp))
             AccentButton("Capturer le prochain écran cible", {}, Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 12.dp))
             PrimaryButton("Quitter", {}, Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 12.dp))

@@ -18,16 +18,18 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class HomeTextTest {
+    /** Espace insécable utilisée par HomeText.duration entre le nombre et l'unité (MINEUR 6, revue finale). */
+    private val nbsp = " "
     private val zone = ZoneId.of("Europe/Paris")
     private fun at(h: Int, m: Int) = ZonedDateTime.of(2026, 9, 20, h, m, 0, 0, zone).toInstant()
     private val w30 = QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(5))
     private val w6h = QuotaWindow(Duration.ofHours(6), Duration.ofMinutes(30))
 
     @Test fun durations() {
-        assertEquals("30 min", HomeText.duration(Duration.ofMinutes(30)))
-        assertEquals("6 h", HomeText.duration(Duration.ofHours(6)))
-        assertEquals("1 h 30 min", HomeText.duration(Duration.ofMinutes(90)))
-        assertEquals("0 min", HomeText.duration(Duration.ofSeconds(20)))
+        assertEquals("30${nbsp}min", HomeText.duration(Duration.ofMinutes(30)))
+        assertEquals("6${nbsp}h", HomeText.duration(Duration.ofHours(6)))
+        assertEquals("1${nbsp}h 30${nbsp}min", HomeText.duration(Duration.ofMinutes(90)))
+        assertEquals("0${nbsp}min", HomeText.duration(Duration.ofSeconds(20)))
     }
 
     @Test fun pluralAccordFrancais() {
@@ -50,9 +52,9 @@ class HomeTextTest {
 
     @Test fun statusLine() {
         val now = at(22, 0)
-        assertEquals("Quota atteint · déblocage dans 18 min (22:18)", HomeText.statusLine(Decision.Block(BlockReason.Quota, at(22, 18)), null, now, zone))
+        assertEquals("Quota atteint · déblocage dans 18${nbsp}min (22:18)", HomeText.statusLine(Decision.Block(BlockReason.Quota, at(22, 18)), null, now, zone))
         // 17 min 30 s restantes : arrondi au-dessus (18 min), l'heure affichée reste celle de l'échéance.
-        assertEquals("Quota atteint · déblocage dans 18 min (22:17)", HomeText.statusLine(Decision.Block(BlockReason.Quota, at(22, 17).plusSeconds(30)), null, now, zone))
+        assertEquals("Quota atteint · déblocage dans 18${nbsp}min (22:17)", HomeText.statusLine(Decision.Block(BlockReason.Quota, at(22, 17).plusSeconds(30)), null, now, zone))
         assertEquals("Nuit · déblocage à 07:30", HomeText.statusLine(Decision.Block(BlockReason.Night, at(7, 30)), null, now, zone))
         assertEquals("Joker actif · blocage suspendu jusqu'à 22:05", HomeText.statusLine(Decision.Allow, ActiveUnlock(ActiveUnlock.Kind.Joker, at(22, 5)), now, zone))
         assertEquals("Relapse · blocage suspendu jusqu'à 22:15", HomeText.statusLine(Decision.Allow, ActiveUnlock(ActiveUnlock.Kind.Relapse, at(22, 15)), now, zone))
@@ -61,8 +63,8 @@ class HomeTextTest {
 
     @Test fun quotaWaitRoundsUpAndSwitchesToHours() {
         val now = at(20, 0)
-        assertEquals("Quota atteint · déblocage dans 1 h 05 min (21:05)", HomeText.statusLine(Decision.Block(BlockReason.Quota, at(21, 5)), null, now, zone))
-        assertEquals("Quota atteint · déblocage dans 1 min (20:00)", HomeText.statusLine(Decision.Block(BlockReason.Quota, now.plusSeconds(20)), null, now, zone))
+        assertEquals("Quota atteint · déblocage dans 1${nbsp}h 05${nbsp}min (21:05)", HomeText.statusLine(Decision.Block(BlockReason.Quota, at(21, 5)), null, now, zone))
+        assertEquals("Quota atteint · déblocage dans 1${nbsp}min (20:00)", HomeText.statusLine(Decision.Block(BlockReason.Quota, now.plusSeconds(20)), null, now, zone))
     }
 
     @Test fun recordLines() {
@@ -82,9 +84,9 @@ class HomeTextTest {
 
     @Test fun gauges() {
         val g30 = HomeText.gauge(SlidingQuota.WindowUsage(w30, Duration.ofMinutes(3).plusSeconds(20)))
-        assertEquals("Fenêtre 30 min", g30.label); assertEquals("3 / 5 min", g30.value); assertEquals(200f / 300f, g30.fraction, 0.001f); assertFalse(g30.exceeded)
+        assertEquals("Fenêtre 30${nbsp}min", g30.label); assertEquals("3 / 5 min", g30.value); assertEquals(200f / 300f, g30.fraction, 0.001f); assertFalse(g30.exceeded)
         val g = HomeText.gauge(SlidingQuota.WindowUsage(w6h, Duration.ofMinutes(12)))
-        assertEquals("Fenêtre 6 h", g.label); assertEquals("12 / 30 min", g.value); assertEquals(0.4f, g.fraction, 0.001f); assertFalse(g.exceeded)
+        assertEquals("Fenêtre 6${nbsp}h", g.label); assertEquals("12 / 30 min", g.value); assertEquals(0.4f, g.fraction, 0.001f); assertFalse(g.exceeded)
         val full = HomeText.gauge(SlidingQuota.WindowUsage(w30, Duration.ofMinutes(6)))
         assertEquals("6 / 5 min", full.value); assertEquals(1f, full.fraction); assertTrue(full.exceeded)
     }

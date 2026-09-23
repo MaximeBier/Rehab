@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import org.junit.Before
 import org.junit.Rule
@@ -87,6 +90,24 @@ class RenderOverlay {
         state(BlockReason.Quota, at(20, 22, 18), OverlayText.jokersExhausted(2), PressOutcome.Relapse(24)),
         at(20, 22, 0),
     )
+
+    // IMPORTANT 1 (revue finale) : la légende de l'overlay-nuit tient sur deux lignes complètes
+    // (« ... et ton streak de 24 jours tombe ») ; à 130 % de police système, la 2ᵉ ligne était coupée
+    // avant que la boîte ne soit calculée en sp (voir BlockOverlay). Vérifié en relisant le PNG.
+    @Test fun `overlay nuit 130`() = compose.renderPng("overlay-nuit-130") {
+        val now = at(20, 23, 30)
+        Box(Modifier.size(390.dp, 844.dp)) {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1.3f)) {
+                BlockOverlay(
+                    state(BlockReason.Night, at(21, 7, 30), OverlayText.nightDetail(DayOfWeek.SUNDAY, night), PressOutcome.Relapse(24)),
+                    nowMillis = { now.toEpochMilli() },
+                    onQuit = {},
+                    onHoldCompleted = {},
+                )
+            }
+        }
+    }
 
     @Test fun `overlay hors record`() = overlay(
         "overlay-hors-record",
