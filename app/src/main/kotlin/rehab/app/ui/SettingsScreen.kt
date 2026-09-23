@@ -32,6 +32,7 @@ import rehab.app.ui.components.SectionLabel
 import rehab.app.ui.components.SettingsGroup
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
+import rehab.rules.RedirectTab
 import java.time.DayOfWeek
 import java.time.ZoneId
 
@@ -44,6 +45,8 @@ sealed interface Editor {
     data object Relapse : Editor
     data object JokersPerDay : Editor
     data object Hold : Editor
+    /** Onglet de repli de la bascule au blocage pour l'app [packageName] (v0.3.0). */
+    data class Redirect(val packageName: String) : Editor
 }
 
 /**
@@ -57,6 +60,7 @@ fun SettingsContent(
     settings: Settings,
     zone: ZoneId,
     locks: RehabViewModel.SettingsLocks,
+    redirects: Map<String, RedirectTab?>,
     onEdit: (Editor) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -111,6 +115,20 @@ fun SettingsContent(
             ),
         )
         Note("Les verrous sont appliqués par le domaine (SettingsGuard), pas seulement par l'écran.")
+
+        SectionLabel("Bascule au blocage")
+        SettingsGroup(
+            SettingsText.redirectApps.map { (pkg, label) ->
+                // Jamais verrouillée : désactiver la bascule ramène l'overlay, ça ne desserre aucun verrou.
+                RowSpec(
+                    label = label,
+                    value = SettingsText.redirectValue(redirects[pkg]),
+                    valueMono = false,
+                    onClick = { onEdit(Editor.Redirect(pkg)) },
+                )
+            },
+        )
+        Note("Quand le quota est atteint, Rehab ouvre cet onglet au lieu d'afficher l'écran de blocage. La nuit, l'écran de blocage s'affiche toujours.")
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -136,12 +154,14 @@ fun SettingsScreen(vm: RehabViewModel) {
     var locks by remember { mutableStateOf<RehabViewModel.SettingsLocks?>(null) }
     var editor by remember { mutableStateOf<Editor?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var redirects by remember { mutableStateOf<Map<String, RedirectTab?>?>(null) }
 
     LaunchedEffect(Unit) {
         val state = vm.loadSettingsScreen()
         settings = state.settings
         zone = state.zone
         locks = state.locks
+        redirects = vm.loadRedirects()
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -174,8 +194,9 @@ fun SettingsScreen(vm: RehabViewModel) {
 
     val s = settings ?: return
     val l = locks ?: return
+    val r = redirects ?: return
 
-    SettingsContent(s, zone, l) { e ->
+    SettingsContent(s, zone, l, r) { e ->
         error = null
         editor = e
     }
@@ -220,6 +241,17 @@ fun SettingsScreen(vm: RehabViewModel) {
             "Durée d’appui", "s", s.holdDuration.seconds.toString(), error,
             onDismiss = { editor = null },
         ) { t -> save(SettingsEdits.withHoldSeconds(s, t)) { error = it } }
+        is Editor.Redirect -> RedirectDialog(
+            appLabel = SettingsText.redirectApps.firstOrNull { it.first == e.packageName }?.second ?: e.packageName,
+            current = r[e.packageName],
+            onDismiss = { editor = null },
+        ) { tab ->
+            scope.launch {
+                vm.saveRedirect(e.packageName, tab)
+                redirects = vm.loadRedirects()
+                editor = null
+            }
+        }
         null -> {}
     }
 }

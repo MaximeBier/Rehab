@@ -6,12 +6,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -24,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +40,7 @@ import rehab.app.ui.components.RehabText
 import rehab.app.ui.theme.RehabColors
 import rehab.domain.model.NightWindow
 import rehab.domain.model.QuotaWindow
+import rehab.rules.RedirectTab
 import java.time.DayOfWeek
 import java.time.LocalTime
 
@@ -185,5 +193,47 @@ fun NumberDialog(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
         )
+    }
+}
+
+/**
+ * Choix de l'onglet de repli de la bascule au blocage (v0.3.0) : Messages, Recherche ou Désactivée
+ * (`null`, overlay comme avant). Choix unique appliqué par « Appliquer » comme les autres éditeurs ;
+ * chaque option est une ligne entière cliquable d'au moins 48 dp (cible tactile >= 44 dp, DESIGN §2).
+ */
+@Composable
+fun RedirectDialog(
+    appLabel: String,
+    current: RedirectTab?,
+    onDismiss: () -> Unit,
+    onConfirm: (RedirectTab?) -> Unit,
+) {
+    var choice by remember { mutableStateOf(current) }
+    val options: List<RedirectTab?> = RedirectTab.entries + null
+    EditDialog(
+        title = "Bascule · $appLabel",
+        error = null,
+        onDismiss = onDismiss,
+        onConfirm = { onConfirm(choice) },
+    ) {
+        Column(Modifier.selectableGroup()) {
+            options.forEach { option ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 48.dp)
+                        .selectable(selected = choice == option, role = Role.RadioButton, onClick = { choice = option }),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(
+                        selected = choice == option,
+                        onClick = null,
+                        colors = RadioButtonDefaults.colors(selectedColor = RehabColors.Accent, unselectedColor = RehabColors.Muted),
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(SettingsText.redirectValue(option), style = RehabText.body14)
+                }
+            }
+        }
     }
 }

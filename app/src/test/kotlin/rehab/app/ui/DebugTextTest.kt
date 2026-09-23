@@ -37,4 +37,15 @@ class DebugTextTest {
         assertEquals("1 Ko", DebugText.size(10))
         assertEquals("1,5 Mo", DebugText.size(1536 * 1024L))
     }
+
+    @Test fun redirect() {
+        val ig = "com.instagram.android"
+        val ok = rehab.app.service.RedirectAttempt(ig, rehab.rules.RedirectTab.Messages, 7_000, failed = false)
+        assertEquals("Messages · il y a 3 s", DebugText.redirect(ok, ig, 10_000))
+        assertEquals("Recherche · il y a 3 s", DebugText.redirect(ok.copy(tab = rehab.rules.RedirectTab.Search), ig, 10_000))
+        assertEquals("échec → overlay", DebugText.redirect(ok.copy(failed = true), ig, 10_000))
+        assertEquals("—", DebugText.redirect(null, ig, 10_000))
+        // Tentative sur une autre app que celle affichée : sans objet ici.
+        assertEquals("—", DebugText.redirect(ok, "com.twitter.android", 10_000))
+    }
 }
