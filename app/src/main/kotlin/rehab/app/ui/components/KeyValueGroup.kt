@@ -26,6 +26,11 @@ data class KeyValue(
     val value: String,
     val valueColor: Color = RehabColors.Text,
     val keyMono: Boolean = false,
+    // DESIGN §2 réserve Chivo Mono aux durées/heures/nombres. Par défaut `true` (comportement
+    // historique inchangé, ex. Debug : "com.instagram.android", tailles de fichier) ; `false` pour
+    // une valeur qui mélange mots et nombres (ex. Stats : « 45 min/j · Android ») — seules les
+    // suites de chiffres passent alors en Chivo Mono (voir `withMonoNumbers`).
+    val valueMono: Boolean = true,
     val onClick: (() -> Unit)? = null,
 )
 
@@ -59,11 +64,20 @@ private fun KeyValueRow(item: KeyValue) {
             item.key,
             style = RehabText.body13.copy(color = RehabColors.Muted, fontFamily = if (item.keyMono) ChivoMono else RehabText.body13.fontFamily),
         )
-        Text(
-            item.value,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f).padding(start = 12.dp),
-            style = RehabText.mono13.copy(color = item.valueColor),
-        )
+        if (item.valueMono) {
+            Text(
+                item.value,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f).padding(start = 12.dp),
+                style = RehabText.mono13.copy(color = item.valueColor),
+            )
+        } else {
+            Text(
+                withMonoNumbers(item.value),
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f).padding(start = 12.dp),
+                style = RehabText.body13.copy(color = item.valueColor),
+            )
+        }
     }
 }

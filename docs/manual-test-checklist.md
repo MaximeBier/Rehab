@@ -234,7 +234,7 @@ dans Réglages Android > Accessibilité > Rehab que le service est bien actif av
 - [ ] **Permission absente** : après une première installation (ou révocation manuelle dans
   Réglages Android > Applications > Accès spécial > Accès aux données d'utilisation), l'onglet
   Stats affiche un bandeau « Autoriser l'accès aux données d'utilisation » avec action OUVRIR, et
-  les lignes « Avant Rehab »/« Maintenant » affichent « accès requis » (« Dont fil et Reels » reste
+  les lignes « Avant Rehab »/« Maintenant » affichent « accès requis » (la ligne « Dont … » reste
   affichée, mesurée par Rehab indépendamment de cette permission).
 - [ ] **Accorder la permission** : taper OUVRIR ouvre bien l'écran système d'accès aux données
   d'utilisation ; y activer Rehab, revenir dans l'app (bouton Retour) → l'onglet Stats se
@@ -242,9 +242,12 @@ dans Réglages Android > Accessibilité > Rehab que le service est bien actif av
   s'affichent.
 - [ ] **Cartes Instagram/X** : « Avant Rehab » (historique Android sur 28 jours avant
   l'installation, ou la saisie manuelle si renseignée dans Réglages), « Maintenant » (7 derniers
-  jours, app entière), « Dont fil et Reels » (mesure Rehab), « Écart » en pourcentage — vert/accent
-  si baisse, rouge/danger si hausse, « — » si l'avant est inconnu.
-- [ ] **Bloc Total** : somme Instagram + X, même forme que les cartes par app.
+  jours, app entière), « Dont fil et Reels » pour Instagram / « Dont le fil » pour X (mesure
+  Rehab — X n'a pas de Reels), « Écart » en pourcentage (signe « − » ou « + ») — vert/accent si
+  baisse, rouge/danger si hausse, « — » si l'avant est inconnu. Sur ces lignes, seuls les chiffres
+  sont en Chivo Mono (« Android »/« saisi » en texte courant).
+- [ ] **Bloc Total** : somme Instagram + X, même forme que les cartes par app, ligne « Dont fils et
+  Reels ».
 - [ ] **Réglages > Avant Rehab** : une ligne par app (« 45 min/j » si saisie, « 38 min/j · Android »
   si déduite de l'historique, « à renseigner » sinon) ; dialogue numérique (minutes/jour), vide =
   revenir à la valeur Android ; la valeur saisie se reflète immédiatement dans l'onglet Stats.

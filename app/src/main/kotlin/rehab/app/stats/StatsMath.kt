@@ -43,4 +43,20 @@ object StatsMath {
 
     /** Valeur « avant Rehab » effective (spec §Sources) : la saisie manuelle si renseignée, sinon l'historique Android. */
     fun effectiveBefore(manual: Duration?, android: Duration?): Duration? = manual ?: android
+
+    /**
+     * Prépare des buckets Android bruts avant tout calcul de moyenne (fix round 1, revue v0.4.0) :
+     * dédoublonne (même borne de début — Android peut renvoyer deux fois le même bucket) puis rogne
+     * chaque bucket restant à la fenêtre [from]..[to] (un bucket peut déborder ces bornes). Un bucket
+     * qui tombe entièrement hors fenêtre est supprimé. La durée mesurée par Android n'est jamais
+     * modifiée : seules les bornes (utilisées pour les jours couverts, voir [averagePerDay]) le sont.
+     */
+    fun prepare(buckets: List<UsageBucket>, from: Instant, to: Instant): List<UsageBucket> =
+        buckets
+            .distinctBy { it.start }
+            .mapNotNull { b ->
+                val start = maxOf(b.start, from)
+                val end = minOf(b.end, to)
+                if (!end.isAfter(start)) null else b.copy(start = start, end = end)
+            }
 }
