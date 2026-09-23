@@ -11,8 +11,13 @@ import rehab.app.di.AppGraph
 import rehab.app.service.AppStatus
 import rehab.app.service.LastDetection
 import rehab.app.service.RedirectAttempt
+import rehab.app.stats.StatsMath
+import rehab.app.stats.UsageBucket
 import rehab.rules.RedirectTab
+import rehab.rules.catalog.InstagramRules
+import rehab.rules.catalog.TwitterRules
 import rehab.domain.model.Settings
+import rehab.domain.model.UsageInterval
 import rehab.domain.policy.GuardResult
 import rehab.domain.policy.StreakSummary
 import java.io.File
@@ -39,7 +44,7 @@ data class HomeUiState(
 /** Une capture de structure sur disque (écran Debug), avec son nom et sa taille déjà prêts pour l'affichage. */
 data class CaptureFile(val file: File, val name: String, val sizeBytes: Long)
 
-enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), Journal("Journal"), Debug("Debug") }
+enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), Journal("Journal"), Stats("Stats"), Debug("Debug") }
 
 /**
  * Le pipeline de détection (`RehabAccessibilityService`) confine `graph.usageTracker`,
@@ -142,6 +147,79 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
             graph.settingsRepo.get().jokersPerDay, graph.schedule::dayOf, now, graph.clock.zone(),
         )
         JournalText.days(rows, graph.schedule::dayOf, graph.schedule.dayOf(now))
+    }
+
+    // ---- écran Stats (v0.4.0) ----
+
+    /** Apps couvertes par Stats/« Avant Rehab », dans l'ordre d'affichage : package, libellé, cibles Rehab mesurées. */
+    private val statsApps = listOf(
+        Triple(InstagramRules.PACKAGE, "Instagram", listOf(InstagramRules.REELS, InstagramRules.SUGGESTED)),
+        Triple(TwitterRules.PACKAGE, "X", listOf(TwitterRules.HOME)),
+    )
+
+    data class StatsUiState(val hasPermission: Boolean, val apps: List<StatCard>, val total: StatCard)
+
+    /** Valeur « avant Rehab » d'une app (écran Réglages) : saisie manuelle + moyenne Android sur les 28 jours précédant l'installation. */
+    data class StatsBeforeRow(val manual: Duration?, val android: Duration?)
+
+    private fun UsageInterval.toBucket(now: Instant): UsageBucket {
+        val effectiveEnd = if (open) now else end
+        return UsageBucket(start, effectiveEnd, Duration.between(start, effectiveEnd).coerceAtLeast(Duration.ZERO))
+    }
+
+    /**
+     * Construit l'état de l'écran Stats (spec §Sources) : « avant » = 28 jours précédant
+     * l'installation (historique Android ou saisie manuelle), « maintenant » = 7 derniers jours
+     * (historique Android, app entière), « dont fil et Reels » = mesure Rehab sur les mêmes 7
+     * jours. Toute la lecture (Room, `UsageStatsManager`) est ici, hors thread principal.
+     */
+    suspend fun loadStats(): StatsUiState = withContext(Dispatchers.IO) {
+        val now = graph.clock.now()
+        val installedAt = graph.streakRecord.installedAt()
+        val hasPermission = graph.usageHistory.hasPermission()
+        val beforeFrom = installedAt.minus(Duration.ofDays(28))
+        val nowFrom = now.minus(Duration.ofDays(7))
+        val rehabIntervals = graph.usageLog.intervalsSince(nowFrom)
+
+        data class Raw(val label: String, val before: Duration?, val beforeSource: String?, val now: Duration?, val rehab: Duration)
+
+        val raws = statsApps.map { (pkg, label, targets) ->
+            val manual = graph.statsPrefs.get(pkg)?.let { Duration.ofMinutes(it.toLong()) }
+            val androidBefore = if (hasPermission) StatsMath.averagePerDay(graph.usageHistory.query(pkg, beforeFrom, installedAt), 28) else null
+            val androidNow = if (hasPermission) StatsMath.averagePerDay(graph.usageHistory.query(pkg, nowFrom, now), 7) else null
+            val before = StatsMath.effectiveBefore(manual, androidBefore)
+            val beforeSource = if (manual != null) "saisi" else if (androidBefore != null) "Android" else null
+            val rehabBuckets = rehabIntervals.filter { it.target in targets }.map { it.toBucket(now) }
+            val rehab = StatsMath.averagePerDay(rehabBuckets, 7) ?: Duration.ZERO
+            Raw(label, before, beforeSource, androidNow, rehab)
+        }
+
+        val cards = raws.map { StatsText.card(it.label, it.before, it.beforeSource, it.now, it.rehab, hasPermission) }
+        fun sumOrNull(values: List<Duration?>): Duration? =
+            if (values.all { it != null }) values.filterNotNull().fold(Duration.ZERO, Duration::plus) else null
+        val totalBefore = sumOrNull(raws.map { it.before })
+        val totalNow = sumOrNull(raws.map { it.now })
+        val totalRehab = raws.fold(Duration.ZERO) { acc, r -> acc + r.rehab }
+        val total = StatsText.card("Total", totalBefore, null, totalNow, totalRehab, hasPermission)
+
+        StatsUiState(hasPermission, cards, total)
+    }
+
+    /** État initial de la section « Avant Rehab » des Réglages (v0.4.0) : saisie manuelle + valeur Android par app. */
+    suspend fun loadStatsBefore(): Map<String, StatsBeforeRow> = withContext(Dispatchers.IO) {
+        val installedAt = graph.streakRecord.installedAt()
+        val from = installedAt.minus(Duration.ofDays(28))
+        val hasPermission = graph.usageHistory.hasPermission()
+        statsApps.associate { (pkg, _, _) ->
+            val manual = graph.statsPrefs.get(pkg)?.let { Duration.ofMinutes(it.toLong()) }
+            val android = if (hasPermission) StatsMath.averagePerDay(graph.usageHistory.query(pkg, from, installedAt), 28) else null
+            pkg to StatsBeforeRow(manual, android)
+        }
+    }
+
+    /** Aucun verrou : ce réglage ne desserre rien (même raisonnement que `saveRedirect`). `null` = revenir à la valeur Android. */
+    suspend fun saveStatsBefore(packageName: String, minutesPerDay: Int?) = withContext(Dispatchers.IO) {
+        graph.statsPrefs.set(packageName, minutesPerDay)
     }
 
     // ---- écran Debug ----

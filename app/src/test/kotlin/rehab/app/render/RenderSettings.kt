@@ -52,22 +52,29 @@ class RenderSettings {
             lockedWindows = setOf(Duration.ofMinutes(30)),
         )
         val redirects = mapOf("com.instagram.android" to RedirectTab.Messages, "com.twitter.android" to null)
+        val statsBefore = emptyMap<String, RehabViewModel.StatsBeforeRow>()
         Box(Modifier.size(390.dp, 1240.dp)) {
-            SettingsContent(Settings.DEFAULT, zone, locks, redirects) {}
+            SettingsContent(Settings.DEFAULT, zone, locks, redirects, statsBefore) {}
         }
     }
 
     /**
      * v0.3.0 : section « Bascule au blocage » en bas de l'écran. Fenêtre plus haute (h1560dp) pour que la
      * section, sous « Déblocage », tienne dans la capture ; pas de verrou actif ici (hors plage nocturne).
+     * v0.4.0 : la section « Avant Rehab » (Instagram saisi, X déduit de l'historique Android) suit — fenêtre
+     * encore agrandie (h1760dp) pour que les deux sections tiennent dans la capture.
      */
-    @Config(sdk = [34], qualifiers = "w390dp-h1560dp-xxhdpi")
+    @Config(sdk = [34], qualifiers = "w390dp-h1760dp-xxhdpi")
     @Test fun `reglages bascule`() = compose.renderPng("reglages-bascule") {
         val now = at(15, 0)
         val locks = RehabViewModel.SettingsLocks(now, null, null, null, emptySet())
         val redirects = mapOf("com.instagram.android" to RedirectTab.Messages, "com.twitter.android" to RedirectTab.Search)
-        Box(Modifier.size(390.dp, 1560.dp)) {
-            SettingsContent(Settings.DEFAULT, zone, locks, redirects) {}
+        val statsBefore = mapOf(
+            "com.instagram.android" to RehabViewModel.StatsBeforeRow(Duration.ofMinutes(45), null),
+            "com.twitter.android" to RehabViewModel.StatsBeforeRow(null, Duration.ofMinutes(38)),
+        )
+        Box(Modifier.size(390.dp, 1760.dp)) {
+            SettingsContent(Settings.DEFAULT, zone, locks, redirects, statsBefore) {}
         }
     }
 }

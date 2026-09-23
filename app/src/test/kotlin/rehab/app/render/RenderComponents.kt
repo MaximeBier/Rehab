@@ -84,17 +84,19 @@ class RenderComponents {
             Box(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp)) {
                 AlertBanner("Service d'accessibilité désactivé — aucun blocage actif", "Activer") {}
             }
-            RehabNavBar(listOf("Accueil", "Réglages", "Journal", "Debug"), 0) {}
+            RehabNavBar(listOf("Accueil", "Réglages", "Journal", "Stats", "Debug"), 0) {}
         }
     }
 
     // IMPORTANT 1 (revue finale) : « RÉGLAGES » (le plus long des libellés) ne doit pas être coupé à
-    // 130 % de police système. Vérifié en relisant le PNG.
+    // 130 % de police système. Vérifié en relisant le PNG. v0.4.0 : 5 onglets (ajout de Stats) —
+    // espacement des lettres réduit dans RehabNavBar (0.1em -> 0.04em) pour que les 5 libellés
+    // tiennent toujours à 130 %.
     @Test fun `components navbar 130`() = compose.renderPng("components-navbar-130") {
         val density = LocalDensity.current
         CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1.3f)) {
             Column(Modifier.width(390.dp).padding(top = 24.dp)) {
-                RehabNavBar(listOf("Accueil", "Réglages", "Journal", "Debug"), 0) {}
+                RehabNavBar(listOf("Accueil", "Réglages", "Journal", "Stats", "Debug"), 0) {}
             }
         }
     }
