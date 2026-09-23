@@ -41,10 +41,10 @@ private fun StatCardView(card: StatCard) {
     SectionLabel(card.title)
     KeyValueGroup(
         listOf(
-            KeyValue("Avant Rehab", card.before),
-            KeyValue("Maintenant", card.now),
-            KeyValue("Dont fil et Reels", card.rehab),
-            KeyValue("Écart", card.change, valueColor = card.changeTone.color()),
+            KeyValue("Avant Rehab", card.before, valueMono = false),
+            KeyValue("Maintenant", card.now, valueMono = false),
+            KeyValue(card.rehabLabel, card.rehab, valueMono = false),
+            KeyValue("Écart", card.change, valueColor = card.changeTone.color(), valueMono = false),
         ),
     )
 }

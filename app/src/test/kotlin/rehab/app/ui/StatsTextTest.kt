@@ -11,30 +11,41 @@ class StatsTextTest {
     }
 
     @Test fun cardBaisseIsAccent() {
-        val c = StatsText.card("Instagram", Duration.ofMinutes(45), "Android", Duration.ofMinutes(12), Duration.ofMinutes(3), hasPermission = true)
+        val c = StatsText.card(
+            "Instagram", "Dont fil et Reels", Duration.ofMinutes(45), "Android", Duration.ofMinutes(12), Duration.ofMinutes(3), hasPermission = true,
+        )
         assertEquals("45 min/j · Android", c.before)
         assertEquals("12 min/j", c.now)
+        assertEquals("Dont fil et Reels", c.rehabLabel)
         assertEquals("3 min/j", c.rehab)
-        assertEquals("-73 %", c.change)
+        // Signe typographique U+2212 (spec §Écran Stats : « −73 % »), pas le trait d'union ASCII.
+        assertEquals("−73 %", c.change)
         assertEquals(StatTone.Accent, c.changeTone)
     }
 
     @Test fun cardHausseIsDanger() {
-        val c = StatsText.card("X", Duration.ofMinutes(20), "saisi", Duration.ofMinutes(40), Duration.ZERO, hasPermission = true)
+        val c = StatsText.card("X", "Dont le fil", Duration.ofMinutes(20), "saisi", Duration.ofMinutes(40), Duration.ZERO, hasPermission = true)
         assertEquals("20 min/j · saisi", c.before)
+        assertEquals("Dont le fil", c.rehabLabel)
         assertEquals("+100 %", c.change)
         assertEquals(StatTone.Danger, c.changeTone)
     }
 
+    @Test fun cardNoChangeIsNeutral() {
+        val c = StatsText.card("X", "Dont le fil", Duration.ofMinutes(20), "saisi", Duration.ofMinutes(20), Duration.ZERO, hasPermission = true)
+        assertEquals("0 %", c.change)
+        assertEquals(StatTone.Neutral, c.changeTone)
+    }
+
     @Test fun cardEcartInconnuWhenBeforeMissing() {
-        val c = StatsText.card("X", null, null, Duration.ofMinutes(10), Duration.ofMinutes(2), hasPermission = true)
+        val c = StatsText.card("X", "Dont le fil", null, null, Duration.ofMinutes(10), Duration.ofMinutes(2), hasPermission = true)
         assertEquals("à renseigner", c.before)
         assertEquals("—", c.change)
         assertEquals(StatTone.Neutral, c.changeTone)
     }
 
     @Test fun cardShowsPermissionRequiredWhenNoAccess() {
-        val c = StatsText.card("X", null, null, null, Duration.ofMinutes(2), hasPermission = false)
+        val c = StatsText.card("X", "Dont le fil", null, null, null, Duration.ofMinutes(2), hasPermission = false)
         assertEquals("accès requis", c.before)
         assertEquals("accès requis", c.now)
         assertEquals("—", c.change)

@@ -70,4 +70,29 @@ class StatsMathTest {
     @Test fun effectiveBeforeUnknownWhenBothNull() {
         assertNull(StatsMath.effectiveBefore(null, null))
     }
+
+    // ---- prepare : dédoublonnage + rognage aux bornes (fix round 1, chevauchement UsageStatsManager) ----
+
+    @Test fun prepareDedupesBucketsWithSameStart() {
+        // Ex. Android renvoie deux fois le même bucket (même borne de début) : le second est un doublon.
+        val a = UsageBucket(at(1, 10, 0), at(1, 12, 0), Duration.ofHours(2))
+        val duplicate = UsageBucket(at(1, 10, 0), at(1, 12, 0), Duration.ofHours(2))
+        val b = UsageBucket(at(1, 14, 0), at(1, 15, 0), Duration.ofHours(1))
+        val prepared = StatsMath.prepare(listOf(a, duplicate, b), at(1), at(2))
+        assertEquals(2, prepared.size)
+        assertEquals(Duration.ofHours(3), prepared.fold(Duration.ZERO) { acc, x -> acc + x.duration })
+    }
+
+    @Test fun prepareClipsBucketPartiallyOutsideWindow() {
+        // Bucket qui déborde des deux côtés de la fenêtre interrogée : les bornes sont rognées,
+        // la durée mesurée par Android est conservée telle quelle.
+        val bucket = UsageBucket(at(1, 22, 0), at(3, 2, 0), Duration.ofHours(5))
+        val prepared = StatsMath.prepare(listOf(bucket), at(2, 0, 0), at(3, 0, 0))
+        assertEquals(listOf(UsageBucket(at(2, 0, 0), at(3, 0, 0), Duration.ofHours(5))), prepared)
+    }
+
+    @Test fun prepareDropsBucketFullyOutsideWindow() {
+        val bucket = UsageBucket(at(1), at(2), Duration.ofHours(1))
+        assertEquals(emptyList<UsageBucket>(), StatsMath.prepare(listOf(bucket), at(5), at(6)))
+    }
 }

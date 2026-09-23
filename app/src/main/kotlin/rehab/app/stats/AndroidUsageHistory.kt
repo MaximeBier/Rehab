@@ -13,6 +13,10 @@ import java.time.Instant
  * l'utilisateur via `Settings.ACTION_USAGE_ACCESS_SETTINGS` (voir `Prerequisites`). Toujours
  * appelée hors thread principal par `RehabViewModel` (`Dispatchers.IO`), jamais depuis un
  * Composable (voir la doc de tête de `RehabViewModel`).
+ *
+ * Volontairement fine : aucune logique de dédoublonnage ni de rognage ici (voir `StatsMath.prepare`,
+ * appelé par `RehabViewModel`) — cette classe ne fait que traduire un appel `UsageStatsManager` en
+ * `UsageBucket`, pour rester testable trivialement (mapping pur) malgré sa dépendance Android.
  */
 class AndroidUsageHistory(private val context: Context) : UsageHistory {
     private val usageStatsManager by lazy { context.getSystemService(UsageStatsManager::class.java) }
@@ -23,9 +27,13 @@ class AndroidUsageHistory(private val context: Context) : UsageHistory {
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
-    override fun query(packageName: String, from: Instant, to: Instant): List<UsageBucket> {
+    override fun query(packageName: String, from: Instant, to: Instant, granularity: Granularity): List<UsageBucket> {
         if (!hasPermission()) return emptyList()
-        val stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, from.toEpochMilli(), to.toEpochMilli())
+        val interval = when (granularity) {
+            Granularity.Daily -> UsageStatsManager.INTERVAL_DAILY
+            Granularity.Weekly -> UsageStatsManager.INTERVAL_WEEKLY
+        }
+        val stats = usageStatsManager.queryUsageStats(interval, from.toEpochMilli(), to.toEpochMilli())
         return stats.orEmpty()
             .filter { it.packageName == packageName && it.totalTimeInForeground > 0 }
             .map {

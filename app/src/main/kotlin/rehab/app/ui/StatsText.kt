@@ -10,6 +10,8 @@ data class StatCard(
     val title: String,
     val before: String,
     val now: String,
+    /** Libellé de la ligne « Dont … » : varie par app (Instagram a des Reels, X n'en a pas). */
+    val rehabLabel: String,
     val rehab: String,
     val change: String,
     val changeTone: StatTone,
@@ -29,10 +31,12 @@ object StatsText {
     /**
      * Carte d'une app (ou du bloc Total) pour l'écran Stats. [beforeSource] vaut « Android » ou
      * « saisi » (mention affichée à côté de « Avant Rehab »), `null` si aucune source (Total, ou
-     * valeur indisponible/à renseigner).
+     * valeur indisponible/à renseigner). [rehabLabel] est le libellé de la ligne « Dont … » (varie
+     * par app : Instagram a des Reels, X n'en a pas — voir `RehabViewModel.statsApps`).
      */
     fun card(
         title: String,
+        rehabLabel: String,
         before: Duration?,
         beforeSource: String?,
         now: Duration?,
@@ -43,14 +47,21 @@ object StatsText {
             ?: if (hasPermission) TO_FILL else UNAVAILABLE
         val nowText = now?.let { perDay(it) } ?: UNAVAILABLE
         val change = if (before != null && now != null) StatsMath.changePercent(before, now) else null
-        val changeText = change?.let { c -> "${if (c > 0) "+" else ""}$c %" } ?: "—"
+        // Signe typographique (U+2212), pas le trait d'union ASCII : spec §Écran Stats (« −73 % »).
+        val changeText = change?.let { c ->
+            when {
+                c > 0 -> "+$c %"
+                c < 0 -> "−${-c} %"
+                else -> "0 %"
+            }
+        } ?: "—"
         val tone = when {
             change == null -> StatTone.Neutral
             change < 0 -> StatTone.Accent
             change > 0 -> StatTone.Danger
             else -> StatTone.Neutral
         }
-        return StatCard(title, beforeText, nowText, perDay(rehab), changeText, tone)
+        return StatCard(title, beforeText, nowText, rehabLabel, perDay(rehab), changeText, tone)
     }
 
     /**
