@@ -4,6 +4,7 @@ import rehab.domain.model.TargetId
 import rehab.rules.KnownScreen
 import rehab.rules.Matcher
 import rehab.rules.PackageRules
+import rehab.rules.RedirectTab
 import rehab.rules.TargetRule
 import rehab.rules.VersionRange
 
@@ -47,5 +48,13 @@ object TwitterRules {
         // donc visible la partie basse de la barre, qui reste cliquable (les cibles tactiles font 147 px de haut).
         navBarMatcher = Matcher.ContentDesc(Regex("^(Accueil|Home)$")),
         homeTabMatcher = homeTab,
+        // Icônes de la barre du bas (X 12.27, Compose, non `clickable`) : on les touche par geste, pas par
+        // ACTION_CLICK. NearBottom écarte le sélecteur interne « Explorer » du haut de x_search.xml.
+        redirectTabs = mapOf(
+            RedirectTab.Messages to Matcher.AllOf(listOf(Matcher.ContentDesc(Regex("^Messages$")), Matcher.NearBottom())),
+            RedirectTab.Search to Matcher.AllOf(listOf(
+                Matcher.ContentDesc(Regex("^(Explorer|Explore|Rechercher|Search)$")), Matcher.NearBottom(),
+            )),
+        ),
     )
 }

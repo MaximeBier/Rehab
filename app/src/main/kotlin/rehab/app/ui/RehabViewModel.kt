@@ -10,6 +10,8 @@ import kotlinx.coroutines.withContext
 import rehab.app.di.AppGraph
 import rehab.app.service.AppStatus
 import rehab.app.service.LastDetection
+import rehab.app.service.RedirectAttempt
+import rehab.rules.RedirectTab
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
 import rehab.domain.policy.StreakSummary
@@ -119,6 +121,19 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
         result
     }
 
+    /**
+     * Onglet de repli par app (package → onglet, `null` = désactivée) pour « Bascule au blocage », dans
+     * l'ordre de [SettingsText.redirectApps]. SharedPreferences : lu hors thread principal comme le reste.
+     */
+    suspend fun loadRedirects(): Map<String, RedirectTab?> = withContext(Dispatchers.IO) {
+        SettingsText.redirectApps.associate { (pkg, _) -> pkg to graph.redirectPrefs.get(pkg) }
+    }
+
+    /** Aucun verrou : désactiver la bascule ramène l'overlay, ce réglage ne desserre rien (spec v0.3.0). */
+    suspend fun saveRedirect(packageName: String, tab: RedirectTab?) = withContext(Dispatchers.IO) {
+        graph.redirectPrefs.set(packageName, tab)
+    }
+
     suspend fun loadJournal(): List<JournalDay> = withContext(Dispatchers.IO) {
         val now = graph.clock.now()
         val from = now.minus(Duration.ofDays(30))
@@ -136,6 +151,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     // publiés par ce thread ou par `CaptureCoordinator` (simple état en mémoire, pas Room) :
     // sûrs à lire depuis le thread principal via `.collectAsState()`.
     val detectionLast: StateFlow<LastDetection?> get() = graph.detectionState.last
+    val redirectLast: StateFlow<RedirectAttempt?> get() = graph.detectionState.redirect
     val capturePendingAt: StateFlow<Long?> get() = graph.capture.pendingAt
     val captureLastFile: StateFlow<File?> get() = graph.capture.lastFile
 

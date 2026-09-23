@@ -14,6 +14,8 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import rehab.app.service.CaptureNames
 import rehab.app.service.LastDetection
+import rehab.app.service.RedirectAttempt
+import rehab.rules.RedirectTab
 import rehab.app.ui.CaptureFile
 import rehab.app.ui.DebugContent
 import rehab.app.ui.DebugText
@@ -77,6 +79,7 @@ class RenderDebug {
                 pendingAt = null,
                 nowMillis = now.toEpochMilli(),
                 last = last,
+                redirect = RedirectAttempt("com.instagram.android", RedirectTab.Messages, at(20, 21, 31, 5).toEpochMilli(), failed = false),
                 decisionSummary = decisionSummary,
                 captures = captures,
                 serviceAvailable = true,
