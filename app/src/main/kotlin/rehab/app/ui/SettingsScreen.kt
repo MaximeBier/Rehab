@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -244,12 +245,21 @@ fun SettingsScreen(vm: RehabViewModel) {
         is Editor.Redirect -> RedirectDialog(
             appLabel = SettingsText.redirectApps.firstOrNull { it.first == e.packageName }?.second ?: e.packageName,
             current = r[e.packageName],
+            error = error,
             onDismiss = { editor = null },
         ) { tab ->
             scope.launch {
-                vm.saveRedirect(e.packageName, tab)
-                redirects = vm.loadRedirects()
-                editor = null
+                // Même contrat que les autres éditeurs : une erreur (écriture des préférences) reste affichée
+                // dans le dialogue, qui reste ouvert.
+                try {
+                    vm.saveRedirect(e.packageName, tab)
+                    redirects = vm.loadRedirects()
+                    editor = null
+                } catch (c: CancellationException) {
+                    throw c
+                } catch (x: Exception) {
+                    error = "Enregistrement impossible : ${x.message ?: x.javaClass.simpleName}"
+                }
             }
         }
         null -> {}

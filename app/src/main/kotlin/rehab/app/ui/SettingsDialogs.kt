@@ -205,6 +205,7 @@ fun NumberDialog(
 fun RedirectDialog(
     appLabel: String,
     current: RedirectTab?,
+    error: String?,
     onDismiss: () -> Unit,
     onConfirm: (RedirectTab?) -> Unit,
 ) {
@@ -212,7 +213,7 @@ fun RedirectDialog(
     val options: List<RedirectTab?> = RedirectTab.entries + null
     EditDialog(
         title = "Bascule · $appLabel",
-        error = null,
+        error = error,
         onDismiss = onDismiss,
         onConfirm = { onConfirm(choice) },
     ) {
