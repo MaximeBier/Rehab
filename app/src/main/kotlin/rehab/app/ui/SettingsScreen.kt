@@ -33,7 +33,6 @@ import rehab.app.ui.components.SectionLabel
 import rehab.app.ui.components.SettingsGroup
 import rehab.domain.model.Settings
 import rehab.domain.policy.GuardResult
-import rehab.rules.RedirectTab
 import java.time.DayOfWeek
 import java.time.ZoneId
 
@@ -46,8 +45,6 @@ sealed interface Editor {
     data object Relapse : Editor
     data object JokersPerDay : Editor
     data object Hold : Editor
-    /** Onglet de repli de la bascule au blocage pour l'app [packageName] (v0.3.0). */
-    data class Redirect(val packageName: String) : Editor
     /** Saisie manuelle « avant Rehab » (minutes/jour) pour l'app [packageName] (v0.4.0). */
     data class StatsBefore(val packageName: String) : Editor
 }
@@ -63,7 +60,6 @@ fun SettingsContent(
     settings: Settings,
     zone: ZoneId,
     locks: RehabViewModel.SettingsLocks,
-    redirects: Map<String, RedirectTab?>,
     statsBefore: Map<String, RehabViewModel.StatsBeforeRow>,
     onEdit: (Editor) -> Unit,
 ) {
@@ -120,23 +116,9 @@ fun SettingsContent(
         )
         Note("Les verrous sont appliqués par le domaine (SettingsGuard), pas seulement par l'écran.")
 
-        SectionLabel("Bascule au blocage")
-        SettingsGroup(
-            SettingsText.redirectApps.map { (pkg, label) ->
-                // Jamais verrouillée : désactiver la bascule ramène l'overlay, ça ne desserre aucun verrou.
-                RowSpec(
-                    label = label,
-                    value = SettingsText.redirectValue(redirects[pkg]),
-                    valueMono = false,
-                    onClick = { onEdit(Editor.Redirect(pkg)) },
-                )
-            },
-        )
-        Note("Quand le quota est atteint, Rehab ouvre cet onglet au lieu d'afficher l'écran de blocage. La nuit, l'écran de blocage s'affiche toujours.")
-
         SectionLabel("Avant Rehab")
         SettingsGroup(
-            SettingsText.redirectApps.map { (pkg, label) ->
+            SettingsText.statsApps.map { (pkg, label) ->
                 val row = statsBefore[pkg]
                 RowSpec(
                     label = label,
@@ -172,7 +154,6 @@ fun SettingsScreen(vm: RehabViewModel) {
     var locks by remember { mutableStateOf<RehabViewModel.SettingsLocks?>(null) }
     var editor by remember { mutableStateOf<Editor?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
-    var redirects by remember { mutableStateOf<Map<String, RedirectTab?>?>(null) }
     var statsBefore by remember { mutableStateOf<Map<String, RehabViewModel.StatsBeforeRow>?>(null) }
 
     LaunchedEffect(Unit) {
@@ -180,7 +161,6 @@ fun SettingsScreen(vm: RehabViewModel) {
         settings = state.settings
         zone = state.zone
         locks = state.locks
-        redirects = vm.loadRedirects()
         statsBefore = vm.loadStatsBefore()
     }
 
@@ -214,10 +194,9 @@ fun SettingsScreen(vm: RehabViewModel) {
 
     val s = settings ?: return
     val l = locks ?: return
-    val r = redirects ?: return
     val sb = statsBefore ?: return
 
-    SettingsContent(s, zone, l, r, sb) { e ->
+    SettingsContent(s, zone, l, sb) { e ->
         error = null
         editor = e
     }
@@ -262,28 +241,8 @@ fun SettingsScreen(vm: RehabViewModel) {
             "Durée d’appui", "s", s.holdDuration.seconds.toString(), error,
             onDismiss = { editor = null },
         ) { t -> save(SettingsEdits.withHoldSeconds(s, t)) { error = it } }
-        is Editor.Redirect -> RedirectDialog(
-            appLabel = SettingsText.redirectApps.firstOrNull { it.first == e.packageName }?.second ?: e.packageName,
-            current = r[e.packageName],
-            error = error,
-            onDismiss = { editor = null },
-        ) { tab ->
-            scope.launch {
-                // Même contrat que les autres éditeurs : une erreur (écriture des préférences) reste affichée
-                // dans le dialogue, qui reste ouvert.
-                try {
-                    vm.saveRedirect(e.packageName, tab)
-                    redirects = vm.loadRedirects()
-                    editor = null
-                } catch (c: CancellationException) {
-                    throw c
-                } catch (x: Exception) {
-                    error = "Enregistrement impossible : ${x.message ?: x.javaClass.simpleName}"
-                }
-            }
-        }
         is Editor.StatsBefore -> NumberDialog(
-            "Avant Rehab · ${SettingsText.redirectApps.firstOrNull { it.first == e.packageName }?.second ?: e.packageName}",
+            "Avant Rehab · ${SettingsText.statsApps.firstOrNull { it.first == e.packageName }?.second ?: e.packageName}",
             "min/j",
             sb[e.packageName]?.manual?.toMinutes()?.toString() ?: "",
             error,

@@ -34,11 +34,4 @@ class SettingsTextTest {
         val r = GuardResult.Rejected("Quota en cours", now.plusSeconds(18 * 60))
         assertEquals("Quota en cours : modifiable à partir de 22:18.", SettingsText.rejection(r, zone))
     }
-
-    @Test fun redirect() {
-        assertEquals("Messages", SettingsText.redirectValue(rehab.rules.RedirectTab.Messages))
-        assertEquals("Recherche", SettingsText.redirectValue(rehab.rules.RedirectTab.Search))
-        assertEquals("Désactivée", SettingsText.redirectValue(null))
-        assertEquals(listOf("com.instagram.android" to "Instagram", "com.twitter.android" to "X"), SettingsText.redirectApps)
-    }
 }

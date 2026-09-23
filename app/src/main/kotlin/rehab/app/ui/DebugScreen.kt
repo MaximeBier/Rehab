@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import rehab.app.service.LastDetection
-import rehab.app.service.RedirectAttempt
 import rehab.app.service.RehabAccessibilityService
 import rehab.app.ui.components.AccentButton
 import rehab.app.ui.components.HeaderCaption
@@ -67,7 +66,6 @@ fun DebugContent(
     pendingAt: Long?,
     nowMillis: Long,
     last: LastDetection?,
-    redirect: RedirectAttempt?,
     decisionSummary: String,
     captures: List<CaptureFile>,
     serviceAvailable: Boolean,
@@ -122,7 +120,7 @@ fun DebugContent(
         Note("Ouvre Instagram ou X pendant le délai : le prochain Snapshot est sérialisé en JSON dans files/captures/.")
 
         SectionLabel("Dernière détection · en direct")
-        KeyValueGroup(detectionItems(last, redirect, decisionSummary, nowMillis))
+        KeyValueGroup(detectionItems(last, decisionSummary, nowMillis))
 
         SectionLabel("Captures · ${captures.size}")
         if (captures.isEmpty()) {
@@ -138,7 +136,7 @@ fun DebugContent(
     }
 }
 
-private fun detectionItems(last: LastDetection?, redirect: RedirectAttempt?, decisionSummary: String, nowMillis: Long): List<KeyValue> = if (last == null) {
+private fun detectionItems(last: LastDetection?, decisionSummary: String, nowMillis: Long): List<KeyValue> = if (last == null) {
     listOf(KeyValue("Aucune détection", "ouvre Instagram ou X"))
 } else {
     buildList {
@@ -147,7 +145,6 @@ private fun detectionItems(last: LastDetection?, redirect: RedirectAttempt?, dec
         add(KeyValue("targetId", last.target ?: "—", valueColor = RehabColors.Accent))
         add(KeyValue("unknownScreen", last.unknownScreen.toString()))
         add(KeyValue("Décision", decisionSummary))
-        add(KeyValue("Bascule", DebugText.redirect(redirect, last.packageName, nowMillis)))
         add(KeyValue("Il y a", DebugText.ago(nowMillis, last.atMillis)))
         if (last.degraded) add(KeyValue("Mode dégradé", last.degradedReason.orEmpty(), valueColor = RehabColors.Warn))
     }
@@ -163,7 +160,6 @@ private fun detectionItems(last: LastDetection?, redirect: RedirectAttempt?, dec
 fun DebugScreen(vm: RehabViewModel, home: HomeUiState) {
     val context = LocalContext.current
     val last by vm.detectionLast.collectAsState()
-    val redirect by vm.redirectLast.collectAsState()
     val pendingAt by vm.capturePendingAt.collectAsState()
     val lastFile by vm.captureLastFile.collectAsState()
     var delayText by rememberSaveable { mutableStateOf("5") }
@@ -197,7 +193,6 @@ fun DebugScreen(vm: RehabViewModel, home: HomeUiState) {
         pendingAt = pendingAt,
         nowMillis = home.nowMillis,
         last = last,
-        redirect = redirect,
         decisionSummary = home.decisionSummary,
         captures = captures,
         serviceAvailable = service != null,

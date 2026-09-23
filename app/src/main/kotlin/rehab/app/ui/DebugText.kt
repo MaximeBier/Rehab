@@ -1,6 +1,5 @@
 package rehab.app.ui
 
-import rehab.app.service.RedirectAttempt
 import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.policy.ActiveUnlock
@@ -67,15 +66,5 @@ object DebugText {
         }
         val mo = (bytes.toDouble() / (1024.0 * 1024.0) * 10.0).roundToLong() / 10.0
         return "${String.format(Locale.ROOT, "%.1f", mo).replace('.', ',')} Mo"
-    }
-
-    /**
-     * Ligne « Bascule » de « Dernière détection » : dernière tentative sur l'app affichée ([packageName]),
-     * « échec → overlay » si la cible est restée à l'écran (ou le geste a été annulé), « — » sinon.
-     */
-    fun redirect(attempt: RedirectAttempt?, packageName: String, nowMillis: Long): String = when {
-        attempt == null || attempt.packageName != packageName -> "—"
-        attempt.failed -> "échec → overlay"
-        else -> "${SettingsText.redirectValue(attempt.tab)} · il y a ${ago(nowMillis, attempt.atMillis)}"
     }
 }

@@ -1,12 +1,10 @@
 package rehab.app.service
 
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.GestureDescription
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Path
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -20,9 +18,7 @@ import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.model.Event
 import rehab.domain.policy.PressOutcome
-import rehab.rules.Bounds
 import rehab.rules.Detection
-import rehab.rules.Snapshot
 import java.time.Duration
 import java.time.Instant
 
@@ -81,10 +77,6 @@ class RehabAccessibilityService : AccessibilityService() {
 
         private val USAGE_RETENTION: Duration = Duration.ofDays(30)
         private val PURGE_INTERVAL: Duration = Duration.ofDays(1)
-        /** Durée du tap de bascule (spec v0.3.0). */
-        private const val TAP_MILLIS = 50L
-        /** Réévaluation après une bascule : juste après le délai de 1,5 s de [RedirectPolicy]. */
-        private const val REDIRECT_CHECK_MILLIS = 1600L
     }
 
     private lateinit var graph: AppGraph
@@ -115,21 +107,6 @@ class RehabAccessibilityService : AccessibilityService() {
      * "rehab-engine". */
     private val truncatedLogged = mutableSetOf<String>()
 
-    /**
-     * Bascule au blocage quota (v0.3.0) : état des tentatives par package. Accédée uniquement depuis
-     * "rehab-engine" (voir [redirectInstead]) ; l'écran Debug lit `graph.detectionState.redirect`.
-     * Conservée entre deux onServiceConnected() sur la même instance, comme [blockJournal].
-     */
-    private val redirectPolicy = RedirectPolicy()
-    /** Réévalue la cible juste après le délai de [RedirectPolicy] sans attendre le tick suivant. */
-    private val redirectCheckRunnable = Runnable { process() }
-    /**
-     * Bas de l'overlay demandé en dernier via [showOverlay] (`navBarTop`, ou `Int.MAX_VALUE` pour un overlay
-     * plein écran), `null` après [hideOverlay]. Passé à [RedirectPolicy] pour ne jamais envoyer le toucher de
-     * bascule sur l'overlay lui-même (revue v0.3.0, fix 2). Thread "rehab-engine" uniquement.
-     */
-    private var overlayBottomPx: Int? = null
-
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) { engine.post { safely { leaveTargets() } } }
     }
@@ -155,8 +132,6 @@ class RehabAccessibilityService : AccessibilityService() {
         // Même logique que `lastBlockKey` avant l'extraction (MINEUR/IMPORTANT 2, revue finale) : conservé
         // entre deux appels d'onServiceConnected() sur la même instance, pas recréé à chaque reconnexion.
         if (!::blockJournal.isInitialized) blockJournal = BlockJournal(graph.eventLog)
-        // Nouveau contrôleur, donc aucun overlay affiché : [overlayBottomPx] est confiné au thread moteur.
-        engine.post { overlayBottomPx = null }
         // Publiée seulement une fois `graph`/`overlay` prêts : l'écran Debug lit cette instance
         // pour activer son bouton d'overlay de test, qui appelle showTestOverlay() (utilise les
         // deux). La publier plus tôt exposerait une fenêtre, même infime, où l'UI obtiendrait une
@@ -219,8 +194,8 @@ class RehabAccessibilityService : AccessibilityService() {
     fun showTestOverlay() = engine.post {
         val now = graph.clock.now()
         // Pas de journalisation : ce blocage factice n'a pas eu lieu (pas d'Event.Block).
-        showOverlay(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
-        engine.postDelayed({ hideOverlay() }, 5000)
+        overlay.show(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
+        engine.postDelayed({ overlay.hide() }, 5000)
     }
 
     /** État de l'overlay pour [decision], commun au blocage réel ([apply]) et à l'overlay de test. Thread "rehab-engine". */
@@ -298,7 +273,7 @@ class RehabAccessibilityService : AccessibilityService() {
             degradedReason = degradedReasonAfter,
         )
 
-        apply(detection, snapshot)
+        apply(detection)
     }
 
     /**
@@ -315,35 +290,26 @@ class RehabAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun apply(detection: Detection, snapshot: Snapshot) {
+    private fun apply(detection: Detection) {
         val now = graph.clock.now()
         val target = detection.target
-        val pkg = snapshot.packageName
         if (target == null) {
-            redirectPolicy.reset(pkg)
-            graph.detectionState.redirect.value = redirectPolicy.lastAttempt
             graph.usageTracker.onDetected(null, now)
-            hideOverlay()
+            overlay.hide()
             stopTicker()
             return
         }
         when (val decision = graph.policy.evaluate(now)) {
             Decision.Allow -> {
-                redirectPolicy.reset(pkg)
-                graph.detectionState.redirect.value = redirectPolicy.lastAttempt
                 graph.usageTracker.onDetected(target, now)
-                hideOverlay()
+                overlay.hide()
             }
             is Decision.Block -> {
                 // IMPORTANT 2 (revue finale) : afficher d'abord, puis clore l'usage et journaliser — une erreur Room dans
                 // blockJournal.logOnce ne doit jamais sauter l'affichage du tick (ni startTicker() au premier
                 // tick), sous peine de fenêtre sans blocage. lastKey n'est posé qu'après un append réussi
                 // (voir BlockJournal) : un échec est donc retenté au tick suivant.
-                // v0.3.0 : au blocage quota, on tente d'abord la bascule vers l'onglet de repli ; l'overlay n'est
-                // sauté que si un toucher vient d'être envoyé ou qu'une tentative est en cours (< 1,5 s).
-                if (!redirectInstead(decision, snapshot, now)) {
-                    showOverlay(overlayState(decision, now, detection.navBarBounds?.top))
-                }
+                overlay.show(overlayState(decision, now, detection.navBarBounds?.top))
                 // Même règle pour la clôture de l'intervalle d'usage (Room) : placée avant show(), une erreur sautait
                 // l'affichage du tick (résiduel de la revue finale de la refonte).
                 runCatching { graph.usageTracker.closeOpen(now) }
@@ -355,86 +321,11 @@ class RehabAccessibilityService : AccessibilityService() {
         startTicker()
     }
 
-    /**
-     * Bascule au blocage (v0.3.0, spec `2026-09-23-v0.3-bascule-dm-design.md`). Renvoie `true` quand
-     * l'overlay ne doit pas être affiché à ce tick : toucher envoyé sur l'onglet de repli, ou tentative
-     * en cours. Échec fermé : toute exception (prefs, parcours du snapshot, geste) renvoie `false`, donc
-     * l'overlay s'affiche, et marque la tentative en échec pour ne pas retoucher en boucle.
-     * Thread "rehab-engine".
-     */
-    private fun redirectInstead(decision: Decision.Block, snapshot: Snapshot, now: Instant): Boolean {
-        val pkg = snapshot.packageName
-        val skipOverlay = try {
-            val action = redirectPolicy.decide(
-                pkg, decision, targetPresent = true,
-                tab = graph.redirectPrefs.get(pkg),
-                boundsOf = { graph.detector.redirectBounds(snapshot, it) },
-                nowMillis = now.toEpochMilli(),
-                overlayBottomPx = overlayBottomPx,
-            )
-            when (action) {
-                is RedirectPolicy.Action.Redirect -> {
-                    val sent = tap(pkg, action.bounds)
-                    if (sent) {
-                        engine.removeCallbacks(redirectCheckRunnable)
-                        engine.postDelayed(redirectCheckRunnable, REDIRECT_CHECK_MILLIS)
-                    } else {
-                        redirectPolicy.markFailed(pkg)
-                    }
-                    sent
-                }
-                RedirectPolicy.Action.Wait -> true
-                RedirectPolicy.Action.ShowOverlay, RedirectPolicy.Action.None -> false
-            }
-        } catch (e: Exception) {
-            Log.e("Rehab", "Bascule au blocage impossible : overlay", e)
-            runCatching { redirectPolicy.markFailed(pkg) }
-            false
-        }
-        graph.detectionState.redirect.value = redirectPolicy.lastAttempt
-        return skipOverlay
-    }
-
-    /**
-     * Tap de 50 ms au centre de [b] via `dispatchGesture` (les onglets Compose de X ne sont pas `clickable`,
-     * un seul mécanisme pour les deux apps). Les rappels arrivent sur [engine] : une annulation marque la
-     * tentative en échec et réévalue aussitôt, ce qui affiche l'overlay.
-     */
-    private fun tap(pkg: String, b: Bounds): Boolean {
-        val path = Path().apply { moveTo((b.left + b.right) / 2f, (b.top + b.bottom) / 2f) }
-        val gesture = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0, TAP_MILLIS))
-            .build()
-        return dispatchGesture(gesture, object : GestureResultCallback() {
-            override fun onCancelled(gestureDescription: GestureDescription?) {
-                safely {
-                    redirectPolicy.markFailed(pkg)
-                    graph.detectionState.redirect.value = redirectPolicy.lastAttempt
-                }
-                process()
-            }
-        }, engine)
-    }
-
-    /** Seuls points d'appel moteur de `overlay.show`/`hide` : tiennent [overlayBottomPx] à jour. Thread "rehab-engine". */
-    private fun showOverlay(state: OverlayState) {
-        overlayBottomPx = state.navBarTop ?: Int.MAX_VALUE
-        overlay.show(state)
-    }
-
-    private fun hideOverlay() {
-        overlayBottomPx = null
-        overlay.hide()
-    }
-
     private fun leaveTargets() {
         // overlay.hide() d'abord : c'est un simple post{} vers le thread principal (voir OverlayController),
         // alors que usageTracker.closeOpen() attaque Room. Si l'I/O lève, l'overlay doit déjà avoir été
         // retiré (IMPORTANT 5, revue finale) — l'ordre inverse laissait l'overlay affiché en cas d'échec Room.
-        hideOverlay()
-        redirectPolicy.resetAll()
-        graph.detectionState.redirect.value = redirectPolicy.lastAttempt
-        engine.removeCallbacks(redirectCheckRunnable)
+        overlay.hide()
         graph.usageTracker.closeOpen(graph.clock.now())
         stopTicker()
         // On quitte une app catalogue (ou l'écran s'éteint) : le dernier `LastDetection` publié
