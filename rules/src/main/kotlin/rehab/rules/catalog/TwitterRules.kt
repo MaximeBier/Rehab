@@ -7,17 +7,22 @@ import rehab.rules.PackageRules
 import rehab.rules.TargetRule
 import rehab.rules.VersionRange
 
+/**
+ * v0.6.0 (demande de Maxime, 2026-09-25) : **tout X compte, sauf les DM**. Reconnaître le fil à chaque
+ * version de X échouait (barres masquées en défilant, structure Compose changeante) et l'usage cessait alors
+ * d'être compté — un échec « ouvert ». On inverse : n'importe quel écran de X est la cible [APP], sauf la liste
+ * des messages et une conversation ouverte. Si X change, Rehab compte trop plutôt que rien.
+ */
 object TwitterRules {
     const val PACKAGE = "com.twitter.android"
+    val APP = TargetId("TwitterApp")
+
+    /** Ancienne cible (≤ 0.5.1, fil d'accueil seul) : ne sert plus qu'à nommer l'historique d'usage déjà enregistré. */
     val HOME = TargetId("TwitterHome")
 
-    // X 12.27 est en Compose : aucun resource-id. La barre du bas est une suite de conteneurs android.view.View ;
-    // le conteneur de l'onglet actif porte selected=true sans libellé, et contient un nœud dont le content-desc
-    // est le nom de l'onglet (« Accueil », « Explorer », « Grok », « Onglet Notifications », « Messages »).
-    // Un sélecteur d'onglets interne (ex. « Pour vous »/« Abonnements » en haut de x_home_*.xml, ou le sélecteur
-    // de x_search.xml en bounds [21,300][254,426]) peut aussi porter selected=true avec le même libellé imbriqué :
-    // on borne donc le conteneur sélectionné à la fraction basse de l'écran pour ne retenir que la vraie barre
-    // de navigation (top ≈ 2127 sur une hauteur d'écran de 2400, contre top ≈ 300 pour un sélecteur interne).
+    // X est en Compose. La barre du bas est une suite de conteneurs android.view.View ; le conteneur de l'onglet
+    // actif porte selected=true et contient un nœud dont le content-desc est le nom de l'onglet. On borne le
+    // conteneur sélectionné à la fraction basse de l'écran pour écarter les sélecteurs internes du haut.
     private fun bottomTabActive(label: Regex) = Matcher.Within(
         outer = Matcher.AllOf(listOf(Matcher.Selected(Matcher.Any), Matcher.NearBottom())),
         inner = Matcher.ContentDesc(label),
@@ -25,26 +30,27 @@ object TwitterRules {
 
     private val homeTab = bottomTabActive(Regex("^(Accueil|Home)$"))
 
-    // En faisant défiler le fil, X masque la barre du bas et le sélecteur « Pour vous / Abonnements » : aucun onglet
-    // n'est alors sélectionné. L'identifiant Compose `scaffold_home_tabbed` (X 12.27 et 12.28) n'existe que sur
-    // l'accueil — absent de la recherche et des DM — et reste présent barres masquées. Sans lui, l'usage du fil
-    // défilé n'était jamais compté (bug du 2026-09-23 : « le temps n'avance pas sur X »).
-    private val homeScaffold = Matcher.ViewId("scaffold_home_tabbed")
+    // DM, relevés sur X 12.28 (captures du 2026-09-25) : liste des conversations (`xchat_conversation_list`,
+    // onglet Messages sélectionné quand la barre est visible) et conversation ouverte (`RootDm`,
+    // `message_list_v2` — jamais de barre d'onglets dans une conversation).
+    private val dmScreen = Matcher.AnyOf(
+        listOf(
+            bottomTabActive(Regex("^Messages$")),
+            Matcher.ViewId("xchat_conversation_list"),
+            Matcher.ViewId("RootDm"),
+            Matcher.ViewId("message_list_v2"),
+        ),
+    )
 
     val PACKAGE_RULES = PackageRules(
         packageName = PACKAGE,
         testedVersions = VersionRange("12.27", "13.0"),
         targets = listOf(
-            TargetRule(id = HOME, screenId = "twitter.home", screenMatchers = listOf(Matcher.AnyOf(listOf(homeTab, homeScaffold)))),
+            TargetRule(id = APP, screenId = "twitter.app", screenMatchers = listOf(Matcher.Any), excludeMatchers = listOf(dmScreen)),
         ),
-        knownScreens = listOf(
-            KnownScreen("twitter.search", listOf(bottomTabActive(Regex("^(Explorer|Explore|Rechercher|Search)$")))),
-            KnownScreen("twitter.dm", listOf(bottomTabActive(Regex("^Messages$")))),
-            KnownScreen("twitter.notifications", listOf(bottomTabActive(Regex("Notifications")))),
-            KnownScreen("twitter.grok", listOf(bottomTabActive(Regex("^Grok$")))),
-        ),
-        // Pas d'id pour la barre : on prend l'icône « Accueil » (haut ≈ 2169 sur 2274 de barre). L'overlay laisse
-        // donc visible la partie basse de la barre, qui reste cliquable (les cibles tactiles font 147 px de haut).
+        knownScreens = listOf(KnownScreen("twitter.dm", listOf(dmScreen))),
+        // Pas d'id pour la barre : on prend l'icône « Accueil ». L'overlay s'arrête au-dessus : la barre reste
+        // visible et cliquable, ce qui permet d'aller dans Messages pendant un blocage.
         navBarMatcher = Matcher.ContentDesc(Regex("^(Accueil|Home)$")),
         homeTabMatcher = homeTab,
     )

@@ -10,6 +10,7 @@ class ScreenDetector(private val catalog: RuleCatalog) {
 
         for (rule in rules.targets.sortedByDescending { it.priority }) {
             if (!rule.screenMatchers.all { it.firstMatch(nodes) != null }) continue
+            if (rule.excludeMatchers.any { it.firstMatch(nodes) != null }) continue
             val triggered = rule.triggerMatchers.isEmpty() ||
                 rule.triggerMatchers.any { it.firstMatch(nodes) != null } ||
                 (degraded && rule.degradedFallback)

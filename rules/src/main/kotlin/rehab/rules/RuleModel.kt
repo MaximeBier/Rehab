@@ -2,7 +2,7 @@ package rehab.rules
 
 import rehab.domain.model.TargetId
 
-/** Une cible : [screenMatchers] doivent tous matcher un nœud ; si [triggerMatchers] est non vide, au moins un doit matcher pour activer la cible. */
+/** Une cible : [screenMatchers] doivent tous matcher un nœud et aucun de [excludeMatchers] ; si [triggerMatchers] est non vide, au moins un doit matcher pour activer la cible. */
 data class TargetRule(
     val id: TargetId,
     val screenId: String,
@@ -10,6 +10,8 @@ data class TargetRule(
     val triggerMatchers: List<Matcher> = emptyList(),
     val degradedFallback: Boolean = false,
     val priority: Int = 0,
+    /** Si l'un d'eux correspond, la cible est écartée (ex. les DM de X, v0.6.0). */
+    val excludeMatchers: List<Matcher> = emptyList(),
 )
 
 /** Écran reconnu mais non ciblé (DM, profil…), pour savoir que les règles fonctionnent encore. */

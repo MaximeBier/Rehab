@@ -220,12 +220,11 @@ apparaissent dès l'activation du service, sans qu'il soit nécessaire d'ouvrir 
   s'affichent.
 - [ ] **Cartes Instagram/X** : « Avant Rehab » (historique Android sur 28 jours avant
   l'installation, ou la saisie manuelle si renseignée dans Réglages), « Maintenant » (7 derniers
-  jours, app entière), « Dont fil et Reels » pour Instagram / « Dont le fil » pour X (mesure
-  Rehab — X n'a pas de Reels), « Écart » en pourcentage (signe « − » ou « + ») — vert/accent si
+  jours, app entière), « Dont fil et Reels » pour Instagram / « Dont hors DM » pour X (mesure 
+  Rehab), « Écart » en pourcentage (signe « − » ou « + ») — vert/accent si
   baisse, rouge/danger si hausse, « — » si l'avant est inconnu. Sur ces lignes, seuls les chiffres
   sont en Chivo Mono (« Android »/« saisi » en texte courant).
-- [ ] **Bloc Total** : somme Instagram + X, même forme que les cartes par app, ligne « Dont fils et
-  Reels ».
+- [ ] **Bloc Total** : somme Instagram + X, même forme que les cartes par app, ligne « Dont suivi par  Reels ».
 - [ ] **Réglages > Avant Rehab** : une ligne par app (« 45 min/j » si saisie, « 38 min/j · Android »
   si déduite de l'historique, « à renseigner » sinon) ; dialogue numérique (minutes/jour), vide =
   revenir à la valeur Android ; la valeur saisie se reflète immédiatement dans l'onglet Stats.
@@ -244,3 +243,10 @@ vient d'une détection d'écran.
 - [ ] **X, vidéo avec le son activé** : même comportement.
 - [ ] **Déblocage** (joker, relapse, fin du blocage) : l'overlay disparaît, la lecture peut reprendre.
 - [ ] **Musique d'une autre app** (Spotify…) : se met en pause pendant l'overlay puis reprend à sa disparition (priorité audio transitoire).
+
+## 16. X : tout compte sauf les DM (v0.6.0)
+
+- [ ] **Fil, recherche, notifications, profil, tweet ouvert** : la jauge 30 min de l'Accueil avance.
+- [ ] **Liste des Messages et conversation ouverte** : la jauge n'avance pas ; Debug affiche « twitter.dm ».
+- [ ] **Quota atteint ou nuit** : tout X est bloqué sauf les DM ; la barre d'onglets reste visible sous l'overlay pour aller dans Messages.
+- [ ] **Journal** : les nouveaux usages s'affichent « X · hors DM ».
