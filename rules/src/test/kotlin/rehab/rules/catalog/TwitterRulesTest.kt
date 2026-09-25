@@ -20,17 +20,46 @@ class TwitterRulesTest {
     @Test fun `accueil pour vous et abonnements`() {
         for (name in listOf("x_home_foryou.xml", "x_home_following.xml")) {
             val d = detect(name)
-            assertEquals(TwitterRules.HOME, d.target, name)
+            assertEquals(TwitterRules.APP, d.target, name)
             assertNotNull(d.navBarBounds, name)
         }
     }
 
-    @Test fun `recherche et messages non cibles`() {
-        for (name in listOf("x_search.xml", "x_dm.xml")) {
-            val d = detect(name)
-            assertNull(d.target, name)
-            assertFalse(d.unknownScreen, name)
+    // v0.6.0 : tout X compte, sauf les DM (liste et conversation). Voir TwitterRules.
+    @Test fun `recherche cible, liste des messages non cible`() {
+        assertEquals(TwitterRules.APP, detect("x_search.xml").target)
+        val dm = detect("x_dm.xml")
+        assertNull(dm.target)
+        assertEquals("twitter.dm", dm.screenId)
+        assertFalse(dm.unknownScreen)
+    }
+
+    /**
+     * Structures reproduites depuis deux captures réelles de X 12.28 (2026-09-25, contenu personnel non versionné) :
+     * liste des conversations (`xchat_conversation_list`, barre du bas éventuellement masquée) et conversation
+     * ouverte (`RootDm` / `message_list_v2`, jamais de barre d'onglets).
+     */
+    @Test fun `conversation dm ouverte et liste sans barre ne sont pas des cibles`() {
+        val root = Node(className = "android.widget.FrameLayout", bounds = Bounds(0, 0, 1080, 2400))
+        val conversation = Snapshot(
+            TwitterRules.PACKAGE, "12.28.0-prod.01", 0L,
+            listOf(root, Node(id = "RootDm", bounds = Bounds(0, 0, 1080, 2400), depth = 7), Node(id = "message_list_v2", bounds = Bounds(0, 200, 1080, 2200), depth = 9)),
+        )
+        val inbox = Snapshot(
+            TwitterRules.PACKAGE, "12.28.0-prod.01", 0L,
+            listOf(root, Node(id = "MainLanding", bounds = Bounds(0, 0, 1080, 2400), depth = 7), Node(id = "xchat_conversation_list", bounds = Bounds(0, 300, 1080, 2400), depth = 9)),
+        )
+        for (s in listOf(conversation, inbox)) {
+            val d = detector.detect(s)
+            assertNull(d.target)
+            assertEquals("twitter.dm", d.screenId)
         }
+    }
+
+    @Test fun `ecran x inconnu compte comme cible`() {
+        val d = detector.detect(Snapshot(TwitterRules.PACKAGE, "12.28", 0L, listOf(Node(className = "android.widget.FrameLayout", bounds = Bounds(0, 0, 1080, 2400)))))
+        assertEquals(TwitterRules.APP, d.target)
+        assertFalse(d.unknownScreen)
     }
 
     /**
@@ -54,28 +83,8 @@ class TwitterRulesTest {
 
         val d = detector.detect(snapshot)
 
-        assertEquals(TwitterRules.HOME, d.target)
+        assertEquals(TwitterRules.APP, d.target)
         assertFalse(d.unknownScreen)
     }
 
-    /**
-     * Régression : sur x_search.xml, le sélecteur d'onglets interne en haut d'écran (bounds [21,300][254,426])
-     * porte selected=true et contient un nœud content-desc="Explorer" au même titre qu'une icône de la barre de
-     * navigation basse. Ce test reproduit ce schéma avec un libellé "Grok" pour vérifier que le matcher ne
-     * confond pas un sélecteur interne sélectionné (haut d'écran) avec la vraie barre de navigation (bas
-     * d'écran) : sans la contrainte de position (`Matcher.NearBottom`), ce sélecteur ferait passer l'écran pour
-     * `twitter.grok`.
-     */
-    @Test fun `selecteur interne selectionne en haut d'ecran n'est pas pris pour un onglet de nav`() {
-        val root = Node(bounds = Bounds(0, 0, 1080, 2400))
-        val topSelector = Node(className = "android.view.View", selected = true, bounds = Bounds(21, 300, 254, 426))
-        val topLabel = Node(contentDesc = "Grok", bounds = Bounds(21, 300, 254, 426))
-        val snapshot = Snapshot(TwitterRules.PACKAGE, "12.27", 0L, listOf(root, topSelector, topLabel))
-
-        val d = detector.detect(snapshot)
-
-        assertNull(d.target, "un sélecteur interne en haut d'écran ne doit pas déclencher HOME")
-        assertTrue(d.unknownScreen, "ne doit pas être reconnu comme twitter.grok : le sélecteur n'est pas dans la barre de navigation basse")
-        assertNull(d.screenId)
-    }
 }

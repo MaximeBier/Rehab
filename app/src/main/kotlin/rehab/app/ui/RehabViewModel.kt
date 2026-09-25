@@ -144,7 +144,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     /** Ordre d'affichage. `rehabLabel` diffère par app : Instagram a des Reels, X n'en a pas (fix round 1, revue v0.4.0). */
     private val statsApps = listOf(
         StatsAppSpec(InstagramRules.PACKAGE, "Instagram", listOf(InstagramRules.REELS, InstagramRules.SUGGESTED), "Dont fil et Reels"),
-        StatsAppSpec(TwitterRules.PACKAGE, "X", listOf(TwitterRules.HOME), "Dont le fil"),
+        StatsAppSpec(TwitterRules.PACKAGE, "X", listOf(TwitterRules.APP, TwitterRules.HOME), "Dont hors DM"),
     )
 
     data class StatsUiState(val hasPermission: Boolean, val apps: List<StatCard>, val total: StatCard)
@@ -210,7 +210,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
         val totalBefore = sumOrNull(raws.map { it.before })
         val totalNow = sumOrNull(raws.map { it.now })
         val totalRehab = raws.fold(Duration.ZERO) { acc, r -> acc + r.rehab }
-        val total = StatsText.card("Total", "Dont fils et Reels", totalBefore, null, totalNow, totalRehab, hasPermission)
+        val total = StatsText.card("Total", "Dont suivi par Rehab", totalBefore, null, totalNow, totalRehab, hasPermission)
 
         StatsUiState(hasPermission, cards, total)
     }

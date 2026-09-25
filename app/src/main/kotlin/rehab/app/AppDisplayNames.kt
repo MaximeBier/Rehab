@@ -18,6 +18,7 @@ object AppDisplayNames {
     fun target(id: String): String = when (id) {
         InstagramRules.REELS.value -> "Instagram · Reels"
         InstagramRules.SUGGESTED.value -> "Instagram · Suggéré"
+        TwitterRules.APP.value -> "X · hors DM"
         TwitterRules.HOME.value -> "X · Accueil"
         else -> id
     }

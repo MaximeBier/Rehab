@@ -71,18 +71,13 @@ class SnapshotBuilderCapturesTest {
         // (profondeur 15-16) -> target=null, unknownScreen=true, navBarBounds=null.
         for (name in listOf("x_home_foryou.xml", "x_home_following.xml")) {
             val d = detector.detect(load(name, TwitterRules.PACKAGE))
-            assertEquals(TwitterRules.HOME, d.target, name)
+            assertEquals(TwitterRules.APP, d.target, name)
             assertFalse(d.unknownScreen, name)
             assertNotNull(d.navBarBounds, name)
         }
     }
 
-    @Test fun `ecrans x connus non cibles sont reconnus a travers les bornes de production`() {
-        val search = detector.detect(load("x_search.xml", TwitterRules.PACKAGE))
-        assertNull(search.target)
-        assertEquals("twitter.search", search.screenId)
-        assertFalse(search.unknownScreen)
-
+    @Test fun `liste des dm x reconnue et non ciblee a travers les bornes de production`() {
         val dm = detector.detect(load("x_dm.xml", TwitterRules.PACKAGE))
         assertNull(dm.target)
         assertEquals("twitter.dm", dm.screenId)
