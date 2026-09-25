@@ -220,11 +220,11 @@ apparaissent dès l'activation du service, sans qu'il soit nécessaire d'ouvrir 
   s'affichent.
 - [ ] **Cartes Instagram/X** : « Avant Rehab » (historique Android sur 28 jours avant
   l'installation, ou la saisie manuelle si renseignée dans Réglages), « Maintenant » (7 derniers
-  jours, app entière), « Dont fil et Reels » pour Instagram / « Dont hors DM » pour X (mesure 
+  jours, app entière), « Dont fil et Reels » pour Instagram / « Dont hors DM » pour X (mesure
   Rehab), « Écart » en pourcentage (signe « − » ou « + ») — vert/accent si
   baisse, rouge/danger si hausse, « — » si l'avant est inconnu. Sur ces lignes, seuls les chiffres
   sont en Chivo Mono (« Android »/« saisi » en texte courant).
-- [ ] **Bloc Total** : somme Instagram + X, même forme que les cartes par app, ligne « Dont suivi par  Reels ».
+- [ ] **Bloc Total** : somme Instagram + X, même forme que les cartes par app, ligne « Dont suivi par Rehab ».
 - [ ] **Réglages > Avant Rehab** : une ligne par app (« 45 min/j » si saisie, « 38 min/j · Android »
   si déduite de l'historique, « à renseigner » sinon) ; dialogue numérique (minutes/jour), vide =
   revenir à la valeur Android ; la valeur saisie se reflète immédiatement dans l'onglet Stats.
