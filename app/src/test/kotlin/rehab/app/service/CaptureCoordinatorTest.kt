@@ -12,7 +12,7 @@ import java.time.ZoneId
 class CaptureCoordinatorTest {
     private val zone = ZoneId.of("Europe/Paris")
     private val dir = Files.createTempDirectory("captures").toFile()
-    private val coordinator = CaptureCoordinator(dir, zone)
+    private val coordinator = CaptureCoordinator(dir) { zone }
     private fun snap(at: Long) = Snapshot("com.instagram.android", "352.0", at, emptyList())
 
     @Test fun nothingSavedWithoutRequest() {

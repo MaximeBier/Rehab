@@ -21,6 +21,8 @@ class RoomEventLog(private val dao: EventDao, private val maxErrors: Int = 500) 
 
     override fun since(from: Instant): List<Event> = dao.since(from.toEpochMilli()).mapNotNull { it.toDomain() }
 
+    override fun relapses(): List<Event.Relapse> = dao.relapses().mapNotNull { it.toDomain() as? Event.Relapse }
+
     private fun Event.toEntity(): EventEntity = when (this) {
         is Event.Joker -> EventEntity(type = "JOKER", atUtc = at.toEpochMilli(), unlockUntilUtc = unlockUntil.toEpochMilli())
         is Event.Relapse -> EventEntity(type = "RELAPSE", atUtc = at.toEpochMilli(), unlockUntilUtc = unlockUntil.toEpochMilli())

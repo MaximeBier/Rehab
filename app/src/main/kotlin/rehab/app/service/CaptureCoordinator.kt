@@ -7,7 +7,8 @@ import rehab.rules.SnapshotJson
 import java.io.File
 import java.time.ZoneId
 
-class CaptureCoordinator(private val dir: File, private val zone: ZoneId) {
+/** [zone] est relu à chaque capture : le nom de fichier suit le fuseau courant, pas celui du démarrage. */
+class CaptureCoordinator(private val dir: File, private val zone: () -> ZoneId) {
     private val _pendingAt = MutableStateFlow<Long?>(null)
     val pendingAt: StateFlow<Long?> = _pendingAt
     private val _lastFile = MutableStateFlow<File?>(null)
@@ -21,7 +22,7 @@ class CaptureCoordinator(private val dir: File, private val zone: ZoneId) {
         if (snapshot.capturedAt < at) return null
         _pendingAt.value = null
         dir.mkdirs()
-        val file = File(dir, CaptureNames.fileName(snapshot.packageName, screenId, snapshot.capturedAt, zone))
+        val file = File(dir, CaptureNames.fileName(snapshot.packageName, screenId, snapshot.capturedAt, zone()))
         file.writeText(SnapshotJson.encode(snapshot))
         _lastFile.value = file
         return file

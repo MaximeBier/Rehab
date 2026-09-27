@@ -20,6 +20,8 @@ interface EventLog {
     fun all(): List<Event>
     /** Événements dont `at >= from`, triés par `at` croissant. */
     fun since(from: Instant): List<Event>
+    /** Tous les relapses, triés par `at` croissant. Lu chaque seconde (série) : une implémentation persistante filtre à la source. */
+    fun relapses(): List<Event.Relapse> = all().filterIsInstance<Event.Relapse>()
 }
 
 interface SettingsRepo {

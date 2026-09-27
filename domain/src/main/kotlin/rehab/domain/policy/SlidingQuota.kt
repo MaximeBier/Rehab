@@ -4,6 +4,7 @@ import rehab.domain.model.QuotaWindow
 import rehab.domain.model.UsageInterval
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class SlidingQuota {
     data class WindowUsage(val window: QuotaWindow, val used: Duration) {
@@ -31,10 +32,15 @@ class SlidingQuota {
         return Result(per, unlock)
     }
 
-    /** Plus petit t ≥ now (à la seconde) tel que l'usage sur [t - durée, t] soit strictement sous le plafond, sans nouvel usage après now. */
+    /**
+     * Plus petit t ≥ now, sur une seconde entière, tel que l'usage sur [t - durée, t] soit strictement sous
+     * le plafond, sans nouvel usage après now. La seconde entière rend l'échéance stable d'un tick à
+     * l'autre : sans elle, la fraction de seconde de `now` se retrouvait dans le résultat.
+     */
     private fun unlockAtFor(w: QuotaWindow, intervals: List<UsageInterval>, now: Instant): Instant {
-        var lo = now
-        var hi = now.plus(w.duration)
+        val floor = now.truncatedTo(ChronoUnit.SECONDS)
+        var lo = if (floor < now) floor.plusSeconds(1) else floor
+        var hi = lo.plus(w.duration)
         while (lo < hi) {
             val mid = lo.plusSeconds(Duration.between(lo, hi).seconds / 2)
             if (usedIn(intervals, mid.minus(w.duration), mid, now) < w.cap) hi = mid else lo = mid.plusSeconds(1)

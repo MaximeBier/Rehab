@@ -11,12 +11,10 @@ import rehab.app.di.AppGraph
 import rehab.app.service.AppStatus
 import rehab.app.service.LastDetection
 import rehab.app.stats.Granularity
+import rehab.app.stats.StatsApps
 import rehab.app.stats.StatsMath
 import rehab.app.stats.UsageBucket
-import rehab.rules.catalog.InstagramRules
-import rehab.rules.catalog.TwitterRules
 import rehab.domain.model.Settings
-import rehab.domain.model.TargetId
 import rehab.domain.model.UsageInterval
 import rehab.domain.policy.GuardResult
 import rehab.domain.policy.StreakSummary
@@ -51,8 +49,8 @@ enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), J
  * `graph.degraded` et `graph.versionChecker.checkAll()` à son thread "rehab-engine" : ce sont des
  * classes sans synchronisation, correctes uniquement parce qu'un seul thread les touche. Ce
  * ViewModel ne les appelle donc jamais directement. Il ne lit que des vues publiées en
- * `StateFlow` par ce thread — `serviceState.connected`, `detectionState.last` (dont le champ
- * `degradedReason`, calculé sur le thread moteur) et `versionChecker.statuses` (dernier résultat
+ * `StateFlow` par ce thread — `serviceState.connected`, `detectionState.last` et
+ * `detectionState.degradedReasons` (calculés sur le thread moteur), et `versionChecker.statuses` (dernier résultat
  * de `checkAll()`, également publié par le thread moteur) — `StateFlow.value` étant sûr à lire
  * depuis n'importe quel thread. Les accès base de données (streak, quota, settings) passent par
  * `Dispatchers.IO` car les adaptateurs Room sont bloquants et la base est ouverte sans
@@ -138,15 +136,6 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
 
     // ---- écran Stats (v0.4.0) ----
 
-    /** Une app couverte par Stats/« Avant Rehab » : package, libellé, cibles Rehab mesurées, libellé de la ligne « Dont … ». */
-    private data class StatsAppSpec(val packageName: String, val label: String, val targets: List<TargetId>, val rehabLabel: String)
-
-    /** Ordre d'affichage. `rehabLabel` diffère par app : Instagram a des Reels, X n'en a pas (fix round 1, revue v0.4.0). */
-    private val statsApps = listOf(
-        StatsAppSpec(InstagramRules.PACKAGE, "Instagram", listOf(InstagramRules.REELS, InstagramRules.SUGGESTED), "Dont fil et Reels"),
-        StatsAppSpec(TwitterRules.PACKAGE, "X", listOf(TwitterRules.APP, TwitterRules.HOME), "Dont hors DM"),
-    )
-
     data class StatsUiState(val hasPermission: Boolean, val apps: List<StatCard>, val total: StatCard)
 
     /** Valeur « avant Rehab » d'une app (écran Réglages) : saisie manuelle + moyenne Android sur les 28 jours précédant l'installation. */
@@ -158,49 +147,50 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     /**
-     * Moyenne quotidienne Android pour [pkg] sur [from]..[to], à la granularité [granularity].
+     * Buckets Android de [pkg] sur [from]..[to], à la granularité [granularity], `null` sans permission.
      * Fix round 1 (revue v0.4.0) : les buckets bruts d'`UsageStatsManager` peuvent chevaucher ou
-     * déborder la fenêtre — toujours passés par `StatsMath.prepare` (dédoublonnage + rognage) avant
-     * `averagePerDay`. `null` sans permission.
+     * déborder la fenêtre — toujours passés par `StatsMath.prepare` (dédoublonnage + rognage).
      */
-    private fun androidAveragePerDay(
-        pkg: String,
-        from: Instant,
-        to: Instant,
-        granularity: Granularity,
-        maxDays: Int,
-        hasPermission: Boolean,
-    ): Duration? {
-        if (!hasPermission) return null
-        val raw = graph.usageHistory.query(pkg, from, to, granularity)
-        return StatsMath.averagePerDay(StatsMath.prepare(raw, from, to), maxDays)
+    private fun androidBuckets(pkg: String, from: Instant, to: Instant, granularity: Granularity, hasPermission: Boolean): List<UsageBucket>? =
+        if (hasPermission) StatsMath.prepare(graph.usageHistory.query(pkg, from, to, granularity), from, to) else null
+
+    /**
+     * Moyenne Android sur les 28 jours précédant [installedAt]. La période commence au plus ancien bucket
+     * retourné (spec §Sources) : Android ne garde que quelques semaines d'historique hebdomadaire, et
+     * diviser par 28 jours dont une partie n'existe plus sous-estimerait la moyenne.
+     */
+    private fun androidBefore(pkg: String, installedAt: Instant, hasPermission: Boolean): Duration? {
+        val buckets = androidBuckets(pkg, installedAt.minus(Duration.ofDays(28)), installedAt, Granularity.Weekly, hasPermission)
+        val coveredFrom = buckets?.minOfOrNull { it.start } ?: return null
+        return StatsMath.averagePerDay(buckets, coveredFrom, installedAt)
     }
 
     /**
      * Construit l'état de l'écran Stats (spec §Sources) : « avant » = 28 jours précédant
      * l'installation (historique Android, granularité hebdomadaire, ou saisie manuelle),
-     * « maintenant » = 7 derniers jours (historique Android, granularité journalière, app entière),
-     * « dont … » = mesure Rehab sur les mêmes 7 jours. Toute la lecture (Room, `UsageStatsManager`)
-     * est ici, hors thread principal.
+     * « maintenant » = 7 derniers jours, bornés à l'installation (historique Android, granularité
+     * journalière, app entière), « dont … » = mesure Rehab sur exactement la même période : le total
+     * et sa part suivie partagent un dénominateur. Toute la lecture (Room, `UsageStatsManager`) est
+     * ici, hors thread principal.
      */
     suspend fun loadStats(): StatsUiState = withContext(Dispatchers.IO) {
         val now = graph.clock.now()
         val installedAt = graph.streakRecord.installedAt()
         val hasPermission = graph.usageHistory.hasPermission()
-        val beforeFrom = installedAt.minus(Duration.ofDays(28))
-        val nowFrom = now.minus(Duration.ofDays(7))
+        val nowFrom = maxOf(now.minus(Duration.ofDays(7)), installedAt)
         val rehabIntervals = graph.usageLog.intervalsSince(nowFrom)
 
         data class Raw(val label: String, val rehabLabel: String, val before: Duration?, val beforeSource: String?, val now: Duration?, val rehab: Duration)
 
-        val raws = statsApps.map { app ->
+        val raws = StatsApps.all.map { app ->
             val manual = graph.statsPrefs.get(app.packageName)?.let { Duration.ofMinutes(it.toLong()) }
-            val androidBefore = androidAveragePerDay(app.packageName, beforeFrom, installedAt, Granularity.Weekly, 28, hasPermission)
-            val androidNow = androidAveragePerDay(app.packageName, nowFrom, now, Granularity.Daily, 7, hasPermission)
+            val androidBefore = androidBefore(app.packageName, installedAt, hasPermission)
+            val androidNow = androidBuckets(app.packageName, nowFrom, now, Granularity.Daily, hasPermission)
+                ?.let { StatsMath.averagePerDay(it, nowFrom, now) }
             val before = StatsMath.effectiveBefore(manual, androidBefore)
             val beforeSource = if (manual != null) "saisi" else if (androidBefore != null) "Android" else null
-            val rehabBuckets = rehabIntervals.filter { it.target in app.targets }.map { it.toBucket(now) }
-            val rehabAvg = StatsMath.averagePerDay(rehabBuckets, 7) ?: Duration.ZERO
+            val rehabBuckets = StatsMath.prepare(rehabIntervals.filter { it.target in app.targets }.map { it.toBucket(now) }, nowFrom, now)
+            val rehabAvg = StatsMath.averagePerDay(rehabBuckets, nowFrom, now) ?: Duration.ZERO
             Raw(app.label, app.rehabLabel, before, beforeSource, androidNow, rehabAvg)
         }
 
@@ -218,12 +208,10 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     /** État initial de la section « Avant Rehab » des Réglages (v0.4.0) : saisie manuelle + valeur Android par app. */
     suspend fun loadStatsBefore(): Map<String, StatsBeforeRow> = withContext(Dispatchers.IO) {
         val installedAt = graph.streakRecord.installedAt()
-        val from = installedAt.minus(Duration.ofDays(28))
         val hasPermission = graph.usageHistory.hasPermission()
-        statsApps.associate { app ->
+        StatsApps.all.associate { app ->
             val manual = graph.statsPrefs.get(app.packageName)?.let { Duration.ofMinutes(it.toLong()) }
-            val android = androidAveragePerDay(app.packageName, from, installedAt, Granularity.Weekly, 28, hasPermission)
-            app.packageName to StatsBeforeRow(manual, android)
+            app.packageName to StatsBeforeRow(manual, androidBefore(app.packageName, installedAt, hasPermission))
         }
     }
 
@@ -276,9 +264,10 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
                 if (!s.installed) add(HomeText.notInstalledAlert(s.packageName))
                 else if (!s.inRange) add(HomeText.outOfRangeAlert(s.packageName, s.version))
             }
-            val last = graph.detectionState.last.value
             // "version" est déjà couvert par l'alerte hors plage ci-dessus.
-            if (last?.degradedReason == "unknown") add(HomeText.unknownScreensAlert(last.packageName))
+            graph.detectionState.degradedReasons.value.forEach { (pkg, reason) ->
+                if (reason == "unknown") add(HomeText.unknownScreensAlert(pkg))
+            }
         }
         return HomeUiState(
             loaded = true,

@@ -1,6 +1,7 @@
 package rehab.domain.policy
 
 import rehab.domain.model.Settings
+import rehab.domain.ports.SettingsRepo
 import java.time.Instant
 
 sealed interface GuardResult {
@@ -9,15 +10,35 @@ sealed interface GuardResult {
 }
 
 /**
- * Verrous d'édition. Les réglages courants sont ceux que [schedule] et [engine] lisent déjà
- * (même SettingsRepo) : une seule source de vérité.
+ * Verrous d'édition. [settings] est le même SettingsRepo que celui que [schedule] et [engine] lisent :
+ * une seule source de vérité pour les réglages courants.
  */
-class SettingsGuard(private val schedule: Schedule, private val engine: PolicyEngine) {
+class SettingsGuard(
+    private val settings: SettingsRepo,
+    private val schedule: Schedule,
+    private val engine: PolicyEngine,
+) {
 
     fun validate(proposed: Settings, now: Instant): GuardResult {
         checkNight(proposed, now)?.let { return it }
         checkQuota(proposed, now)?.let { return it }
+        checkUnlock(proposed, now)?.let { return it }
         return GuardResult.Accepted
+    }
+
+    /**
+     * Pendant un blocage (nuit active ou quota dépassé), les réglages de l'appui long ne peuvent que se
+     * durcir : plus de jokers, un appui plus court ou un déblocage plus long lèveraient le blocage en cours
+     * sans relapse. Les durcir reste permis, comme pour les nuits et les quotas.
+     */
+    private fun checkUnlock(proposed: Settings, now: Instant): GuardResult? {
+        val unlockAt = listOfNotNull(schedule.activeNight(now)?.end, engine.quotaStatus(now).unlockAt).maxOrNull() ?: return null
+        val current = settings.get()
+        val loosened = proposed.jokersPerDay > current.jokersPerDay ||
+            proposed.jokerDuration > current.jokerDuration ||
+            proposed.relapseDuration > current.relapseDuration ||
+            proposed.holdDuration < current.holdDuration
+        return if (loosened) GuardResult.Rejected("Blocage en cours", unlockAt) else null
     }
 
     private fun checkNight(proposed: Settings, now: Instant): GuardResult? {

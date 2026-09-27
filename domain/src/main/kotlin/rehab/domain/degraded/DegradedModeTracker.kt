@@ -21,6 +21,8 @@ class DegradedModeTracker(private val threshold: Duration = Duration.ofSeconds(3
      * le compteur, rendant le mode dégradé "unknown" inatteignable sur ces écrans.
      */
     fun onDetection(packageName: String, unknownScreen: Boolean, now: Instant) {
+        // Une seule app au premier plan : une détection sur [packageName] interrompt la série des autres.
+        unknownSince.keys.retainAll { it == packageName }
         if (!unknownScreen) {
             unknownSince.remove(packageName)
             return
@@ -28,6 +30,9 @@ class DegradedModeTracker(private val threshold: Duration = Duration.ofSeconds(3
         val since = unknownSince.getOrPut(packageName) { now }
         if (Duration.between(since, now) >= threshold) degradedByUnknown += packageName
     }
+
+    /** Sortie des apps suivies (autre app, écran éteint, service coupé) : les 30 s doivent être consécutives (spec §2.8). */
+    fun onLeave() = unknownSince.clear()
 
     fun isDegraded(packageName: String) = reason(packageName) != null
 

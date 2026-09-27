@@ -3,8 +3,6 @@ package rehab.app.ui
 import rehab.domain.model.NightWindow
 import rehab.domain.model.QuotaWindow
 import rehab.domain.policy.GuardResult
-import rehab.rules.catalog.InstagramRules
-import rehab.rules.catalog.TwitterRules
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneId
@@ -14,9 +12,6 @@ import java.util.Locale
 
 /** Textes de l'écran Réglages, en français. Toute la logique temporelle reçoit son horaire en paramètre. */
 object SettingsText {
-    /** Apps suivies par l'onglet Stats (paquet, libellé), dans l'ordre d'affichage. */
-    val statsApps = listOf(InstagramRules.PACKAGE to "Instagram", TwitterRules.PACKAGE to "X")
-
     private val hm = DateTimeFormatter.ofPattern("HH:mm")
 
     fun nightValue(w: NightWindow) = if (w.isEmpty) "désactivée" else "${w.bedtime.format(hm)} → ${w.wakeup.format(hm)}"

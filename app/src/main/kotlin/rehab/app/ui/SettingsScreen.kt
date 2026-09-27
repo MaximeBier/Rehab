@@ -24,6 +24,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import rehab.app.AppDisplayNames
+import rehab.app.stats.StatsApps
 import rehab.app.ui.components.Note
 import rehab.app.ui.components.RehabHeader
 import rehab.app.ui.components.HeaderCaption
@@ -118,13 +120,13 @@ fun SettingsContent(
 
         SectionLabel("Avant Rehab")
         SettingsGroup(
-            SettingsText.statsApps.map { (pkg, label) ->
-                val row = statsBefore[pkg]
+            StatsApps.all.map { app ->
+                val row = statsBefore[app.packageName]
                 RowSpec(
-                    label = label,
+                    label = app.label,
                     value = StatsText.settingsBeforeValue(row?.manual, row?.android),
                     valueMono = false,
-                    onClick = { onEdit(Editor.StatsBefore(pkg)) },
+                    onClick = { onEdit(Editor.StatsBefore(app.packageName)) },
                 )
             },
         )
@@ -242,7 +244,7 @@ fun SettingsScreen(vm: RehabViewModel) {
             onDismiss = { editor = null },
         ) { t -> save(SettingsEdits.withHoldSeconds(s, t)) { error = it } }
         is Editor.StatsBefore -> NumberDialog(
-            "Avant Rehab · ${SettingsText.statsApps.firstOrNull { it.first == e.packageName }?.second ?: e.packageName}",
+            "Avant Rehab · ${AppDisplayNames.of(e.packageName)}",
             "min/j",
             sb[e.packageName]?.manual?.toMinutes()?.toString() ?: "",
             error,

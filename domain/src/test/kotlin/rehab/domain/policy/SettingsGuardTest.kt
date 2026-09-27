@@ -28,7 +28,7 @@ class SettingsGuardTest {
     private val usage = InMemoryUsageLog()
     private val unlock = UnlockPolicy(settings, schedule, events, Streak(schedule, events, InMemoryStreakRecordRepo(at(10, 12))))
     private val engine = PolicyEngine(settings, schedule, SlidingQuota(), unlock, usage)
-    private val guard = SettingsGuard(schedule, engine)
+    private val guard = SettingsGuard(settings, schedule, engine)
 
     private fun withMonday(w: NightWindow) = current.copy(nights = nights + (DayOfWeek.MONDAY to w))
 
@@ -97,5 +97,36 @@ class SettingsGuardTest {
         usage.update(i.copy(end = at(21, 22, 55), open = false))
         val proposed = current.copy(quotaWindows = listOf(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(10)), current.quotaWindows[1]))
         assertIs<GuardResult.Rejected>(guard.validate(proposed, at(21, 23, 5)))   // Block(Night) côté engine, verrou quota quand même
+    }
+
+    @Test fun `assouplir l appui long pendant un blocage est refuse`() {
+        exceedQuota()
+        val now = at(21, 15, 5)
+        listOf(
+            current.copy(jokersPerDay = current.jokersPerDay + 1),
+            current.copy(jokerDuration = current.jokerDuration.plusMinutes(1)),
+            current.copy(relapseDuration = current.relapseDuration.plusMinutes(1)),
+            current.copy(holdDuration = current.holdDuration.minusSeconds(1)),
+        ).forEach { proposed ->
+            val r = guard.validate(proposed, now)
+            assertIs<GuardResult.Rejected>(r)
+            assertEquals("Blocage en cours", r.reason)
+        }
+        assertIs<GuardResult.Rejected>(guard.validate(current.copy(jokersPerDay = current.jokersPerDay + 1), at(21, 23, 30)))
+    }
+
+    @Test fun `durcir l appui long pendant un blocage est accepte`() {
+        exceedQuota()
+        val proposed = current.copy(
+            jokersPerDay = current.jokersPerDay - 1,
+            jokerDuration = current.jokerDuration.minusMinutes(1),
+            relapseDuration = current.relapseDuration.minusMinutes(1),
+            holdDuration = current.holdDuration.plusSeconds(1),
+        )
+        assertEquals(GuardResult.Accepted, guard.validate(proposed, at(21, 15, 5)))
+    }
+
+    @Test fun `hors blocage l appui long est librement modifiable`() {
+        assertEquals(GuardResult.Accepted, guard.validate(current.copy(jokersPerDay = 10), at(21, 15)))
     }
 }

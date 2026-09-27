@@ -1,6 +1,5 @@
 package rehab.domain.policy
 
-import rehab.domain.model.Event
 import rehab.domain.ports.EventLog
 import rehab.domain.ports.StreakRecordRepo
 import java.time.Instant
@@ -20,7 +19,7 @@ class Streak(
     private val record: StreakRecordRepo,
 ) {
     fun current(now: Instant): Int {
-        val relapseDays = events.all().filterIsInstance<Event.Relapse>().map { schedule.dayOf(it.at) }.toSet()
+        val relapseDays = events.relapses().map { schedule.dayOf(it.at) }.toSet()
         val firstDay = schedule.dayOf(record.installedAt())
         var day = schedule.dayOf(now)
         var count = 0
@@ -33,7 +32,7 @@ class Streak(
 
     /** Série actuelle, record persisté et plus longue série passée, à [now]. */
     fun summary(now: Instant): StreakSummary {
-        val relapseDays = events.all().filterIsInstance<Event.Relapse>().map { schedule.dayOf(it.at) }.toSet()
+        val relapseDays = events.relapses().map { schedule.dayOf(it.at) }.toSet()
         val today = schedule.dayOf(now)
         var day = schedule.dayOf(record.installedAt())
         var run = 0
