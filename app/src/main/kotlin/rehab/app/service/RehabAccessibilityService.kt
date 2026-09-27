@@ -106,6 +106,8 @@ class RehabAccessibilityService : AccessibilityService() {
      * à chaque `process()` (jusqu'à toutes les secondes tant que le ticker tourne). Accédé uniquement depuis
      * "rehab-engine". */
     private val truncatedLogged = mutableSetOf<String>()
+    /** Vrai tant que l'overlay affiché est celui de [showTestOverlay]. Accédé uniquement depuis "rehab-engine". */
+    private var testOverlayShown = false
 
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) { engine.post { safely { leaveTargets() } } }
@@ -126,7 +128,13 @@ class RehabAccessibilityService : AccessibilityService() {
                 override fun onQuit() { performGlobalAction(GLOBAL_ACTION_HOME) }
                 // IMPORTANT 3 (revue finale) : le commit (Room) est protégé par `safely` — une exception
                 // ici ne doit pas tuer le thread moteur ; `process()` a déjà son propre `safely`.
-                override fun onHoldCompleted() { engine.post { safely { graph.unlock.commit(graph.clock.now()) }; process() } }
+                override fun onHoldCompleted() {
+                    engine.post {
+                        if (testOverlayShown) return@post hideTestOverlay()
+                        safely { graph.unlock.commit(graph.clock.now()) }
+                        process()
+                    }
+                }
             },
         )
         // Même logique que `lastBlockKey` avant l'extraction (MINEUR/IMPORTANT 2, revue finale) : conservé
@@ -188,14 +196,24 @@ class RehabAccessibilityService : AccessibilityService() {
 
     /**
      * Affiche un overlay de blocage factice pendant 5 s, pour vérifier son rendu sans attendre
-     * une vraie nuit/un vrai quota (écran Debug). L'appui long dessus déclenche un vrai
-     * `commit()` (joker ou relapse) : c'est le même chemin que l'overlay réel, volontairement.
+     * une vraie nuit/un vrai quota (écran Debug). L'appui long le ferme sans rien enregistrer :
+     * un joker ou un relapse de test consommerait les vrais jokers du jour, voire la série.
      */
     fun showTestOverlay() = engine.post {
-        val now = graph.clock.now()
-        // Pas de journalisation : ce blocage factice n'a pas eu lieu (pas d'Event.Block).
-        overlay.show(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
-        engine.postDelayed({ overlay.hide() }, 5000)
+        safely {
+            val now = graph.clock.now()
+            // Pas de journalisation : ce blocage factice n'a pas eu lieu (pas d'Event.Block).
+            overlay.show(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
+            testOverlayShown = true
+            engine.postDelayed(::hideTestOverlay, 5000)
+        }
+    }
+
+    /** Ne retire que l'overlay de test : un vrai blocage apparu entre-temps reste affiché. Thread "rehab-engine". */
+    private fun hideTestOverlay() {
+        if (!testOverlayShown) return
+        testOverlayShown = false
+        overlay.hide()
     }
 
     /** État de l'overlay pour [decision], commun au blocage réel ([apply]) et à l'overlay de test. Thread "rehab-engine". */
@@ -272,6 +290,8 @@ class RehabAccessibilityService : AccessibilityService() {
             atMillis = now.toEpochMilli(),
             degradedReason = degradedReasonAfter,
         )
+        graph.detectionState.degradedReasons.value = graph.catalog.packageNames
+            .mapNotNull { p -> graph.degraded.reason(p)?.let { p to it } }.toMap()
 
         apply(detection)
     }
@@ -310,6 +330,7 @@ class RehabAccessibilityService : AccessibilityService() {
                 // tick), sous peine de fenêtre sans blocage. lastKey n'est posé qu'après un append réussi
                 // (voir BlockJournal) : un échec est donc retenté au tick suivant.
                 overlay.show(overlayState(decision, now, detection.navBarBounds?.top))
+                testOverlayShown = false
                 // Même règle pour la clôture de l'intervalle d'usage (Room) : placée avant show(), une erreur sautait
                 // l'affichage du tick (résiduel de la revue finale de la refonte).
                 runCatching { graph.usageTracker.closeOpen(now) }
@@ -326,13 +347,14 @@ class RehabAccessibilityService : AccessibilityService() {
         // alors que usageTracker.closeOpen() attaque Room. Si l'I/O lève, l'overlay doit déjà avoir été
         // retiré (IMPORTANT 5, revue finale) — l'ordre inverse laissait l'overlay affiché en cas d'échec Room.
         overlay.hide()
-        graph.usageTracker.closeOpen(graph.clock.now())
+        testOverlayShown = false
         stopTicker()
-        // On quitte une app catalogue (ou l'écran s'éteint) : le dernier `LastDetection` publié
-        // ne décrit plus l'état courant. Sans ce reset, une alerte "mode dégradé" resterait
-        // affichée indéfiniment côté UI (RehabViewModel) après que l'utilisateur a quitté
-        // Instagram/X, alors qu'elle ne concerne plus rien de courant.
+        // Les 30 s d'écran inconnu doivent être consécutives (spec §2.8) : une sortie interrompt la série.
+        graph.degraded.onLeave()
+        // On quitte une app catalogue (ou l'écran s'éteint) : le dernier `LastDetection` publié ne décrit
+        // plus l'écran courant (écran Debug). L'alerte Accueil, elle, lit `degradedReasons`, qui persiste.
         graph.detectionState.last.value = null
+        graph.usageTracker.closeOpen(graph.clock.now())
     }
 
     private fun startTicker() {

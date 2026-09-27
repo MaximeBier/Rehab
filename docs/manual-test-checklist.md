@@ -250,3 +250,11 @@ vient d'une détection d'écran.
 - [ ] **Liste des Messages et conversation ouverte** : la jauge n'avance pas ; Debug affiche « twitter.dm ».
 - [ ] **Quota atteint ou nuit** : tout X est bloqué sauf les DM ; la barre d'onglets reste visible sous l'overlay pour aller dans Messages.
 - [ ] **Journal** : les nouveaux usages s'affichent « X · hors DM ».
+
+## 17. Corrections de la relecture complète (v0.6.1)
+
+- [ ] **Premier lancement** : le bouton « Continuer » est ancré en bas de l'écran, le contenu défile au-dessus.
+- [ ] **Blocage quota** : le titre de l'overlay reste figé (pas de compte à rebours qui change chaque minute).
+- [ ] **Réglages pendant un blocage** : passer « Jokers par jour » de 2 à 3 est refusé (« Blocage en cours : modifiable à partir de HH:mm ») ; le passer à 1 est accepté.
+- [ ] **Debug → overlay de test** : l'appui long ferme l'overlay sans consommer de joker (compteur de l'Accueil inchangé, rien de nouveau dans le Journal).
+- [ ] **Stats** : la ligne « Dont … » ne dépasse jamais le temps de l'app entière sur la même période.

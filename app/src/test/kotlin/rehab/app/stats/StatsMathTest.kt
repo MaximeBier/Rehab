@@ -12,31 +12,40 @@ class StatsMathTest {
     private val zone = ZoneId.of("Europe/Paris")
     private fun at(d: Int, h: Int = 0, m: Int = 0) = ZonedDateTime.of(2026, 9, d, h, m, 0, 0, zone).toInstant()
 
-    // ---- averagePerDay : jours couverts ----
+    // ---- averagePerDay : période de mesure ----
 
     @Test fun averagePerDayNormalSpan() {
-        // 2 buckets couvrant du 1er au 5 (4 jours pleins), total 8 h -> 2 h/j.
+        // Période du 1er au 5 (4 jours), total 8 h -> 2 h/j.
         val buckets = listOf(
             UsageBucket(at(1), at(3), Duration.ofHours(5)),
             UsageBucket(at(3), at(5), Duration.ofHours(3)),
         )
-        assertEquals(Duration.ofHours(2), StatsMath.averagePerDay(buckets, maxDays = 28))
+        assertEquals(Duration.ofHours(2), StatsMath.averagePerDay(buckets, at(1), at(5)))
+    }
+
+    @Test fun averagePerDayCountsDaysWithoutUsage() {
+        // Usage les deux premiers jours seulement d'une période de 7 jours : les 5 jours vides comptent pour zéro.
+        val buckets = listOf(
+            UsageBucket(at(1, 10), at(1, 11), Duration.ofHours(1)),
+            UsageBucket(at(2, 10), at(2, 16), Duration.ofHours(6)),
+        )
+        assertEquals(Duration.ofHours(1), StatsMath.averagePerDay(buckets, at(1), at(8)))
+    }
+
+    @Test fun averagePerDayKeepsFractionalDays() {
+        // 6 j 12 h de période, 13 h d'usage -> 2 h/j (et non 13 h / 6 j tronqués).
+        val buckets = listOf(UsageBucket(at(1), at(7, 12), Duration.ofHours(13)))
+        assertEquals(Duration.ofHours(2), StatsMath.averagePerDay(buckets, at(1), at(7, 12)))
     }
 
     @Test fun averagePerDayPartialBucket() {
-        // Un seul bucket de 3 h, span < 1 jour -> dénominateur plancher à 1 jour.
+        // Période < 1 jour -> dénominateur plancher à 1 jour.
         val buckets = listOf(UsageBucket(at(1, 10, 0), at(1, 13, 0), Duration.ofHours(3)))
-        assertEquals(Duration.ofHours(3), StatsMath.averagePerDay(buckets, maxDays = 28))
+        assertEquals(Duration.ofHours(3), StatsMath.averagePerDay(buckets, at(1, 10), at(1, 13)))
     }
 
     @Test fun averagePerDayZeroBuckets() {
-        assertNull(StatsMath.averagePerDay(emptyList(), maxDays = 28))
-    }
-
-    @Test fun averagePerDayCapsAtMaxDays() {
-        // Span de 40 jours mais maxDays = 28 : le dénominateur est plafonné à 28.
-        val buckets = listOf(UsageBucket(at(1), at(1).plus(Duration.ofDays(40)), Duration.ofHours(280)))
-        assertEquals(Duration.ofHours(10), StatsMath.averagePerDay(buckets, maxDays = 28))
+        assertNull(StatsMath.averagePerDay(emptyList(), at(1), at(8)))
     }
 
     // ---- changePercent : hausse / baisse / inconnu ----

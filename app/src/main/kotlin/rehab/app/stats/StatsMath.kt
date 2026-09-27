@@ -18,18 +18,19 @@ data class UsageBucket(val start: Instant, val end: Instant, val duration: Durat
  */
 object StatsMath {
     /**
-     * Moyenne quotidienne = somme des durées des buckets ÷ nombre de jours réellement couverts
-     * (bornes min/max des buckets, au moins 1 jour dès qu'un bucket existe, plafonné à [maxDays] —
-     * la fenêtre de temps réellement interrogée). `null` (« indisponible ») si [buckets] est vide.
+     * Moyenne quotidienne = somme des durées des buckets ÷ durée de la période [from]..[to] en jours,
+     * fractions comprises, au moins 1 jour. La période est celle de la mesure, pas les bornes des
+     * buckets : un jour sans usage compte pour zéro au lieu d'être retiré du dénominateur. `null`
+     * (« indisponible ») si [buckets] est vide.
      */
-    fun averagePerDay(buckets: List<UsageBucket>, maxDays: Int): Duration? {
+    fun averagePerDay(buckets: List<UsageBucket>, from: Instant, to: Instant): Duration? {
         if (buckets.isEmpty()) return null
-        val total = buckets.fold(Duration.ZERO) { acc, b -> acc + b.duration }
-        val earliest = buckets.minOf { it.start }
-        val latest = buckets.maxOf { it.end }
-        val coveredDays = Duration.between(earliest, latest).toDays().coerceAtLeast(1).coerceAtMost(maxDays.toLong())
-        return total.dividedBy(coveredDays)
+        val totalMillis = buckets.sumOf { it.duration.toMillis() }
+        val spanMillis = Duration.between(from, to).toMillis().coerceAtLeast(DAY_MILLIS)
+        return Duration.ofMillis(totalMillis * DAY_MILLIS / spanMillis)
     }
+
+    private val DAY_MILLIS = Duration.ofDays(1).toMillis()
 
     /**
      * Écart en % arrondi entre [before] et [after] : `(after − before) / before × 100`. `null`

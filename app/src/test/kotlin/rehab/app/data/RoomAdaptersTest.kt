@@ -53,6 +53,7 @@ class RoomAdaptersTest {
         events.forEach(log::append)
         assertEquals(events, log.all())
         assertEquals(events.drop(2), log.since(t0.plusSeconds(2)))
+        assertEquals(listOf(events[1]), log.relapses())
     }
 
     @Test fun errorsCappedAt500() {

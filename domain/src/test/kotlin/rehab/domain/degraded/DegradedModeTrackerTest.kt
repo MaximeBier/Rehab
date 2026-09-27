@@ -57,4 +57,18 @@ class DegradedModeTrackerTest {
         assertTrue(tracker.isDegraded(ig))
         assertEquals("unknown", tracker.reason(ig))
     }
+
+    @Test fun `quitter l app remet le compteur a zero`() {
+        tracker.onDetection(ig, unknownScreen = true, now = t0)
+        tracker.onLeave()
+        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(600))
+        assertFalse(tracker.isDegraded(ig))
+    }
+
+    @Test fun `passer sur une autre app suivie remet le compteur a zero`() {
+        tracker.onDetection(ig, unknownScreen = true, now = t0)
+        tracker.onDetection("com.twitter.android", unknownScreen = false, now = t0.plusSeconds(10))
+        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(40))
+        assertFalse(tracker.isDegraded(ig))
+    }
 }

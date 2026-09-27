@@ -79,4 +79,12 @@ class SlidingQuotaTest {
         assertTrue(r.exceeded)
         assertEquals(t0.plusSeconds(30 * 60 + 1), r.unlockAt)
     }
+
+    @Test fun `echeance sur une seconde entiere et stable d un tick a l autre`() {
+        val intervals = listOf(iv(0, 5))
+        val a = quota.evaluate(listOf(w30), intervals, t0.plusSeconds(6 * 60).plusMillis(123)).unlockAt
+        val b = quota.evaluate(listOf(w30), intervals, t0.plusSeconds(6 * 60 + 1).plusMillis(877)).unlockAt
+        assertEquals(t0.plusSeconds(30 * 60 + 1), a)
+        assertEquals(a, b)
+    }
 }

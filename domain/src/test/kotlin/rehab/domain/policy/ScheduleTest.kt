@@ -115,4 +115,13 @@ class ScheduleTest {
         val none = DayOfWeek.entries.associateWith { NightWindow(LocalTime.of(0, 0), LocalTime.of(0, 0)) }
         assertNull(Schedule({ none }, zone).nextNight(at(2026, 9, 21, 12, 0)))
     }
+
+    @Test fun `le fuseau est relu a chaque calcul`() {
+        var current = zone
+        val s = Schedule({ weekNights }, { current })
+        val instant = at(2026, 9, 21, 23, 30)            // 23h30 à Paris : nuit
+        assertNotNull(s.activeNight(instant))
+        current = ZoneId.of("America/New_York")          // 17h30 à New York : jour
+        assertNull(s.activeNight(instant))
+    }
 }

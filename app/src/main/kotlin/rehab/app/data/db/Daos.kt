@@ -37,6 +37,9 @@ interface EventDao {
     @Query("SELECT * FROM events WHERE at_utc >= :fromUtc ORDER BY at_utc, id")
     fun since(fromUtc: Long): List<EventEntity>
 
+    @Query("SELECT * FROM events WHERE type = 'RELAPSE' ORDER BY at_utc, id")
+    fun relapses(): List<EventEntity>
+
     @Query("SELECT COUNT(*) FROM events WHERE type = 'ERROR'")
     fun countErrors(): Int
 

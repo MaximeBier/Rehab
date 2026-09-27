@@ -7,10 +7,18 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 
+/**
+ * [zoneOf] est relu à chaque calcul : le processus, gardé vivant par le service d'accessibilité, peut
+ * survivre à un changement de fuseau, et les nuits comme les journées Rehab suivent l'heure locale courante.
+ */
 class Schedule(
     private val nights: () -> Map<DayOfWeek, NightWindow>,
-    val zone: ZoneId,
+    private val zoneOf: () -> ZoneId,
 ) {
+    constructor(nights: () -> Map<DayOfWeek, NightWindow>, zone: ZoneId) : this(nights, { zone })
+
+    val zone: ZoneId get() = zoneOf()
+
     data class NightPeriod(val row: LocalDate, val start: Instant, val end: Instant)
 
     fun periodForRow(row: LocalDate): NightPeriod? {

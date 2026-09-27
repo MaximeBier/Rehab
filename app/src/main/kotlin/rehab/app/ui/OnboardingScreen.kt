@@ -4,7 +4,6 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,46 +44,47 @@ fun OnboardingContent(
     onRequestNotifications: () -> Unit,
     onContinue: () -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+    Column(Modifier.fillMaxSize()) {
         RehabHeader { HeaderCaption("premier lancement") }
 
-        SectionLabel("Avant de commencer")
-        // valueMono = false partout (Onboarding) : DESIGN §2 réserve Chivo Mono aux durées/heures/
-        // nombres purs (comme Réglages : « 10 s », « 30 min max »). Ici, aucune valeur n'est un
-        // nombre nu : « Ouvrir »/« Actif »/« Autoriser(-ées) » sont des mots, et les valeurs d'app
-        // (« 412.0 · reconnue ») sont dominées par un mot d'état (reconnue/hors plage/non installée)
-        // — donc toutes les lignes de cet écran passent en texte courant, pas en mono.
-        SettingsGroup(
-            listOf(
-                RowSpec(
-                    label = "Service d'accessibilité",
-                    value = if (accessibility) "Actif" else "Ouvrir",
-                    valueColor = statusTone(accessibility).color(),
-                    onClick = if (accessibility) null else onOpenAccessibility,
-                    valueMono = false,
-                ),
-                RowSpec(
-                    label = "Optimisation batterie désactivée",
-                    value = if (battery) "Actif" else "Ouvrir",
-                    valueColor = statusTone(battery).color(),
-                    onClick = if (battery) null else onOpenBattery,
-                    valueMono = false,
-                ),
-                RowSpec(
-                    label = "Notifications (alerte règles)",
-                    value = if (notifications) "Autorisées" else "Autoriser",
-                    valueColor = statusTone(notifications).color(),
-                    onClick = if (notifications) null else onRequestNotifications,
-                    valueMono = false,
-                ),
-            ) + apps.map { s ->
-                val (value, tone) = OnboardingText.appValue(s)
-                RowSpec(label = AppDisplayNames.of(s.packageName), value = value, valueColor = tone.color(), valueMono = false)
-            },
-        )
-        Note("Rehab ne bloque rien tant que le service d'accessibilité n'est pas actif. Les lignes Instagram et X apparaissent après la première activation du service.")
-
-        Spacer(Modifier.weight(1f))
+        // Seul le contenu défile : le bouton reste ancré en bas (un weight dans une colonne défilante n'a aucun effet).
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+            SectionLabel("Avant de commencer")
+            // valueMono = false partout (Onboarding) : DESIGN §2 réserve Chivo Mono aux durées/heures/
+            // nombres purs (comme Réglages : « 10 s », « 30 min max »). Ici, aucune valeur n'est un
+            // nombre nu : « Ouvrir »/« Actif »/« Autoriser(-ées) » sont des mots, et les valeurs d'app
+            // (« 412.0 · reconnue ») sont dominées par un mot d'état (reconnue/hors plage/non installée)
+            // — donc toutes les lignes de cet écran passent en texte courant, pas en mono.
+            SettingsGroup(
+                listOf(
+                    RowSpec(
+                        label = "Service d'accessibilité",
+                        value = if (accessibility) "Actif" else "Ouvrir",
+                        valueColor = statusTone(accessibility).color(),
+                        onClick = if (accessibility) null else onOpenAccessibility,
+                        valueMono = false,
+                    ),
+                    RowSpec(
+                        label = "Optimisation batterie désactivée",
+                        value = if (battery) "Actif" else "Ouvrir",
+                        valueColor = statusTone(battery).color(),
+                        onClick = if (battery) null else onOpenBattery,
+                        valueMono = false,
+                    ),
+                    RowSpec(
+                        label = "Notifications (alerte règles)",
+                        value = if (notifications) "Autorisées" else "Autoriser",
+                        valueColor = statusTone(notifications).color(),
+                        onClick = if (notifications) null else onRequestNotifications,
+                        valueMono = false,
+                    ),
+                ) + apps.map { s ->
+                    val (value, tone) = OnboardingText.appValue(s)
+                    RowSpec(label = AppDisplayNames.of(s.packageName), value = value, valueColor = tone.color(), valueMono = false)
+                },
+            )
+            Note("Rehab ne bloque rien tant que le service d'accessibilité n'est pas actif. Les lignes Instagram et X apparaissent après la première activation du service.")
+        }
         PrimaryButton("Continuer", onContinue, Modifier.fillMaxWidth().padding(20.dp), enabled = accessibility)
     }
 }

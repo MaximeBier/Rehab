@@ -14,8 +14,8 @@ android {
         applicationId = "rehab.app"
         minSdk = 34
         targetSdk = 37
-        versionCode = 9
-        versionName = "0.6.0"
+        versionCode = 10
+        versionName = "0.6.1"
     }
     buildTypes {
         release {
