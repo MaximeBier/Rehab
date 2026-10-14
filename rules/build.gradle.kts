@@ -19,4 +19,10 @@ dependencies {
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
-tasks.test { useJUnitPlatform() }
+tasks.test {
+    useJUnitPlatform()
+    // Outil d'anonymisation des captures (AnonymizeCaptures), désactivé par défaut.
+    listOf("rehab.anonymize.in", "rehab.anonymize.out").forEach { p ->
+        systemProperty(p, (project.findProperty(p) ?: "").toString())
+    }
+}
