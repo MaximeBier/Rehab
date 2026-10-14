@@ -5,10 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Rect
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import rehab.app.RehabApp
 import rehab.app.di.AppGraph
 import rehab.app.overlay.OverlayController
@@ -19,12 +22,14 @@ import rehab.domain.model.Decision
 import rehab.domain.model.Event
 import rehab.domain.policy.PressOutcome
 import rehab.rules.Detection
+import rehab.rules.SnapshotBuilder
 import java.time.Duration
 import java.time.Instant
 
 /**
  * Pièce d'assemblage du pipeline : reçoit les événements d'accessibilité d'Instagram et de X,
- * construit un snapshot borné de l'arbre, détecte l'écran/la cible, applique la politique
+ * choisit la fenêtre de l'app parmi toutes celles à l'écran (WindowPicker, pas seulement la fenêtre active ;
+ * arbre illisible = échec fermé), construit un snapshot borné de l'arbre, détecte l'écran/la cible, applique la politique
  * (déblocage actif > nuit > quota) et pilote l'overlay de blocage.
  *
  * Tout le travail de décision tourne sur le HandlerThread "rehab-engine", jamais sur le thread
@@ -84,6 +89,8 @@ class RehabAccessibilityService : AccessibilityService() {
     private val truncatedLogged = mutableSetOf<String>()
     /** Vrai tant que l'overlay affiché est celui de [showTestOverlay]. Accédé uniquement depuis "rehab-engine". */
     private var testOverlayShown = false
+    /** Paquet vu par `windowId`, pour une fenêtre dont la racine devient illisible (WindowPicker). Thread "rehab-engine". */
+    private val windowPackages = mutableMapOf<Int, String>()
 
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) { engine.post { safely { leaveTargets() } } }
@@ -221,16 +228,33 @@ class RehabAccessibilityService : AccessibilityService() {
 
     private fun process() = safely {
         val now = graph.clock.now()
-        val root = rootInActiveWindow ?: return@safely leaveTargets()
-        val pkg = root.packageName?.toString() ?: return@safely leaveTargets()
-        if (pkg !in graph.catalog.packageNames) return@safely leaveTargets()
-
-        val snapshot = graph.snapshotBuilder.build(
-            AccessibilityTreeNode(root),
-            pkg,
-            graph.versionChecker.versionOf(pkg),
-            now.toEpochMilli(),
-        )
+        val infos = runCatching { windows }.getOrDefault(emptyList())
+        val roots = HashMap<Int, AccessibilityNodeInfo?>()
+        val candidates = if (infos.isEmpty()) {
+            // Repli : liste des fenêtres indisponible (service tout juste connecté).
+            val r = rootInActiveWindow
+            roots[-1] = r
+            listOf(WindowCandidate(-1, true, r?.packageName?.toString(), active = true, focused = true, area = 0))
+        } else infos.map { w ->
+            val isApp = w.type == AccessibilityWindowInfo.TYPE_APPLICATION
+            val r = if (isApp) w.root else null
+            roots[w.id] = r
+            val rect = Rect().also(w::getBoundsInScreen)
+            WindowCandidate(w.id, isApp, r?.packageName?.toString(), w.isActive, w.isFocused, rect.width().toLong() * rect.height())
+        }
+        windowPackages.keys.retainAll(candidates.map { it.windowId }.toSet())
+        val picked = WindowPicker.pick(candidates, graph.catalog.packageNames, windowPackages) ?: return@safely leaveTargets()
+        windowPackages[picked.windowId] = picked.packageName
+        val pkg = picked.packageName
+        val root = roots[picked.windowId]
+        val version = graph.versionChecker.versionOf(pkg)
+        // Échec fermé (v0.7.0) : fenêtre de l'app présente mais arbre illisible → racine vide, que les règles
+        // « tout sauf DM » classent comme la cible de l'app. Jamais une sortie.
+        val snapshot = if (root == null || root.childCount == 0) {
+            SnapshotBuilder.unreadable(pkg, version, now.toEpochMilli())
+        } else {
+            graph.snapshotBuilder.build(AccessibilityTreeNode(root), pkg, version, now.toEpochMilli())
+        }
         maybeRecheckVersion(pkg, snapshot.appVersion)
 
         if (snapshot.truncated) {
@@ -286,7 +310,9 @@ class RehabAccessibilityService : AccessibilityService() {
         if (target == null) {
             graph.usageTracker.onDetected(null, now)
             overlay.hide()
-            stopTicker()
+            // v0.7.0 : le ticker tourne tant qu'une fenêtre de l'app est à l'écran, DM compris, pour réévaluer sans
+            // dépendre des événements (sortie de DM, vidéo regardée sans toucher). Seul `leaveTargets()` l'arrête.
+            startTicker()
             return
         }
         when (val decision = graph.policy.evaluate(now)) {
