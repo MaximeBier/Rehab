@@ -139,3 +139,59 @@ class RenderOverlay {
         }
     }
 }
+
+/** Même rendu en paysage (v0.6.2) : fenêtre 844 x 390 dp, d'où une classe à part (qualifiers fixés par classe). */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], qualifiers = "w844dp-h390dp-xxhdpi")
+class RenderOverlayLandscape {
+    @get:Rule val compose = createComposeRule()
+
+    @Before fun gate() = assumeRendering()
+
+    private val zone = ZoneId.of("Europe/Paris")
+    private fun at(d: Int, h: Int, m: Int) = ZonedDateTime.of(2026, 9, d, h, m, 0, 0, zone).toInstant()
+    private val record = StreakSummary(24, 24, 23)
+    private val night = NightWindow(LocalTime.of(23, 0), LocalTime.of(7, 30))
+
+    private fun state(reason: BlockReason, unlock: Instant, detail: String, outcome: PressOutcome, streak: StreakSummary = record) =
+        OverlayState(reason, unlock.toEpochMilli(), detail, streak, outcome, 10_000, 5, 15, null, zone)
+
+    private fun landscape(name: String, state: OverlayState, now: Instant, width: Int = 844, height: Int = 390, fontScale: Float = 1f) =
+        compose.renderPng(name) {
+            Box(Modifier.size(width.dp, height.dp)) {
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = fontScale)) {
+                    BlockOverlay(state, nowMillis = { now.toEpochMilli() }, onQuit = {}, onHoldCompleted = {})
+                }
+            }
+        }
+
+    @Test fun `overlay paysage quota`() = landscape(
+        "overlay-paysage-quota",
+        state(BlockReason.Quota, at(20, 22, 18), OverlayText.quotaDetail(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(5))), PressOutcome.Joker(1)),
+        at(20, 22, 0),
+    )
+
+    @Test fun `overlay paysage relapse`() = landscape(
+        "overlay-paysage-relapse",
+        state(BlockReason.Night, at(21, 7, 30), OverlayText.nightDetail(DayOfWeek.SUNDAY, night), PressOutcome.Relapse(24)),
+        at(20, 23, 30),
+    )
+
+    @Test fun `overlay paysage 130`() = landscape(
+        "overlay-paysage-130",
+        state(BlockReason.Night, at(21, 7, 30), OverlayText.nightDetail(DayOfWeek.SUNDAY, night), PressOutcome.Relapse(24)),
+        at(20, 23, 30),
+        fontScale = 1.3f,
+    )
+
+    // Fenêtre basse (écran partagé, overlay borné par une barre d'onglets) : tout doit rester atteignable par défilement.
+    @Test fun `overlay paysage bas`() = landscape(
+        "overlay-paysage-bas",
+        state(BlockReason.Quota, at(20, 22, 18), OverlayText.jokersExhausted(2), PressOutcome.Relapse(24)),
+        at(20, 22, 0),
+        height = 280,
+    )
+
+}
