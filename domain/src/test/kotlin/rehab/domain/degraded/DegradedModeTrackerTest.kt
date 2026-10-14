@@ -1,74 +1,34 @@
 package rehab.domain.degraded
 
-import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class DegradedModeTrackerTest {
-    private val t0 = Instant.parse("2026-09-21T10:00:00Z")
     private val ig = "com.instagram.android"
-    private val tracker = DegradedModeTracker()
 
     @Test fun `version hors plage degrade immediatement`() {
+        val tracker = DegradedModeTracker()
         tracker.onVersionCheck(ig, inRange = false)
         assertTrue(tracker.isDegraded(ig))
         assertEquals("version", tracker.reason(ig))
     }
 
-    @Test fun `inconnu pendant 30 s degrade`() {
-        tracker.onDetection(ig, unknownScreen = true, now = t0)
-        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(29))
-        assertFalse(tracker.isDegraded(ig))
-        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(30))
-        assertTrue(tracker.isDegraded(ig))
-        assertEquals("unknown", tracker.reason(ig))
-    }
-
-    @Test fun `un ecran connu reinitialise le compteur`() {
-        tracker.onDetection(ig, unknownScreen = true, now = t0)
-        tracker.onDetection(ig, unknownScreen = false, now = t0.plusSeconds(20))
-        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(40))
-        assertFalse(tracker.isDegraded(ig))
-    }
-
-    /**
-     * Régression du IMPORTANT 3 de la revue finale : le compteur ne doit plus dépendre d'un onglet Accueil
-     * sélectionné, sans quoi un écran inconnu en permanence (ex. X, dont les règles ne posent pas de contrainte
-     * d'onglet Accueil pour les écrans hors cible) n'armait jamais le mode dégradé.
-     */
-    @Test fun `inconnu hors accueil compte aussi`() {
-        tracker.onDetection(ig, unknownScreen = true, now = t0)
-        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(30))
-        assertTrue(tracker.isDegraded(ig))
-    }
-
     @Test fun `version revenue dans la plage leve le mode version`() {
+        val tracker = DegradedModeTracker()
         tracker.onVersionCheck(ig, inRange = false)
         tracker.onVersionCheck(ig, inRange = true)
         assertFalse(tracker.isDegraded(ig))
     }
 
-    @Test fun `l etat degrade par inconnu survit au retour d ecrans connus`() {
-        tracker.onDetection(ig, unknownScreen = true, now = t0)
-        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(30))
-        tracker.onDetection(ig, unknownScreen = false, now = t0.plusSeconds(40))
-        assertTrue(tracker.isDegraded(ig))
-        assertEquals("unknown", tracker.reason(ig))
-    }
-
-    @Test fun `quitter l app remet le compteur a zero`() {
-        tracker.onDetection(ig, unknownScreen = true, now = t0)
-        tracker.onLeave()
-        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(600))
-        assertFalse(tracker.isDegraded(ig))
-    }
-
-    @Test fun `passer sur une autre app suivie remet le compteur a zero`() {
-        tracker.onDetection(ig, unknownScreen = true, now = t0)
-        tracker.onDetection("com.twitter.android", unknownScreen = false, now = t0.plusSeconds(10))
-        tracker.onDetection(ig, unknownScreen = true, now = t0.plusSeconds(40))
-        assertFalse(tracker.isDegraded(ig))
+    @Test fun `seule la version hors plage degrade`() {
+        val t = DegradedModeTracker()
+        assertNull(t.reason("pkg"))
+        t.onVersionCheck("pkg", inRange = false)
+        assertEquals("version", t.reason("pkg"))
+        t.onVersionCheck("pkg", inRange = true)
+        assertNull(t.reason("pkg"))
     }
 }

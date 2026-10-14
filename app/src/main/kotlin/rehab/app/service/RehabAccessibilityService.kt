@@ -23,30 +23,6 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Décide si le compteur d'écran inconnu ([rehab.domain.degraded.DegradedModeTracker.onDetection])
- * doit s'armer pour ce tick.
- *
- * Les `knownScreens` d'Instagram (voir `InstagramRules`) ne couvrent que les écrans avec barre
- * d'onglets (`search`, `profile`, `dm`) : toute vue plein écran sans barre d'onglets (stories,
- * détail de publication, commentaires, réglages, caméra) est donc "inconnue" au sens de
- * [Detection.unknownScreen] alors qu'il s'agit d'un usage parfaitement ordinaire. Regarder des
- * stories 30 s d'affilée ne doit pas faire basculer l'app en `degradedByUnknown` — un état qui ne
- * se vide jamais et déclencherait ensuite la règle `SUGGESTED` (`degradedFallback = true`) sur
- * tout l'onglet Accueil, fil d'abonnements compris.
- *
- * On n'arme donc le compteur sur un écran inconnu que lorsque la barre de navigation est présente
- * ([Detection.navBarBounds] non nul) : c'est le signal que la structure de l'app a changé sous nos
- * règles (spec §2.8), pas que l'utilisateur est simplement sur une vue plein écran connue pour ne
- * pas en avoir.
- *
- * La troncature ([rehab.rules.Snapshot.truncated]) arme le compteur indépendamment de cette garde :
- * une troncature sévère peut justement faire disparaître la barre de navigation de l'arbre capturé
- * (nœuds coupés avant `maxDepth`/`maxNodes`), et doit rester fail-closed (voir [process]).
- */
-internal fun shouldArmUnknownScreen(detection: Detection, truncated: Boolean): Boolean =
-    truncated || (detection.unknownScreen && detection.navBarBounds != null)
-
-/**
  * Pièce d'assemblage du pipeline : reçoit les événements d'accessibilité d'Instagram et de X,
  * construit un snapshot borné de l'arbre, détecte l'écran/la cible, applique la politique
  * (déblocage actif > nuit > quota) et pilote l'overlay de blocage.
@@ -260,8 +236,8 @@ class RehabAccessibilityService : AccessibilityService() {
         if (snapshot.truncated) {
             // Échec fermé (spec §2.8) : un arbre amputé (SnapshotBuilder.truncated) est indiscernable de
             // « rien à bloquer » pour ScreenDetector. On le fait remonter au lieu de le laisser silencieux :
-            // un Event.Error (une fois par transition, pas à chaque tick) et l'armement du compteur d'écran
-            // inconnu, qui basculera en mode dégradé au bout de 30 s comme un vrai écran non reconnu.
+            // un Event.Error, une fois par transition (pas à chaque tick). Ne change plus la décision :
+            // un DM tronqué est compté.
             if (truncatedLogged.add(pkg)) {
                 graph.eventLog.append(Event.Error(now, "Snapshot tronqué pour $pkg : arbre amputé par SnapshotBuilder"))
             }
@@ -274,9 +250,7 @@ class RehabAccessibilityService : AccessibilityService() {
         // `screenId` détecté, désormais connu à ce point de `process()`, pour un nom de fichier
         // lisible (voir CaptureNames).
         graph.capture.maybeSave(snapshot, detection.screenId)
-        graph.degraded.onDetection(pkg, shouldArmUnknownScreen(detection, snapshot.truncated), now)
-        // Relu après onDetection() : le seuil de 30s peut faire basculer en dégradé pendant cet
-        // appel ; on publie l'état à jour, toujours calculé ici sur le thread "rehab-engine".
+        // Raison lue ici, sur le thread "rehab-engine", puis publiée pour l'écran Debug.
         val degradedReasonAfter = graph.degraded.reason(pkg)
         graph.detectionState.last.value = LastDetection(
             packageName = pkg,
@@ -288,8 +262,6 @@ class RehabAccessibilityService : AccessibilityService() {
             atMillis = now.toEpochMilli(),
             degradedReason = degradedReasonAfter,
         )
-        graph.detectionState.degradedReasons.value = graph.catalog.packageNames
-            .mapNotNull { p -> graph.degraded.reason(p)?.let { p to it } }.toMap()
 
         apply(detection)
     }
@@ -347,10 +319,8 @@ class RehabAccessibilityService : AccessibilityService() {
         overlay.hide()
         testOverlayShown = false
         stopTicker()
-        // Les 30 s d'écran inconnu doivent être consécutives (spec §2.8) : une sortie interrompt la série.
-        graph.degraded.onLeave()
         // On quitte une app catalogue (ou l'écran s'éteint) : le dernier `LastDetection` publié ne décrit
-        // plus l'écran courant (écran Debug). L'alerte Accueil, elle, lit `degradedReasons`, qui persiste.
+        // plus l'écran courant (écran Debug). L'alerte Accueil de hors-plage vient de `versionChecker`.
         graph.detectionState.last.value = null
         graph.usageTracker.closeOpen(graph.clock.now())
     }

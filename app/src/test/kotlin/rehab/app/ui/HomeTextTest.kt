@@ -100,12 +100,11 @@ class HomeTextTest {
 
     @Test fun alerts() {
         assertEquals(HomeAlert("Service d'accessibilité désactivé — aucun blocage actif", AlertAction.OpenAccessibility), HomeText.serviceAlert())
-        assertEquals(HomeAlert("Instagram 412.0 hors plage testée — tout l'onglet Accueil compte comme cible", AlertAction.OpenDebug),
+        assertEquals(HomeAlert("Instagram 412.0 hors plage testée — les messages pourraient être comptés", AlertAction.OpenDebug),
             HomeText.outOfRangeAlert("com.instagram.android", "412.0.0.35.104"))
-        assertEquals(HomeAlert("X 10.60 hors plage testée — la détection peut être incomplète", AlertAction.OpenDebug),
+        assertEquals(HomeAlert("X 10.60 hors plage testée — les messages pourraient être comptés", AlertAction.OpenDebug),
             HomeText.outOfRangeAlert("com.twitter.android", "10.60.0-release.0"))
         assertEquals(HomeAlert("Instagram n'est pas installée", null), HomeText.notInstalledAlert("com.instagram.android"))
-        assertEquals(HomeAlert("Instagram : écrans non reconnus — mode dégradé actif", AlertAction.OpenDebug), HomeText.unknownScreensAlert("com.instagram.android"))
     }
 
     @Test fun unit() {

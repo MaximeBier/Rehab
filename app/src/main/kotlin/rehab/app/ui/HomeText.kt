@@ -7,7 +7,6 @@ import rehab.domain.policy.ActiveUnlock
 import rehab.domain.policy.Schedule
 import rehab.domain.policy.SlidingQuota
 import rehab.domain.policy.StreakSummary
-import rehab.rules.catalog.InstagramRules
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -96,19 +95,16 @@ object HomeText {
     fun serviceAlert() = HomeAlert("Service d'accessibilité désactivé — aucun blocage actif", AlertAction.OpenAccessibility)
 
     /**
-     * Texte véridique (revue tâche 28) : pour Instagram, le mode dégradé « version » fait jouer la
-     * règle `InstagramSuggested` (`degradedFallback`) sur tout l'onglet Accueil — il compte comme
-     * cible (quota, nuit), il n'est pas bloqué en permanence. X n'a pas de repli.
+     * v0.7.0 : hors plage de version, les DM ne sont plus forcément reconnus, donc un message pourrait être
+     * compté ; même conséquence pour toutes les apps.
      */
     fun outOfRangeAlert(packageName: String, version: String?): HomeAlert {
         val v = version?.split('.', '-')?.take(2)?.joinToString(".") ?: "?"
-        val consequence = if (packageName == InstagramRules.PACKAGE) "tout l'onglet Accueil compte comme cible" else "la détection peut être incomplète"
+        val consequence = "les messages pourraient être comptés"
         return HomeAlert("${AppDisplayNames.of(packageName)} $v hors plage testée — $consequence", AlertAction.OpenDebug)
     }
 
     fun notInstalledAlert(packageName: String) = HomeAlert("${AppDisplayNames.of(packageName)} n'est pas installée", null)
-
-    fun unknownScreensAlert(packageName: String) = HomeAlert("${AppDisplayNames.of(packageName)} : écrans non reconnus — mode dégradé actif", AlertAction.OpenDebug)
 
     /** Unité affichée sous le chiffre de l'anneau : accord singulier/pluriel. */
     fun unit(n: Int) = if (n <= 1) "JOUR" else "JOURS"

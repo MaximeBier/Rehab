@@ -11,24 +11,17 @@ data class LastDetection(
     val degraded: Boolean,
     val atMillis: Long,
     /**
-     * Raison du mode dégradé ("version" | "unknown" | null), lue une fois pour toutes sur le
+     * Raison du mode dégradé ("version" | null), lue une fois pour toutes sur le
      * thread "rehab-engine" via [rehab.domain.degraded.DegradedModeTracker.reason] puis publiée
      * ici. Un lecteur hors moteur (ex. [rehab.app.ui.RehabViewModel]) ne doit jamais appeler
      * `DegradedModeTracker.reason` lui-même : cette classe n'est pas synchronisée et n'est sûre
-     * que confinée à un seul thread. Passer par ce champ ou par [DetectionState.degradedReasons].
+     * que confinée à un seul thread. Passer par ce champ.
      */
     val degradedReason: String? = null,
 )
 
-/**
- * [degradedReasons] : raison du mode dégradé par paquet ("version" | "unknown"), publiée par le thread
- * "rehab-engine" à chaque détection. Contrairement à [last], remis à null dès qu'on quitte Instagram/X,
- * elle persiste tant que le mode dégradé dure : l'alerte Accueil de Rehab reste donc visible quand
- * l'utilisateur ouvre Rehab, précisément le moment où il la lit.
- */
 class DetectionState {
     val last = MutableStateFlow<LastDetection?>(null)
-    val degradedReasons = MutableStateFlow<Map<String, String>>(emptyMap())
 }
 
 /**

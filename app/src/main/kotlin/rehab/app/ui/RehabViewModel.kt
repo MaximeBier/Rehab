@@ -49,8 +49,8 @@ enum class Tab(val label: String) { Accueil("Accueil"), Reglages("Réglages"), J
  * `graph.degraded` et `graph.versionChecker.checkAll()` à son thread "rehab-engine" : ce sont des
  * classes sans synchronisation, correctes uniquement parce qu'un seul thread les touche. Ce
  * ViewModel ne les appelle donc jamais directement. Il ne lit que des vues publiées en
- * `StateFlow` par ce thread — `serviceState.connected`, `detectionState.last` et
- * `detectionState.degradedReasons` (calculés sur le thread moteur), et `versionChecker.statuses` (dernier résultat
+ * `StateFlow` par ce thread — `serviceState.connected`, `detectionState.last`
+ * (calculé sur le thread moteur), et `versionChecker.statuses` (dernier résultat
  * de `checkAll()`, également publié par le thread moteur) — `StateFlow.value` étant sûr à lire
  * depuis n'importe quel thread. Les accès base de données (streak, quota, settings) passent par
  * `Dispatchers.IO` car les adaptateurs Room sont bloquants et la base est ouverte sans
@@ -263,10 +263,6 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
             graph.versionChecker.statuses.value.forEach { s ->
                 if (!s.installed) add(HomeText.notInstalledAlert(s.packageName))
                 else if (!s.inRange) add(HomeText.outOfRangeAlert(s.packageName, s.version))
-            }
-            // "version" est déjà couvert par l'alerte hors plage ci-dessus.
-            graph.detectionState.degradedReasons.value.forEach { (pkg, reason) ->
-                if (reason == "unknown") add(HomeText.unknownScreensAlert(pkg))
             }
         }
         return HomeUiState(
