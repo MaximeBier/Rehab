@@ -269,9 +269,7 @@ class RehabAccessibilityService : AccessibilityService() {
             truncatedLogged.remove(pkg)
         }
 
-        val degradedReasonBefore = graph.degraded.reason(pkg)
-        val degraded = degradedReasonBefore != null
-        val detection = graph.detector.detect(snapshot, degraded)
+        val detection = graph.detector.detect(snapshot)
         // La capture a toujours lieu, troncature comprise (écran Debug) : on lui passe le
         // `screenId` détecté, désormais connu à ce point de `process()`, pour un nom de fichier
         // lisible (voir CaptureNames).

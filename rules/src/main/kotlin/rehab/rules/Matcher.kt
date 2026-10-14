@@ -71,6 +71,19 @@ sealed interface Matcher {
         }
     }
 
+    /**
+     * Le nœud couvre au moins [minFraction] de la surface de la racine (profondeur 0, voir [NearBottom] pour ce
+     * choix). Sert aux DM (v0.7.0) : un conteneur de conversation qui occupe l'écran est un DM ; le même
+     * identifiant sur un petit aperçu ailleurs ne l'est pas. Sans racine : `false`.
+     */
+    data class CoversScreen(val minFraction: Double = 0.5) : Matcher {
+        override fun matches(node: Node, all: List<Node>): Boolean {
+            val rootArea = all.firstOrNull { it.depth == 0 }?.bounds?.area ?: return false
+            if (rootArea <= 0) return false
+            return node.bounds.area >= minFraction * rootArea
+        }
+    }
+
     /** Le nœud matche [inner] et il existe un autre nœud matchant [outer] dont les bounds englobent les siens. */
     data class Within(val outer: Matcher, val inner: Matcher) : Matcher {
         override fun matches(node: Node, all: List<Node>): Boolean =

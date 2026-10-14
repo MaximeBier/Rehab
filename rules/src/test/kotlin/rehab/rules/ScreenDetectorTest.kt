@@ -16,7 +16,7 @@ class ScreenDetectorTest {
         testedVersions = VersionRange("1", "2"),
         targets = listOf(
             TargetRule(reels, "reels", listOf(Matcher.ViewId("clips_viewer")), priority = 10),
-            TargetRule(suggested, "home", listOf(homeTab), triggerMatchers = listOf(Matcher.Text(Regex("Suggestions"))), degradedFallback = true, priority = 5),
+            TargetRule(suggested, "home", listOf(homeTab), triggerMatchers = listOf(Matcher.Text(Regex("Suggestions"))), priority = 5),
         ),
         knownScreens = listOf(KnownScreen("dm", listOf(Matcher.ViewId("inbox")))),
         navBarMatcher = Matcher.ViewId("tab_bar"),
@@ -48,11 +48,6 @@ class ScreenDetectorTest {
 
     @Test fun `feed avec suggere est une cible`() {
         val d = detector.detect(snap(navBar, feedTab, Node(text = "Suggestions pour vous")))
-        assertEquals(suggested, d.target)
-    }
-
-    @Test fun `mode degrade cible le feed entier`() {
-        val d = detector.detect(snap(navBar, feedTab), degraded = true)
         assertEquals(suggested, d.target)
     }
 

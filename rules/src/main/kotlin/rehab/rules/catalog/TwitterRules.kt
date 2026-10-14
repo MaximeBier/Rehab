@@ -12,6 +12,9 @@ import rehab.rules.VersionRange
  * version de X échouait (barres masquées en défilant, structure Compose changeante) et l'usage cessait alors
  * d'être compté — un échec « ouvert ». On inverse : n'importe quel écran de X est la cible [APP], sauf la liste
  * des messages et une conversation ouverte. Si X change, Rehab compte trop plutôt que rien.
+ *
+ * v0.7.0 : les DM ne sont reconnus que par des signaux visibles et couvrants (un conteneur qui occupe au moins la
+ * moitié de l'écran, ou l'onglet Messages sélectionné) ; un aperçu ou un écran en mémoire ne fait plus un DM.
  */
 object TwitterRules {
     const val PACKAGE = "com.twitter.android"
@@ -30,15 +33,18 @@ object TwitterRules {
 
     private val homeTab = bottomTabActive(Regex("^(Accueil|Home)$"))
 
+    /** Conteneur DM qui occupe l'écran (v0.7.0) : l'identifiant seul ne suffit plus (aperçus, écrans en mémoire). */
+    private fun dmContainer(id: String) = Matcher.AllOf(listOf(Matcher.ViewId(id), Matcher.CoversScreen()))
+
     // DM, relevés sur X 12.28 (captures du 2026-09-25) : liste des conversations (`xchat_conversation_list`,
     // onglet Messages sélectionné quand la barre est visible) et conversation ouverte (`RootDm`,
     // `message_list_v2` — jamais de barre d'onglets dans une conversation).
     private val dmScreen = Matcher.AnyOf(
         listOf(
             bottomTabActive(Regex("^Messages$")),
-            Matcher.ViewId("xchat_conversation_list"),
-            Matcher.ViewId("RootDm"),
-            Matcher.ViewId("message_list_v2"),
+            dmContainer("xchat_conversation_list"),
+            dmContainer("RootDm"),
+            dmContainer("message_list_v2"),
         ),
     )
 

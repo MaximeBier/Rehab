@@ -16,6 +16,7 @@ object AppDisplayNames {
 
     /** Nom d'affichage d'une cible (`TargetId.value`) du catalogue, pour le Journal (tâche 5). */
     fun target(id: String): String = when (id) {
+        InstagramRules.APP.value -> "Instagram · hors DM"
         InstagramRules.REELS.value -> "Instagram · Reels"
         InstagramRules.SUGGESTED.value -> "Instagram · Suggéré"
         TwitterRules.APP.value -> "X · hors DM"

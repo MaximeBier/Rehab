@@ -16,7 +16,7 @@ data class StatsApp(val packageName: String, val targets: List<TargetId>, val re
 /** Source unique des apps Stats, dans l'ordre d'affichage. */
 object StatsApps {
     val all = listOf(
-        StatsApp(InstagramRules.PACKAGE, listOf(InstagramRules.REELS, InstagramRules.SUGGESTED), "Dont fil et Reels"),
+        StatsApp(InstagramRules.PACKAGE, listOf(InstagramRules.APP, InstagramRules.REELS, InstagramRules.SUGGESTED), "Dont hors DM"),
         StatsApp(TwitterRules.PACKAGE, listOf(TwitterRules.APP, TwitterRules.HOME), "Dont hors DM"),
     )
 }

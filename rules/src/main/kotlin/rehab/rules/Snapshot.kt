@@ -6,6 +6,9 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class Bounds(val left: Int, val top: Int, val right: Int, val bottom: Int) {
     val height: Int get() = bottom - top
+    val width: Int get() = right - left
+    /** Surface en px², 0 si les bounds sont vides ou inversées. */
+    val area: Long get() = maxOf(0, width).toLong() * maxOf(0, height).toLong()
 }
 
 @Serializable

@@ -90,4 +90,14 @@ class MatcherTest {
         assertEquals(home, xm.firstMatch(listOf(container, home, explore)))
         assertFalse(Matcher.Within(Matcher.Selected(Matcher.Any), Matcher.ContentDesc(Regex("^Explorer$"))).matches(explore, listOf(container, home, explore)))
     }
+
+    @Test fun `CoversScreen compare la surface a celle de la racine`() {
+        val root = Node(bounds = Bounds(0, 0, 1000, 2000), depth = 0)
+        val big = Node(id = "big", bounds = Bounds(0, 200, 1000, 2000), depth = 3)     // 90 %
+        val small = Node(id = "small", bounds = Bounds(0, 0, 1000, 400), depth = 3)    // 20 %
+        val all = listOf(root, big, small)
+        assertTrue(Matcher.CoversScreen().matches(big, all))
+        assertFalse(Matcher.CoversScreen().matches(small, all))
+        assertFalse(Matcher.CoversScreen().matches(big, listOf(big)))   // pas de racine : on ne devine pas
+    }
 }

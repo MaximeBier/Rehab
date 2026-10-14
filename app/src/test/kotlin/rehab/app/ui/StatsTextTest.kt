@@ -12,11 +12,11 @@ class StatsTextTest {
 
     @Test fun cardBaisseIsAccent() {
         val c = StatsText.card(
-            "Instagram", "Dont fil et Reels", Duration.ofMinutes(45), "Android", Duration.ofMinutes(12), Duration.ofMinutes(3), hasPermission = true,
+            "Instagram", "Dont hors DM", Duration.ofMinutes(45), "Android", Duration.ofMinutes(12), Duration.ofMinutes(3), hasPermission = true,
         )
         assertEquals("45 min/j · Android", c.before)
         assertEquals("12 min/j", c.now)
-        assertEquals("Dont fil et Reels", c.rehabLabel)
+        assertEquals("Dont hors DM", c.rehabLabel)
         assertEquals("3 min/j", c.rehab)
         // Signe typographique U+2212 (spec §Écran Stats : « −73 % »), pas le trait d'union ASCII.
         assertEquals("−73 %", c.change)

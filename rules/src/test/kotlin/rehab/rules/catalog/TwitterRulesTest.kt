@@ -6,6 +6,7 @@ import rehab.rules.Node
 import rehab.rules.RuleCatalog
 import rehab.rules.ScreenDetector
 import rehab.rules.Snapshot
+import rehab.rules.SnapshotBuilder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -87,4 +88,16 @@ class TwitterRulesTest {
         assertFalse(d.unknownScreen)
     }
 
+    /** Un aperçu de conversation (petit conteneur) dans un autre écran ne fait pas un DM. */
+    @Test fun `petit conteneur dm ne suffit pas`() {
+        val s = Snapshot(TwitterRules.PACKAGE, "12.28.0-prod.01", 0L, listOf(
+            Node(className = "android.widget.FrameLayout", bounds = Bounds(0, 0, 1080, 2400)),
+            Node(id = "message_list_v2", bounds = Bounds(0, 1800, 1080, 2200), depth = 9),
+        ))
+        assertEquals(TwitterRules.APP, detector.detect(s).target)
+    }
+
+    @Test fun `snapshot illisible compte`() {
+        assertEquals(TwitterRules.APP, detector.detect(SnapshotBuilder.unreadable(TwitterRules.PACKAGE, "12.28", 0L)).target)
+    }
 }

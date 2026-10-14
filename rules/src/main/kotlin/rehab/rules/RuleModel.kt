@@ -8,7 +8,6 @@ data class TargetRule(
     val screenId: String,
     val screenMatchers: List<Matcher>,
     val triggerMatchers: List<Matcher> = emptyList(),
-    val degradedFallback: Boolean = false,
     val priority: Int = 0,
     /** Si l'un d'eux correspond, la cible est écartée (ex. les DM de X, v0.6.0). */
     val excludeMatchers: List<Matcher> = emptyList(),

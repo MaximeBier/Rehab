@@ -9,14 +9,13 @@ import rehab.rules.VersionRange
 
 object InstagramRules {
     const val PACKAGE = "com.instagram.android"
+
+    /** v0.7.0 (demande de Maxime, 2026-10-14) : tout Instagram compte, sauf les DM — comme X depuis 0.6.0. */
+    val APP = TargetId("InstagramApp")
+
+    /** Anciennes cibles (≤ 0.6.2) : ne servent plus qu'à nommer l'historique d'usage déjà enregistré. */
     val REELS = TargetId("InstagramReels")
     val SUGGESTED = TargetId("InstagramSuggested")
-
-    // Observé sur Instagram 447 (fr-FR) : « Suggestions » dans secondary_label, « Suggestion Reel de … » en content-desc.
-    private val suggestedLabel = Regex(
-        "^Suggestions?\\b|Sugg[ée]r[ée]e?s? pour vous|Publications? sugg[ée]r[ée]es?|Suggested for you|Suggested posts?",
-        RegexOption.IGNORE_CASE,
-    )
 
     /**
      * Onglet actif : sur Instagram 447, l'onglet (feed_tab…) est parfois selected lui-même (DM, recherche, profil),
@@ -32,44 +31,21 @@ object InstagramRules {
         Matcher.Selected(Matcher.ContentDesc(Regex("^(Accueil|Home)$"))),
     ))
 
+    // DM relevés sur Instagram 447 : onglet `direct_tab` sélectionné (liste des conversations). La conversation
+    // ouverte est ajoutée à la tâche 8 du plan v0.7 après relevé sur le Pixel.
+    private val dmScreen = Matcher.AnyOf(listOf(
+        tabActive("direct_tab"),
+        Matcher.Selected(Matcher.ContentDesc(Regex("^(Envoyer un message|Messages|Direct)$"))),
+    ))
+
     val PACKAGE_RULES = PackageRules(
         packageName = PACKAGE,
         testedVersions = VersionRange("447.0", "470.0"),
         targets = listOf(
-            TargetRule(
-                id = REELS,
-                screenId = "instagram.reels",
-                priority = 10,
-                screenMatchers = listOf(Matcher.AnyOf(listOf(
-                    Matcher.ViewId("clips_viewer_view_pager"),
-                    Matcher.ViewId("clips_viewer_container"),
-                    Matcher.ViewId("root_clips_layout"),
-                    tabActive("clips_tab"),
-                    Matcher.Selected(Matcher.ContentDesc(Regex("^Reels$"))),
-                ))),
-            ),
-            TargetRule(
-                id = SUGGESTED,
-                screenId = "instagram.home",
-                priority = 5,
-                screenMatchers = listOf(homeTab),
-                triggerMatchers = listOf(
-                    Matcher.Text(suggestedLabel),
-                    Matcher.ContentDesc(suggestedLabel),
-                    // Bouton « Suivre » dans l'en-tête d'un post : on ne suit pas l'auteur, donc post suggéré.
-                    Matcher.ViewId("inline_follow_button"),
-                ),
-                degradedFallback = true,
-            ),
+            TargetRule(id = APP, screenId = "instagram.app", screenMatchers = listOf(Matcher.Any), excludeMatchers = listOf(dmScreen)),
         ),
-        knownScreens = listOf(
-            KnownScreen("instagram.search", listOf(Matcher.AnyOf(listOf(
-                tabActive("search_tab"), Matcher.Selected(Matcher.ContentDesc(Regex("^(Rechercher|Search)"))))))),
-            KnownScreen("instagram.profile", listOf(Matcher.AnyOf(listOf(
-                tabActive("profile_tab"), Matcher.Selected(Matcher.ContentDesc(Regex("^Profil"))))))),
-            KnownScreen("instagram.dm", listOf(Matcher.AnyOf(listOf(
-                tabActive("direct_tab"), Matcher.Selected(Matcher.ContentDesc(Regex("^(Envoyer un message|Messages|Direct)$"))))))),
-        ),
+        knownScreens = listOf(KnownScreen("instagram.dm", listOf(dmScreen))),
+        // La barre d'onglets borne l'overlay : elle reste cliquable pour rejoindre les messages pendant un blocage.
         navBarMatcher = Matcher.ViewId("tab_bar"),
         homeTabMatcher = homeTab,
     )

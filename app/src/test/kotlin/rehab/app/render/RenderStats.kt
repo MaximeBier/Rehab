@@ -32,7 +32,7 @@ class RenderStats {
 
     @Test fun stats() = compose.renderPng("stats") {
         val instagram = StatsText.card(
-            "Instagram", "Dont fil et Reels", Duration.ofMinutes(45), "Android", Duration.ofMinutes(12), Duration.ofMinutes(9), hasPermission = true,
+            "Instagram", "Dont hors DM", Duration.ofMinutes(45), "Android", Duration.ofMinutes(12), Duration.ofMinutes(9), hasPermission = true,
         )
         val x = StatsText.card(
             "X", "Dont hors DM", Duration.ofMinutes(38), "saisi", Duration.ofMinutes(41), Duration.ofMinutes(30), hasPermission = true,
@@ -45,7 +45,7 @@ class RenderStats {
     }
 
     @Test fun `stats sans acces`() = compose.renderPng("stats-sans-acces") {
-        val instagram = StatsText.card("Instagram", "Dont fil et Reels", null, null, null, Duration.ofMinutes(9), hasPermission = false)
+        val instagram = StatsText.card("Instagram", "Dont hors DM", null, null, null, Duration.ofMinutes(9), hasPermission = false)
         val x = StatsText.card("X", "Dont hors DM", Duration.ofMinutes(38), "saisi", null, Duration.ofMinutes(30), hasPermission = false)
         val total = StatsText.card("Total", "Dont suivi par Rehab", null, null, null, Duration.ofMinutes(39), hasPermission = false)
         val state = RehabViewModel.StatsUiState(hasPermission = false, apps = listOf(instagram, x), total = total)

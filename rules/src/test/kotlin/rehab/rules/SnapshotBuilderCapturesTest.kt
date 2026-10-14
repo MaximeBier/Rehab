@@ -40,30 +40,32 @@ class SnapshotBuilderCapturesTest {
 
     @Test fun `ig_reels est detecte a travers les bornes de production`() {
         val d = detector.detect(load("ig_reels.xml", InstagramRules.PACKAGE))
-        assertEquals(InstagramRules.REELS, d.target)
+        assertEquals(InstagramRules.APP, d.target)
     }
 
     @Test fun `ig_feed_suggested est detecte a travers les bornes de production`() {
         // Avant la correction du CRITIQUE 1 (maxDepth = 12), le libellé "Suggestions..." (profondeur 21-22) et
         // inline_follow_button étaient hors de portée : target=null au lieu de InstagramSuggested.
         val d = detector.detect(load("ig_feed_suggested.xml", InstagramRules.PACKAGE))
-        assertEquals(InstagramRules.SUGGESTED, d.target)
+        assertEquals(InstagramRules.APP, d.target)
     }
 
-    @Test fun `ig_feed_followed reste un ecran connu non cible avec la barre de nav`() {
+    @Test fun `ig_feed_followed est la cible avec la barre de nav`() {
         val d = detector.detect(load("ig_feed_followed.xml", InstagramRules.PACKAGE))
-        assertNull(d.target)
-        assertEquals("instagram.home", d.screenId)
+        assertEquals(InstagramRules.APP, d.target)
+        assertEquals("instagram.app", d.screenId)
         assertTrue(d.homeTabSelected)
         assertNotNull(d.navBarBounds)
     }
 
-    @Test fun `ecrans instagram connus non cibles restent reconnus`() {
-        for (name in listOf("ig_dm.xml", "ig_profile.xml", "ig_search.xml")) {
-            val d = detector.detect(load(name, InstagramRules.PACKAGE))
-            assertNull(d.target, name)
-            assertFalse(d.unknownScreen, "$name devrait rester un écran connu")
+    @Test fun `profil et recherche instagram sont la cible, les dm non`() {
+        for (name in listOf("ig_profile.xml", "ig_search.xml")) {
+            assertEquals(InstagramRules.APP, detector.detect(load(name, InstagramRules.PACKAGE)).target, name)
         }
+        val dm = detector.detect(load("ig_dm.xml", InstagramRules.PACKAGE))
+        assertNull(dm.target)
+        assertEquals("instagram.dm", dm.screenId)
+        assertFalse(dm.unknownScreen)
     }
 
     @Test fun `x_home est detecte a travers les bornes de production, avec la barre de nav`() {
