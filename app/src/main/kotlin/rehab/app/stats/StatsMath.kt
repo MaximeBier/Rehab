@@ -30,7 +30,10 @@ object StatsMath {
         return Duration.ofMillis(totalMillis * DAY_MILLIS / spanMillis)
     }
 
-    private val DAY_MILLIS = Duration.ofDays(1).toMillis()
+    /** Somme des durées de [buckets] ; à appeler sur des buckets passés par [prepare] (dédoublonnés, rognés). */
+    fun total(buckets: List<UsageBucket>): Duration = buckets.fold(Duration.ZERO) { acc, b -> acc + b.duration }
+
+    private val DAY_MILLIS =Duration.ofDays(1).toMillis()
 
     /**
      * Écart en % arrondi entre [before] et [after] : `(after − before) / before × 100`. `null`

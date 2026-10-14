@@ -37,4 +37,10 @@ class DebugTextTest {
         assertEquals("1 Ko", DebugText.size(10))
         assertEquals("1,5 Mo", DebugText.size(1536 * 1024L))
     }
+
+    @Test fun `ecart de fuite`() {
+        assertEquals("accès requis", DebugText.gap(null, Duration.ofMinutes(5)))
+        assertEquals("aucun", DebugText.gap(Duration.ofMinutes(5), Duration.ofMinutes(7)))
+        assertEquals(HomeText.duration(Duration.ofMinutes(18)), DebugText.gap(Duration.ofMinutes(30), Duration.ofMinutes(12)))
+    }
 }

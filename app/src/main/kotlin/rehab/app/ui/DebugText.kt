@@ -4,14 +4,26 @@ import rehab.domain.model.BlockReason
 import rehab.domain.model.Decision
 import rehab.domain.policy.ActiveUnlock
 import rehab.domain.policy.SlidingQuota
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToLong
 
+/** Une ligne du contrôle des fuites (v0.7.0) : temps Android (app entière, DM compris) et temps compté par Rehab, depuis minuit. */
+data class LeakRow(val label: String, val android: Duration?, val rehab: Duration)
+data class LeaksUiState(val hasPermission: Boolean, val rows: List<LeakRow>)
+
 /** Textes de l'écran Debug, en français. Toute la logique temporelle reçoit son horaire en paramètre. */
 object DebugText {
+    /** Écart Android − Rehab. Négatif ou nul : « aucun » (Rehab arrondit les buckets Android, l'inverse n'est pas une fuite). */
+    fun gap(android: Duration?, rehab: Duration): String {
+        if (android == null) return "accès requis"
+        val d = android - rehab
+        return if (d <= Duration.ZERO) "aucun" else HomeText.duration(d)
+    }
+
     private val hm = DateTimeFormatter.ofPattern("HH:mm")
     private fun Instant.hm(zone: ZoneId) = atZone(zone).format(hm)
 

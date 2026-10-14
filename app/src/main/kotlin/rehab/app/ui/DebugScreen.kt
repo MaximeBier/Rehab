@@ -67,6 +67,7 @@ fun DebugContent(
     nowMillis: Long,
     last: LastDetection?,
     decisionSummary: String,
+    leaks: LeaksUiState?,
     captures: List<CaptureFile>,
     serviceAvailable: Boolean,
     onCapture: () -> Unit,
@@ -122,6 +123,21 @@ fun DebugContent(
         SectionLabel("Dernière détection · en direct")
         KeyValueGroup(detectionItems(last, decisionSummary, nowMillis))
 
+        SectionLabel("Fuites · aujourd'hui")
+        when {
+            leaks == null -> Note("Calcul…")
+            else -> {
+                KeyValueGroup(leaks.rows.flatMap { r ->
+                    listOf(
+                        KeyValue("${r.label} · Android", r.android?.let(HomeText::duration) ?: "accès requis"),
+                        KeyValue("${r.label} · compté", HomeText.duration(r.rehab)),
+                        KeyValue("${r.label} · écart", DebugText.gap(r.android, r.rehab), valueColor = RehabColors.Warn),
+                    )
+                })
+                Note(if (leaks.hasPermission) "L'écart doit correspondre à ton temps passé en messages." else "Autorise l'accès aux données d'utilisation (onglet Stats) pour comparer.")
+            }
+        }
+
         SectionLabel("Captures · ${captures.size}")
         if (captures.isEmpty()) {
             Note("Aucune capture.")
@@ -143,7 +159,7 @@ private fun detectionItems(last: LastDetection?, decisionSummary: String, nowMil
         add(KeyValue("Package", last.packageName))
         add(KeyValue("Version", last.appVersion))
         add(KeyValue("targetId", last.target ?: "—", valueColor = RehabColors.Accent))
-        add(KeyValue("unknownScreen", last.unknownScreen.toString()))
+        add(KeyValue("Écran", last.screenId ?: "—"))
         add(KeyValue("Décision", decisionSummary))
         add(KeyValue("Il y a", DebugText.ago(nowMillis, last.atMillis)))
         if (last.degraded) add(KeyValue("Mode dégradé", last.degradedReason.orEmpty(), valueColor = RehabColors.Warn))
@@ -164,7 +180,10 @@ fun DebugScreen(vm: RehabViewModel, home: HomeUiState) {
     val lastFile by vm.captureLastFile.collectAsState()
     var delayText by rememberSaveable { mutableStateOf("5") }
     var captures by remember { mutableStateOf<List<CaptureFile>>(emptyList()) }
+    var leaks by remember { mutableStateOf<LeaksUiState?>(null) }
     val service = RehabAccessibilityService.instance
+
+    LaunchedEffect(Unit) { leaks = vm.loadLeaks() }
 
     // Recharge la liste à chaque nouvelle capture (dont la toute première composition, `lastFile`
     // valant alors sa valeur courante, éventuellement non nulle si des captures existent déjà).
@@ -194,6 +213,7 @@ fun DebugScreen(vm: RehabViewModel, home: HomeUiState) {
         nowMillis = home.nowMillis,
         last = last,
         decisionSummary = home.decisionSummary,
+        leaks = leaks,
         captures = captures,
         serviceAvailable = service != null,
         onCapture = { delayText.toIntOrNull()?.let { vm.requestCapture(it * 1000L) } },

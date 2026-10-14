@@ -17,6 +17,8 @@ import rehab.app.service.LastDetection
 import rehab.app.ui.CaptureFile
 import rehab.app.ui.DebugContent
 import rehab.app.ui.DebugText
+import rehab.app.ui.LeakRow
+import rehab.app.ui.LeaksUiState
 import rehab.domain.model.Decision
 import rehab.domain.model.QuotaWindow
 import rehab.domain.policy.SlidingQuota
@@ -78,6 +80,7 @@ class RenderDebug {
                 nowMillis = now.toEpochMilli(),
                 last = last,
                 decisionSummary = decisionSummary,
+                leaks = LeaksUiState(true, listOf(LeakRow("Instagram", Duration.ofMinutes(42), Duration.ofMinutes(37)), LeakRow("X", Duration.ofMinutes(18), Duration.ofMinutes(18)))),
                 captures = captures,
                 serviceAvailable = true,
                 onCapture = {},

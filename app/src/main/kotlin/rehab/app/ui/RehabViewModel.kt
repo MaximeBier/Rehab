@@ -221,6 +221,22 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     // ---- écran Debug ----
+
+    /** Contrôle des fuites (v0.7.0) : aujourd'hui depuis minuit, temps Android vs temps compté par Rehab, par app. */
+    suspend fun loadLeaks(): LeaksUiState = withContext(Dispatchers.IO) {
+        val now = graph.clock.now()
+        val zone = graph.clock.zone()
+        val from = now.atZone(zone).toLocalDate().atStartOfDay(zone).toInstant()
+        val hasPermission = graph.usageHistory.hasPermission()
+        val intervals = graph.usageLog.intervalsSince(from)
+        LeaksUiState(hasPermission, StatsApps.all.map { app ->
+            val android = androidBuckets(app.packageName, from, now, Granularity.Daily, hasPermission)
+                ?.let { StatsMath.total(StatsMath.prepare(it, from, now)) }
+            val rehab = StatsMath.total(StatsMath.prepare(intervals.filter { it.target in app.targets }.map { it.toBucket(now) }, from, now))
+            LeakRow(app.label, android, rehab)
+        })
+    }
+
     // `graph` reste privé : l'écran Debug ne reçoit que ce ViewModel et ces expositions dédiées,
     // jamais `graph` lui-même (voir le commentaire de tête sur le confinement au thread
     // "rehab-engine"). `detectionLast`/`capturePendingAt`/`captureLastFile` sont des StateFlow

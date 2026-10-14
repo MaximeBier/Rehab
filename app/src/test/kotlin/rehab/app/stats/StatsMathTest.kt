@@ -123,4 +123,11 @@ class StatsMathTest {
         val bucket = UsageBucket(at(1, 10, 0), at(1, 12, 0), Duration.ofHours(2))
         assertEquals(listOf(bucket), StatsMath.prepare(listOf(bucket), at(1), at(2)))
     }
+
+    @Test fun `total additionne les durees`() {
+        val t0 = Instant.parse("2026-10-14T08:00:00Z")
+        val b = listOf(UsageBucket(t0, t0.plusSeconds(600), Duration.ofMinutes(4)), UsageBucket(t0, t0.plusSeconds(600), Duration.ofMinutes(6)))
+        assertEquals(Duration.ofMinutes(10), StatsMath.total(b))
+        assertEquals(Duration.ZERO, StatsMath.total(emptyList()))
+    }
 }
