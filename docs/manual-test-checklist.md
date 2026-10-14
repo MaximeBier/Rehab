@@ -201,6 +201,7 @@ apparaissent dès l'activation du service, sans qu'il soit nécessaire d'ouvrir 
   lignes de blocage (Joker/RELAPSE) apparaissent avec leur typologie colorée.
 - [ ] **Debug** : le délai de capture programmé s'affiche et compte à rebours ; l'export/partage
   d'une capture fonctionne.
+- [ ] Paysage (Reel ou vidéo X tournée) : titre et anneau à gauche, bouton d'appui et « Quitter » à droite, tous atteignables.
 - [ ] **Overlay** : un appui court (relâché avant la fin) n'a aucun effet et relâcher ramène la
   jauge à zéro instantanément ; en relapse, le fond rougit et l'écran tremble à l'approche de la
   fin de l'appui ; l'état terminé (bouton plein) reste affiché 1,5 s avant de disparaître ou de se

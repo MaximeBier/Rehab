@@ -3,15 +3,22 @@ package rehab.app.overlay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,9 +41,12 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import kotlin.math.ceil
 import rehab.app.ui.HomeText
 import rehab.app.ui.components.PrimaryButton
 import rehab.app.ui.components.RecordRing
@@ -46,7 +56,7 @@ import rehab.app.ui.theme.Chivo
 import rehab.app.ui.theme.ChivoMono
 import rehab.app.ui.theme.RehabColors
 import rehab.domain.policy.PressOutcome
-import kotlin.math.ceil
+import rehab.domain.policy.StreakSummary
 
 /**
  * Overlay de blocage (DESIGN §5 ; maquettes `Overlay-Quota`, `Overlay-Nuit`, `Overlay-Relapse`,
@@ -93,62 +103,117 @@ fun BlockOverlay(state: OverlayState, nowMillis: () -> Long, onQuit: () -> Unit,
     val secondsLeft = ceil((1f - p) * state.holdMillis / 1000f).toInt()
     val s = state.streak
 
-    Column(
+    val days = when {
+        done && relapse -> 0
+        relapse -> RelapseFx.daysShown(s.current, fx)
+        else -> s.current
+    }
+    val line = when {
+        done && relapse -> OverlayText.doneStreakLine(s)
+        holding && relapse && fx > 0.5f -> "Tu es en train de le perdre."
+        else -> OverlayText.streakLine(s)
+    }
+    val actions: @Composable () -> Unit = {
+        OverlayActions(state, relapse, p, done, holding, fx, pulsePhase, secondsLeft, onPressChange = { if (!done) pressing = it }, onQuit = onQuit)
+    }
+
+    BoxWithConstraints(
         Modifier.fillMaxSize().background(bg)
             .graphicsLayer { translationX = if (holding) RelapseFx.shakeDp(fx, shakePhase).dp.toPx() else 0f }
-            .then(if (state.navBarTop == null) Modifier.navigationBarsPadding() else Modifier)
-            .padding(top = 64.dp),
+            .then(if (state.navBarTop == null) Modifier.navigationBarsPadding() else Modifier),
     ) {
-        Column(Modifier.padding(horizontal = 28.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("REHAB · BLOCAGE", style = RehabText.caps12.copy(letterSpacing = 0.16.em))
-            Text(
-                OverlayText.title(state, shownAt),
-                style = TextStyle(fontFamily = Chivo, fontSize = 26.sp, lineHeight = 31.sp, fontWeight = FontWeight.W500, color = RehabColors.Text),
-            )
-            Text(state.detail, style = TextStyle(fontFamily = Chivo, fontSize = 14.sp, color = RehabColors.Muted))
-        }
-        Column(
-            Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            val days = when {
-                done && relapse -> 0
-                relapse -> RelapseFx.daysShown(s.current, fx)
-                else -> s.current
-            }
-            val daysColor = if (relapse && fx > 0.5f) RehabColors.Danger else RehabColors.Text
-            val daysStyle = TextStyle(fontFamily = ChivoMono, fontSize = 64.sp, lineHeight = 64.sp, fontWeight = FontWeight.W300, color = daysColor)
-            // Hors record : anneau plein `ring-off` et « SÉRIE » (maquette Overlay-HorsRecord) ; l'arc partiel est propre à l'Accueil.
-            if (s.inRecord) {
-                RecordRing(176.dp, 10.dp, RehabColors.Accent, ringAlpha = 1f - fx, overlayArc = fx) {
-                    Text("RECORD", style = RehabText.ringLabel.copy(color = RehabColors.Accent.copy(alpha = 1f - fx)))
-                    Spacer(Modifier.height(3.dp))
-                    Text("$days", style = daysStyle)
-                    Spacer(Modifier.height(3.dp))
-                    Text(HomeText.unit(days), style = RehabText.ringUnit)
+        if (maxWidth > maxHeight) {
+            // Paysage (v0.6.2) : deux colonnes ; chacune défile si son contenu dépasse (police à 130 %, fenêtre basse).
+            val minColumnHeight = (maxHeight - 48.dp).coerceAtLeast(0.dp)
+            Row(
+                Modifier.fillMaxSize().displayCutoutPadding().padding(horizontal = 28.dp, vertical = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(28.dp),
+            ) {
+                Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                    OverlayHeader(state, shownAt)
+                    Spacer(Modifier.height(20.dp))
+                    OverlayStreak(s, days, fx, relapse, line, ringSize = 128.dp, ringStroke = 8.dp, daysFontSize = 48.sp)
                 }
-            } else {
-                RecordRing(176.dp, 10.dp, RehabColors.RingOff, overlayArc = fx) {
-                    Text("SÉRIE", style = RehabText.ringLabel.copy(color = RehabColors.Muted))
-                    Spacer(Modifier.height(3.dp))
-                    Text("$days", style = daysStyle)
-                    Spacer(Modifier.height(3.dp))
-                    Text(HomeText.unit(days), style = RehabText.ringUnit)
+                Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                    Column(
+                        Modifier.fillMaxWidth().heightIn(min = minColumnHeight),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) { actions() }
                 }
             }
-            val line = when {
-                done && relapse -> OverlayText.doneStreakLine(s)
-                holding && relapse && fx > 0.5f -> "Tu es en train de le perdre."
-                else -> OverlayText.streakLine(s)
+        } else {
+            Column(Modifier.fillMaxSize().padding(top = 64.dp)) {
+                Column(Modifier.padding(horizontal = 28.dp)) { OverlayHeader(state, shownAt) }
+                Column(Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 40.dp)) {
+                    OverlayStreak(s, days, fx, relapse, line, ringSize = 176.dp, ringStroke = 10.dp, daysFontSize = 64.sp)
+                }
+                Spacer(Modifier.weight(1f))
+                actions()
             }
-            Text(
-                withMonoNumbers(line, RehabColors.Text),
-                style = TextStyle(fontFamily = Chivo, fontSize = 13.sp, color = RehabColors.Muted, textAlign = TextAlign.Center),
-                modifier = Modifier.defaultMinSize(minHeight = 20.dp),
-            )
         }
-        Spacer(Modifier.weight(1f))
+    }
+}
+
+/** En-tête : surtitre, titre statique et détail de la condition de blocage. */
+@Composable
+private fun OverlayHeader(state: OverlayState, shownAt: Long) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("REHAB · BLOCAGE", style = RehabText.caps12.copy(letterSpacing = 0.16.em))
+        Text(
+            OverlayText.title(state, shownAt),
+            style = TextStyle(fontFamily = Chivo, fontSize = 26.sp, lineHeight = 31.sp, fontWeight = FontWeight.W500, color = RehabColors.Text),
+        )
+        Text(state.detail, style = TextStyle(fontFamily = Chivo, fontSize = 14.sp, color = RehabColors.Muted))
+    }
+}
+
+/** Anneau de série et ligne de série ; la taille de l'anneau dépend de l'orientation. */
+@Composable
+private fun OverlayStreak(
+    s: StreakSummary, days: Int, fx: Float, relapse: Boolean, line: String,
+    ringSize: Dp, ringStroke: Dp, daysFontSize: TextUnit,
+) {
+    Column(
+        Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        val daysColor = if (relapse && fx > 0.5f) RehabColors.Danger else RehabColors.Text
+        val daysStyle = TextStyle(fontFamily = ChivoMono, fontSize = daysFontSize, lineHeight = daysFontSize, fontWeight = FontWeight.W300, color = daysColor)
+        // Hors record : anneau plein `ring-off` et « SÉRIE » (maquette Overlay-HorsRecord) ; l'arc partiel est propre à l'Accueil.
+        if (s.inRecord) {
+            RecordRing(ringSize, ringStroke, RehabColors.Accent, ringAlpha = 1f - fx, overlayArc = fx) {
+                Text("RECORD", style = RehabText.ringLabel.copy(color = RehabColors.Accent.copy(alpha = 1f - fx)))
+                Spacer(Modifier.height(3.dp))
+                Text("$days", style = daysStyle)
+                Spacer(Modifier.height(3.dp))
+                Text(HomeText.unit(days), style = RehabText.ringUnit)
+            }
+        } else {
+            RecordRing(ringSize, ringStroke, RehabColors.RingOff, overlayArc = fx) {
+                Text("SÉRIE", style = RehabText.ringLabel.copy(color = RehabColors.Muted))
+                Spacer(Modifier.height(3.dp))
+                Text("$days", style = daysStyle)
+                Spacer(Modifier.height(3.dp))
+                Text(HomeText.unit(days), style = RehabText.ringUnit)
+            }
+        }
+        Text(
+            withMonoNumbers(line, RehabColors.Text),
+            style = TextStyle(fontFamily = Chivo, fontSize = 13.sp, color = RehabColors.Muted, textAlign = TextAlign.Center),
+            modifier = Modifier.defaultMinSize(minHeight = 20.dp),
+        )
+    }
+}
+
+/** Bouton d'appui long, sa légende de hauteur fixe et « Quitter ». */
+@Composable
+private fun OverlayActions(
+    state: OverlayState, relapse: Boolean, p: Float, done: Boolean, holding: Boolean, fx: Float,
+    pulsePhase: Float, secondsLeft: Int, onPressChange: (Boolean) -> Unit, onQuit: () -> Unit,
+) {
+    Column(Modifier.fillMaxWidth()) {
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -166,7 +231,7 @@ fun BlockOverlay(state: OverlayState, nowMillis: () -> Long, onQuit: () -> Unit,
                     relapse && done -> RelapseFx.buttonScale(1f, 0f)
                     else -> 1f
                 },
-                onPressChange = { if (!done) pressing = it },
+                onPressChange = onPressChange,
             )
             // Boîte de hauteur fixe : rien ne bouge quand le texte change (DESIGN §5.5). Mesurée (pas
             // calculée à la main en sp) : à 130 % de police système, une formule sp * dp naïve restait
