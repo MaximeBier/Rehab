@@ -7,6 +7,8 @@ interface TreeNode {
     val contentDesc: String?
     val bounds: Bounds
     val selected: Boolean
+    /** `isVisibleToUser` côté Android : faux pour une vue hors écran ou masquée (page voisine, écran gardé en mémoire). */
+    val visible: Boolean get() = true
     val childCount: Int
     fun child(index: Int): TreeNode?
     fun recycle() {}
@@ -24,6 +26,8 @@ interface TreeNode {
  * tests de `rules` construisaient leur snapshot sans passer par `SnapshotBuilder`, donc sans cette borne — voir
  * `Fixtures`/`UiAutomatorXml`). Ne pas rabaisser cette valeur sans revérifier `SnapshotBuilderCapturesTest`
  * (aucune capture tronquée).
+ *
+ * Les nœuds invisibles (`TreeNode.visible`) et leurs sous-arbres sont écartés et ne comptent pas dans [maxNodes].
  */
 class SnapshotBuilder(private val maxNodes: Int = 400, private val maxDepth: Int = 64) {
 
@@ -32,6 +36,10 @@ class SnapshotBuilder(private val maxNodes: Int = 400, private val maxDepth: Int
         var truncated = false
 
         fun visit(n: TreeNode, depth: Int) {
+            // v0.7.0 : un nœud invisible (et tout son sous-arbre) n'est pas ce que l'utilisateur voit ; le garder
+            // faisait matcher des écrans absents (DM de X gardés en mémoire). La racine est toujours gardée
+            // (NearBottom/CoversScreen en dépendent).
+            if (depth > 0 && !n.visible) return
             if (nodes.size >= maxNodes) { truncated = true; return }
             nodes += Node(n.id, n.className, n.text, n.contentDesc, n.bounds, n.selected, depth)
             if (depth >= maxDepth) { if (n.childCount > 0) truncated = true; return }
@@ -44,5 +52,14 @@ class SnapshotBuilder(private val maxNodes: Int = 400, private val maxDepth: Int
 
         visit(root, 0)
         return Snapshot(packageName, appVersion, capturedAt, nodes, truncated)
+    }
+
+    companion object {
+        /**
+         * Fenêtre de l'app à l'écran mais arbre illisible (racine nulle pendant une transition, vidéo plein écran) :
+         * une racine vide. Aucune règle DM ne peut y matcher, donc l'écran compte (échec fermé, v0.7.0).
+         */
+        fun unreadable(packageName: String, appVersion: String, capturedAt: Long): Snapshot =
+            Snapshot(packageName, appVersion, capturedAt, listOf(Node(depth = 0)))
     }
 }

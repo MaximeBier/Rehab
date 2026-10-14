@@ -16,6 +16,7 @@ class AccessibilityTreeNode(private val info: AccessibilityNodeInfo) : TreeNode 
         return Bounds(r.left, r.top, r.right, r.bottom)
     }
     override val selected: Boolean get() = info.isSelected
+    override val visible: Boolean get() = info.isVisibleToUser
     override val childCount: Int get() = info.childCount
     override fun child(index: Int): TreeNode? = info.getChild(index)?.let(::AccessibilityTreeNode)
     // recycle() : sans effet depuis API 34, on garde le défaut vide.

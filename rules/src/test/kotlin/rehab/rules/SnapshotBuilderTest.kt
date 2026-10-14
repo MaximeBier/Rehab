@@ -12,6 +12,7 @@ class FakeTreeNode(
     override val contentDesc: String? = null,
     override val bounds: Bounds = Bounds(0, 0, 100, 100),
     override val selected: Boolean = false,
+    override val visible: Boolean = true,
     private val children: List<FakeTreeNode> = emptyList(),
 ) : TreeNode {
     override val childCount get() = children.size
@@ -52,5 +53,34 @@ class SnapshotBuilderTest {
         assertTrue(s.truncated)
         assertEquals(0, s.nodes.first().depth)
         assertEquals(Bounds(0, 0, 1080, 2400), s.nodes.first().bounds)
+    }
+
+    @Test fun `noeud invisible et son sous-arbre ignores`() {
+        val root = FakeTreeNode(id = "root", children = listOf(
+            FakeTreeNode(id = "cache", visible = false, children = listOf(FakeTreeNode(id = "cache-enfant"))),
+            FakeTreeNode(id = "vu"),
+        ))
+        val s = SnapshotBuilder().build(root, "pkg", "1", 0L)
+        assertEquals(listOf("root", "vu"), s.nodes.map { it.id })
+        assertFalse(s.truncated)
+    }
+
+    @Test fun `racine gardee meme invisible`() {
+        val s = SnapshotBuilder().build(FakeTreeNode(id = "root", visible = false), "pkg", "1", 0L)
+        assertEquals(listOf("root"), s.nodes.map { it.id })
+    }
+
+    @Test fun `les noeuds invisibles ne consomment pas le budget`() {
+        val root = FakeTreeNode(id = "root", children = (1..50).map { FakeTreeNode(id = "h$it", visible = false) } + FakeTreeNode(id = "vu"))
+        val s = SnapshotBuilder(maxNodes = 5).build(root, "pkg", "1", 0L)
+        assertEquals(listOf("root", "vu"), s.nodes.map { it.id })
+        assertFalse(s.truncated)
+    }
+
+    @Test fun `snapshot illisible = racine seule`() {
+        val s = SnapshotBuilder.unreadable("pkg", "1", 42L)
+        assertEquals(1, s.nodes.size)
+        assertEquals(0, s.nodes.single().depth)
+        assertEquals(42L, s.capturedAt)
     }
 }
