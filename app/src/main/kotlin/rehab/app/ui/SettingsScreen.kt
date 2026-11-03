@@ -52,7 +52,7 @@ sealed interface Editor {
 }
 
 /**
- * Mise en page de l'écran Réglages (`docs/design/mockups/Reglages.dc.html`), sans dépendance au
+ * Mise en page de l'écran Réglages (maquette `Reglages` du canevas), sans dépendance au
  * ViewModel : reçoit les réglages, la zone et les verrous déjà chargés, et ne fait que déclencher
  * `onEdit` au clic sur une ligne modifiable (les lignes verrouillées ne sont pas cliquables, gérées
  * par `SettingsGroup`). Composable pur, testable/rendable sans Room ni coroutine (voir RenderSettings).

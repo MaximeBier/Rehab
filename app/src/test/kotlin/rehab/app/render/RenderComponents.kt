@@ -46,7 +46,7 @@ import rehab.app.ui.theme.RehabColors
 
 /**
  * Galerie des composants de la tâche 2, rendue en PNG (app/build/renders) pour relecture visuelle
- * contre docs/design/screens. Aucune assertion sur les pixels ; ignoré sauf -Prehab.render=true.
+ * contre les maquettes du canevas. Aucune assertion sur les pixels ; ignoré sauf -Prehab.render=true.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)

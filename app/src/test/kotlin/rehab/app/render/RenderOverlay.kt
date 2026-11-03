@@ -46,7 +46,7 @@ import java.time.ZonedDateTime
 
 /**
  * Rendus de l'overlay de blocage (tâche 7), en PNG (app/build/renders) pour relecture visuelle contre
- * docs/design/screens/Overlay-*.png et Etats-Bouton.png. Aucune assertion sur les pixels ; ignoré sauf
+ * les maquettes `Overlay-*` et `Etats-Bouton`. Aucune assertion sur les pixels ; ignoré sauf
  * -Prehab.render=true. La bande « barre de navigation système · non couverte » des maquettes est une
  * annotation, pas de l'UI : elle n'est pas dessinée.
  */

@@ -54,7 +54,7 @@ import rehab.app.ui.theme.RehabColors
 import kotlin.math.ceil
 
 /**
- * Écran Debug (`docs/design/mockups/Debug.dc.html`), sans dépendance au ViewModel : reçoit toutes
+ * Écran Debug (maquette `Debug` du canevas), sans dépendance au ViewModel : reçoit toutes
  * ses valeurs en paramètres et notifie ses actions par callback. Composable pur, testable/rendable
  * sans Room ni coroutine (voir RenderDebug) — c'est [DebugScreen], seul, qui touche `vm`/`graph`
  * et le partage de fichiers (FileProvider).

@@ -21,12 +21,12 @@ import java.time.ZonedDateTime
 
 /**
  * Rendu de `SettingsContent` (tâche 4), en PNG (app/build/renders) pour relecture visuelle contre
- * docs/design/screens/Reglages.png. Aucune assertion sur les pixels ; ignoré sauf
+ * la maquette `Reglages`. Aucune assertion sur les pixels ; ignoré sauf
  * -Prehab.render=true. La barre de navigation est dessinée par `RehabApp`, pas par
  * `SettingsContent` : elle n'apparaît donc pas dans ce rendu (voir RenderHome, même remarque).
  */
 // Fenêtre simulée plus haute que les autres rendus (h1240dp au lieu de h844dp) : la liste des
-// réglages dépasse la hauteur d'un écran de téléphone (comme la maquette Reglages.dc.html, 1240 px
+// réglages dépasse la hauteur d'un écran de téléphone (comme la maquette `Reglages`, 1240 px
 // de haut) et `captureToImage()` ne capture que la fenêtre simulée, pas tout le contenu défilable.
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)

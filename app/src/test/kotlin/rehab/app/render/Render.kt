@@ -16,7 +16,7 @@ import rehab.app.ui.theme.RehabTheme
 
 /**
  * Rend un Composable en PNG dans app/build/renders/<name>.png, pour relecture visuelle contre
- * docs/design/screens. Pas d'assertion sur les pixels. Ignoré sauf avec -Prehab.render=true :
+ * les maquettes du canevas Claude Design. Pas d'assertion sur les pixels. Ignoré sauf avec -Prehab.render=true :
  *   ./gradlew :app:testDebugUnitTest --tests 'rehab.app.render.*' -Prehab.render=true
  */
 fun ComposeContentTestRule.renderPng(name: String, content: @Composable () -> Unit) {

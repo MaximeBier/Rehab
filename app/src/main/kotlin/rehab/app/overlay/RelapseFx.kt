@@ -15,7 +15,7 @@ object RelapseFx {
     private const val TO = 0x5A1A15
 
     /**
-     * Interpolation canal par canal en sRGB avec arrondi, exactement comme `Overlay-Proto.dc.html`
+     * Interpolation canal par canal en sRGB avec arrondi, exactement comme la maquette `Overlay-Proto`
      * (`Math.round(a + (b - a) * t)`). Pas `androidx.compose.ui.graphics.lerp`, qui interpole en Oklab
      * et ne retombe pas exactement sur les teintes de la maquette.
      */

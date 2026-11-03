@@ -29,9 +29,9 @@ import java.time.ZonedDateTime
 
 /**
  * Rendu de `DebugContent` (tâche 6), en PNG (app/build/renders) pour relecture visuelle contre
- * docs/design/screens/Debug.png. Aucune assertion sur les pixels ; ignoré sauf -Prehab.render=true.
+ * la maquette `Debug`. Aucune assertion sur les pixels ; ignoré sauf -Prehab.render=true.
  * La barre de navigation est dessinée par `RehabApp`, pas par `DebugContent` (même remarque que
- * RenderHome/RenderJournal), et la fenêtre simulée fait 390×1000 dp comme `Debug.dc.html`.
+ * RenderHome/RenderJournal), et la fenêtre simulée fait 390×1000 dp comme la maquette.
  *
  * Écart volontaire avec la maquette : les noms de capture y omettent les secondes
  * (« ig_reels_2026-09-20T21-31.json ») pour tenir sur la largeur affichée, alors que

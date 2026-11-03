@@ -17,7 +17,7 @@ import rehab.app.ui.OnboardingContent
 
 /**
  * Rendu de `OnboardingContent` (tâche 8), en PNG (app/build/renders) pour relecture visuelle contre
- * docs/design/screens/Reglages.png (mêmes composants, DESIGN §4). Aucune assertion sur les pixels ;
+ * la maquette `Reglages` (mêmes composants, DESIGN §4). Aucune assertion sur les pixels ;
  * ignoré sauf -Prehab.render=true.
  */
 @RunWith(RobolectricTestRunner::class)

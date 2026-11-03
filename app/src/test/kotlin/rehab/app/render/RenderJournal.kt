@@ -25,7 +25,7 @@ import java.time.ZonedDateTime
 
 /**
  * Rendu de `JournalContent` (tâche 5), en PNG (app/build/renders) pour relecture visuelle contre
- * docs/design/screens/Journal.png. Aucune assertion sur les pixels ; ignoré sauf
+ * la maquette `Journal`. Aucune assertion sur les pixels ; ignoré sauf
  * -Prehab.render=true. Les journées viennent du vrai pipeline `JournalText.rows`/`days` (jamais
  * construites à la main) : ce test vérifie le rendu du pipeline réel, pas une reconstitution
  * manuelle du visuel de la maquette.

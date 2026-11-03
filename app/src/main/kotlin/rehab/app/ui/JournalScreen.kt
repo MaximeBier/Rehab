@@ -53,7 +53,7 @@ private fun JournalTone.labelColor(): Color = when (this) {
 }
 
 /**
- * Mise en page de l'écran Journal (`docs/design/mockups/Journal.dc.html`), sans dépendance au
+ * Mise en page de l'écran Journal (maquette `Journal` du canevas), sans dépendance au
  * ViewModel : reçoit les journées déjà chargées et groupées (voir `JournalText`). Composable pur,
  * testable/rendable sans Room ni coroutine (voir RenderJournal).
  */
