@@ -30,6 +30,11 @@ class CapturesV07Test {
         }
     }
 
+    /** Profil ouvert depuis une conversation (nouvelle ModalActivity par-dessus) : compté, la conversation n'est plus à l'écran. */
+    @Test fun `profil ouvert depuis une conversation compte`() {
+        assertEquals(InstagramRules.APP, detector.detect(ig("v07_ig_dm_profile")).target)
+    }
+
     @Test fun `instagram liste et conversation ne comptent pas`() {
         for (name in listOf("v07_ig_dm_list", "v07_ig_dm_thread")) {
             val d = detector.detect(ig(name))

@@ -15,5 +15,5 @@ seulement), anonymisées par `AnonymizeCaptures` (textes et descriptions remplac
 
 | App | Version | Captures |
 |---|---|---|
-| Instagram | 456.1.0.56.78 | v07_ig_home, v07_ig_explore, v07_ig_reel, v07_ig_dm_list, v07_ig_dm_thread |
+| Instagram | 456.1.0.56.78 | v07_ig_home, v07_ig_explore, v07_ig_reel, v07_ig_dm_list, v07_ig_dm_thread, v07_ig_dm_profile (profil ouvert depuis une conversation) |
 | X | 12.45.1-prod.01 | v07_x_home, v07_x_search, v07_x_dm_list, v07_x_dm_thread |
