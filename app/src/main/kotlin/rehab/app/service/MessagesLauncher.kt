@@ -22,6 +22,19 @@ class MessagesLauncher(private val context: Context) {
         // pour une activité que startActivity refuserait (lien affiché qui ne fait rien).
         uri != null && context.packageManager.resolveActivity(intentFor(packageName, uri), PackageManager.MATCH_DEFAULT_ONLY) != null
 
+    /** Dernier résultat de [canOpen] par paquet, avec la version de l'app pour laquelle il vaut. Thread "rehab-engine". */
+    private val availability = HashMap<String, Pair<String, Boolean>>()
+
+    /**
+     * [canOpen] mémorisé par paquet et version de l'app : l'état de l'overlay est recalculé à chaque tick (1 s) pendant
+     * un blocage, inutile de réinterroger le gestionnaire de paquets. Une mise à jour de l'app change sa version et
+     * relance la vérification. Appelé uniquement depuis le thread "rehab-engine".
+     */
+    fun isAvailable(packageName: String, uri: String?, appVersion: String): Boolean {
+        availability[packageName]?.takeIf { it.first == appVersion }?.let { return it.second }
+        return canOpen(packageName, uri).also { availability[packageName] = appVersion to it }
+    }
+
     /** Lance l'ouverture ; faux en cas d'échec (l'overlay reste alors affiché), jamais d'exception. */
     fun open(packageName: String, uri: String?): Boolean {
         if (uri == null || !canOpen(packageName, uri)) return false

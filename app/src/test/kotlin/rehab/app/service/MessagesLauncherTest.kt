@@ -46,6 +46,20 @@ class MessagesLauncherTest {
         assertTrue(launcher.canOpen(pkg, uri))
     }
 
+    @Test fun `disponibilite memorisee par version de l app`() {
+        var lookups = 0
+        val counting = object : ContextWrapper(context) {
+            override fun getPackageManager() = super.getPackageManager().also { lookups++ }
+        }
+        val launcher = MessagesLauncher(counting)
+        installHandler(launcher)
+        assertTrue(launcher.isAvailable(pkg, uri, "456.1"))
+        assertTrue(launcher.isAvailable(pkg, uri, "456.1"))
+        assertEquals(1, lookups)
+        assertTrue(launcher.isAvailable(pkg, uri, "457.0"))
+        assertEquals(2, lookups)
+    }
+
     @Test fun `open renvoie false si startActivity leve`() {
         val throwing = object : ContextWrapper(context) {
             override fun startActivity(intent: Intent?) = throw ActivityNotFoundException("refus")
