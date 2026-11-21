@@ -7,6 +7,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.Gravity
+import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -107,9 +108,23 @@ class OverlayController(
         PixelFormat.TRANSLUCENT,
     ).apply { gravity = Gravity.TOP or Gravity.START }
 
+    /**
+     * Hauteur de fenêtre pour s'arrêter au bord haut de la barre d'onglets de l'app ([navBarTop], coordonnées écran).
+     * Android pose la fenêtre sous la barre d'état (constaté sur le Pixel, v0.7.0 : demandée h = 2148, posée en
+     * [0,132][1080,2280]) : sans retrancher ce décalage, l'overlay recouvrait les onglets, qui doivent rester
+     * cliquables pour rejoindre les messages. La barre d'état et la barre de navigation système restent visibles.
+     */
+    private fun windowHeight(navBarTop: Int?): Int {
+        navBarTop ?: return WindowManager.LayoutParams.MATCH_PARENT
+        val top = runCatching {
+            wm.currentWindowMetrics.windowInsets.getInsets(WindowInsets.Type.statusBars() or WindowInsets.Type.captionBar()).top
+        }.getOrDefault(0)
+        return (navBarTop - top).coerceAtLeast(1)
+    }
+
     private fun showOnMain(newState: OverlayState) {
         state = newState
-        val height = newState.navBarTop ?: WindowManager.LayoutParams.MATCH_PARENT
+        val height = windowHeight(newState.navBarTop)
         val existing = view
         if (existing == null) {
             val lifecycle = OverlayLifecycleOwner().also { it.start() }

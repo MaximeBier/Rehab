@@ -1,0 +1,1184 @@
+{
+    "packageName": "com.twitter.android",
+    "appVersion": "12.45.1-prod.01",
+    "capturedAt": 1795270847980,
+    "nodes": [
+        {
+            "id": null,
+            "className": "android.widget.FrameLayout",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 0
+        },
+        {
+            "id": null,
+            "className": "android.widget.LinearLayout",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 1
+        },
+        {
+            "id": null,
+            "className": "android.widget.FrameLayout",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 2
+        },
+        {
+            "id": "com.twitter.android:id/action_bar_root",
+            "className": "android.widget.LinearLayout",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 3
+        },
+        {
+            "id": "android:id/content",
+            "className": "android.widget.FrameLayout",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 4
+        },
+        {
+            "id": null,
+            "className": "androidx.compose.ui.platform.ComposeView",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 5
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 6
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 7
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 8
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 9
+        },
+        {
+            "id": "SearchQuery",
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 10
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 11
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 300,
+                "right": 1080,
+                "bottom": 1286
+            },
+            "selected": false,
+            "depth": 12
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t13",
+            "contentDesc": null,
+            "bounds": {
+                "left": 21,
+                "top": 342,
+                "right": 208,
+                "bottom": 407
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.widget.Button",
+            "text": null,
+            "contentDesc": "d14",
+            "bounds": {
+                "left": 965,
+                "top": 311,
+                "right": 1080,
+                "bottom": 437
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.widget.HorizontalScrollView",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 449,
+                "right": 1080,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 21,
+                "top": 449,
+                "right": 244,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d17",
+            "bounds": {
+                "left": 80,
+                "top": 449,
+                "right": 185,
+                "bottom": 554
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 67,
+                "top": 513,
+                "right": 199,
+                "bottom": 639
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t19",
+            "contentDesc": null,
+            "bounds": {
+                "left": 67,
+                "top": 554,
+                "right": 157,
+                "bottom": 597
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d20",
+            "bounds": {
+                "left": 162,
+                "top": 554,
+                "right": 199,
+                "bottom": 591
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t21",
+            "contentDesc": null,
+            "bounds": {
+                "left": 44,
+                "top": 597,
+                "right": 222,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 265,
+                "top": 449,
+                "right": 488,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d23",
+            "bounds": {
+                "left": 324,
+                "top": 449,
+                "right": 429,
+                "bottom": 554
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 299,
+                "top": 513,
+                "right": 454,
+                "bottom": 639
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t25",
+            "contentDesc": null,
+            "bounds": {
+                "left": 299,
+                "top": 554,
+                "right": 412,
+                "bottom": 597
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d26",
+            "bounds": {
+                "left": 417,
+                "top": 554,
+                "right": 454,
+                "bottom": 591
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t27",
+            "contentDesc": null,
+            "bounds": {
+                "left": 300,
+                "top": 597,
+                "right": 453,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 509,
+                "top": 449,
+                "right": 732,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d29",
+            "bounds": {
+                "left": 568,
+                "top": 449,
+                "right": 673,
+                "bottom": 554
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 509,
+                "top": 513,
+                "right": 732,
+                "bottom": 639
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t31",
+            "contentDesc": null,
+            "bounds": {
+                "left": 509,
+                "top": 554,
+                "right": 690,
+                "bottom": 597
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d32",
+            "bounds": {
+                "left": 695,
+                "top": 554,
+                "right": 732,
+                "bottom": 591
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t33",
+            "contentDesc": null,
+            "bounds": {
+                "left": 524,
+                "top": 597,
+                "right": 717,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 753,
+                "top": 449,
+                "right": 976,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d35",
+            "bounds": {
+                "left": 812,
+                "top": 449,
+                "right": 917,
+                "bottom": 554
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 753,
+                "top": 513,
+                "right": 976,
+                "bottom": 639
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t37",
+            "contentDesc": null,
+            "bounds": {
+                "left": 753,
+                "top": 554,
+                "right": 897,
+                "bottom": 597
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d38",
+            "bounds": {
+                "left": 902,
+                "top": 554,
+                "right": 939,
+                "bottom": 591
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d39",
+            "bounds": {
+                "left": 942,
+                "top": 557,
+                "right": 973,
+                "bottom": 588
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t40",
+            "contentDesc": null,
+            "bounds": {
+                "left": 822,
+                "top": 597,
+                "right": 907,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 997,
+                "top": 449,
+                "right": 1080,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d42",
+            "bounds": {
+                "left": 1056,
+                "top": 449,
+                "right": 1080,
+                "bottom": 554
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 1034,
+                "top": 513,
+                "right": 1123,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t44",
+            "contentDesc": null,
+            "bounds": {
+                "left": 1034,
+                "top": 554,
+                "right": 1080,
+                "bottom": 597
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t45",
+            "contentDesc": null,
+            "bounds": {
+                "left": 1048,
+                "top": 597,
+                "right": 1080,
+                "bottom": 635
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 656,
+                "right": 1080,
+                "bottom": 782
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t47",
+            "contentDesc": null,
+            "bounds": {
+                "left": 32,
+                "top": 694,
+                "right": 954,
+                "bottom": 744
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 656,
+                "right": 1080,
+                "bottom": 782
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d49",
+            "bounds": {
+                "left": 986,
+                "top": 688,
+                "right": 1049,
+                "bottom": 751
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.Button",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 656,
+                "right": 1080,
+                "bottom": 782
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 782,
+                "right": 1080,
+                "bottom": 908
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t52",
+            "contentDesc": null,
+            "bounds": {
+                "left": 32,
+                "top": 820,
+                "right": 954,
+                "bottom": 870
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 782,
+                "right": 1080,
+                "bottom": 908
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d54",
+            "bounds": {
+                "left": 986,
+                "top": 814,
+                "right": 1049,
+                "bottom": 877
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.Button",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 782,
+                "right": 1080,
+                "bottom": 908
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 908,
+                "right": 1080,
+                "bottom": 1034
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t57",
+            "contentDesc": null,
+            "bounds": {
+                "left": 32,
+                "top": 946,
+                "right": 954,
+                "bottom": 996
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 908,
+                "right": 1080,
+                "bottom": 1034
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d59",
+            "bounds": {
+                "left": 986,
+                "top": 940,
+                "right": 1049,
+                "bottom": 1003
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.Button",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 908,
+                "right": 1080,
+                "bottom": 1034
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 1034,
+                "right": 1080,
+                "bottom": 1160
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t62",
+            "contentDesc": null,
+            "bounds": {
+                "left": 32,
+                "top": 1072,
+                "right": 954,
+                "bottom": 1122
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 1034,
+                "right": 1080,
+                "bottom": 1160
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d64",
+            "bounds": {
+                "left": 986,
+                "top": 1066,
+                "right": 1049,
+                "bottom": 1129
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.Button",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 1034,
+                "right": 1080,
+                "bottom": 1160
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 1160,
+                "right": 1080,
+                "bottom": 1286
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t67",
+            "contentDesc": null,
+            "bounds": {
+                "left": 32,
+                "top": 1198,
+                "right": 954,
+                "bottom": 1248
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 1160,
+                "right": 1080,
+                "bottom": 1286
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "d69",
+            "bounds": {
+                "left": 986,
+                "top": 1192,
+                "right": 1049,
+                "bottom": 1255
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.Button",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 954,
+                "top": 1160,
+                "right": 1080,
+                "bottom": 1286
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 300
+            },
+            "selected": false,
+            "depth": 12
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 132,
+                "right": 1080,
+                "bottom": 300
+            },
+            "selected": false,
+            "depth": 13
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 22,
+                "top": 152,
+                "right": 832,
+                "bottom": 279
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.widget.EditText",
+            "text": "",
+            "contentDesc": null,
+            "bounds": {
+                "left": 22,
+                "top": 152,
+                "right": 832,
+                "bottom": 279
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": "Search",
+            "bounds": {
+                "left": 54,
+                "top": 184,
+                "right": 117,
+                "bottom": 247
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 149,
+                "top": 154,
+                "right": 832,
+                "bottom": 280
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t77",
+            "contentDesc": null,
+            "bounds": {
+                "left": 149,
+                "top": 193,
+                "right": 832,
+                "bottom": 240
+            },
+            "selected": false,
+            "depth": 17
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 149,
+                "top": 188,
+                "right": 509,
+                "bottom": 244
+            },
+            "selected": false,
+            "depth": 16
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 843,
+                "top": 153,
+                "right": 1069,
+                "bottom": 279
+            },
+            "selected": false,
+            "depth": 14
+        },
+        {
+            "id": null,
+            "className": "android.widget.TextView",
+            "text": "t80",
+            "contentDesc": null,
+            "bounds": {
+                "left": 885,
+                "top": 193,
+                "right": 1027,
+                "bottom": 239
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.widget.Button",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 843,
+                "top": 172,
+                "right": 1069,
+                "bottom": 260
+            },
+            "selected": false,
+            "depth": 15
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 2400
+            },
+            "selected": false,
+            "depth": 9
+        },
+        {
+            "id": null,
+            "className": "android.view.View",
+            "text": null,
+            "contentDesc": null,
+            "bounds": {
+                "left": 477,
+                "top": 95,
+                "right": 603,
+                "bottom": 221
+            },
+            "selected": false,
+            "depth": 9
+        }
+    ],
+    "truncated": false
+}

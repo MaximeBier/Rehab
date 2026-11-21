@@ -31,22 +31,29 @@ object InstagramRules {
         Matcher.Selected(Matcher.ContentDesc(Regex("^(Accueil|Home)$"))),
     ))
 
-    // DM relevés sur Instagram 447 : onglet `direct_tab` sélectionné (liste des conversations). La conversation
-    // ouverte est ajoutée à la tâche 8 du plan v0.7 après relevé sur le Pixel.
+    /** Conteneur DM qui occupe l'écran (même garde que X) : un aperçu ou un petit bloc ne fait pas un DM. */
+    private fun dmContainer(id: String) = Matcher.AllOf(listOf(Matcher.ViewId(id), Matcher.CoversScreen()))
+
+    // DM : liste des conversations = onglet `direct_tab` sélectionné (relevé sur Instagram 447, inchangé en 456).
+    // Conversation ouverte (ModalActivity, sans barre d'onglets) : `thread_view_root` et `message_list` couvrent
+    // l'écran — relevé sur Instagram 456.1 le 2026-11-21 (captures v07_ig_dm_*).
     private val dmScreen = Matcher.AnyOf(listOf(
         tabActive("direct_tab"),
         Matcher.Selected(Matcher.ContentDesc(Regex("^(Envoyer un message|Messages|Direct)$"))),
+        dmContainer("thread_view_root"),
+        dmContainer("message_list"),
     ))
 
     val PACKAGE_RULES = PackageRules(
         packageName = PACKAGE,
-        testedVersions = VersionRange("447.0", "470.0"),
+        testedVersions = VersionRange("447.0", "481.0"),
         targets = listOf(
             TargetRule(id = APP, screenId = "instagram.app", screenMatchers = listOf(Matcher.Any), excludeMatchers = listOf(dmScreen)),
         ),
         knownScreens = listOf(KnownScreen("instagram.dm", listOf(dmScreen))),
         // La barre d'onglets borne l'overlay : elle reste cliquable pour rejoindre les messages pendant un blocage.
-        navBarMatcher = Matcher.ViewId("tab_bar"),
+        // `feed_tab` en repli : même bord haut que la barre si `tab_bar` venait à disparaître (Instagram 451).
+        navBarMatcher = Matcher.AnyOf(listOf(Matcher.ViewId("tab_bar"), Matcher.ViewId("feed_tab"))),
         homeTabMatcher = homeTab,
     )
 }

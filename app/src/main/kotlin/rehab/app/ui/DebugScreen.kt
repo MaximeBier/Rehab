@@ -134,7 +134,7 @@ fun DebugContent(
                         KeyValue("${r.label} · écart", DebugText.gap(r.android, r.rehab), valueColor = RehabColors.Warn),
                     )
                 })
-                Note(if (leaks.hasPermission) "L'écart doit correspondre à ton temps passé en messages." else "Autorise l'accès aux données d'utilisation (onglet Stats) pour comparer.")
+                Note(if (leaks.hasPermission) "L'écart doit correspondre à ton temps passé en messages et devant l'écran de blocage." else "Autorise l'accès aux données d'utilisation (onglet Stats) pour comparer.")
             }
         }
 
