@@ -65,7 +65,14 @@ import rehab.domain.policy.StreakSummary
  * `p` ∈ [0, 1] pilote tous les effets relapse ([RelapseFx]) ; le joker n'a que la jauge et le décompte.
  */
 @Composable
-fun BlockOverlay(state: OverlayState, nowMillis: () -> Long, onQuit: () -> Unit, onHoldCompleted: () -> Unit) {
+fun BlockOverlay(
+    state: OverlayState,
+    nowMillis: () -> Long,
+    onQuit: () -> Unit,
+    onHoldCompleted: () -> Unit,
+    /** Lien « Ouvrir mes messages » (v0.7.1) ; `null` : pas d'ouverture fiable pour l'app, emplacement laissé vide. */
+    onOpenMessages: (() -> Unit)? = null,
+) {
     // Titre statique (DESIGN §6.1) : figé à l'apparition du blocage, pas de compte à rebours.
     val shownAt = remember(state.reason, state.unlockAtMillis) { nowMillis() }
     val relapse = state.outcome is PressOutcome.Relapse
@@ -114,7 +121,12 @@ fun BlockOverlay(state: OverlayState, nowMillis: () -> Long, onQuit: () -> Unit,
         else -> OverlayText.streakLine(s)
     }
     val actions: @Composable () -> Unit = {
-        OverlayActions(state, relapse, p, done, holding, fx, pulsePhase, secondsLeft, onPressChange = { if (!done) pressing = it }, onQuit = onQuit)
+        OverlayActions(
+            state, relapse, p, done, holding, fx, pulsePhase, secondsLeft,
+            onPressChange = { if (!done) pressing = it }, onQuit = onQuit,
+            // Toucher le lien pendant un appui l'annule sans effet (p revient à 0, completed() n'est jamais appelé), puis ouvre.
+            onOpenMessages = onOpenMessages?.let { open -> { if (!done) pressing = false; open() } },
+        )
     }
 
     BoxWithConstraints(
@@ -212,6 +224,7 @@ private fun OverlayStreak(
 private fun OverlayActions(
     state: OverlayState, relapse: Boolean, p: Float, done: Boolean, holding: Boolean, fx: Float,
     pulsePhase: Float, secondsLeft: Int, onPressChange: (Boolean) -> Unit, onQuit: () -> Unit,
+    onOpenMessages: (() -> Unit)?,
 ) {
     Column(Modifier.fillMaxWidth()) {
         Column(
@@ -276,6 +289,8 @@ private fun OverlayActions(
                 }
             }
         }
-        PrimaryButton("Quitter", onQuit, Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 16.dp))
+        // v0.7.1 : 10 dp, emplacement de 44 dp (réservé même sans lien), 8 dp jusqu'à « Quitter » (au lieu de 26).
+        MessagesSlot(onOpenMessages, Modifier.padding(top = 10.dp))
+        PrimaryButton("Quitter", onQuit, Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp))
     }
 }

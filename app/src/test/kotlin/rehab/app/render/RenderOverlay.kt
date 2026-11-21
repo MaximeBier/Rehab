@@ -67,11 +67,30 @@ class RenderOverlay {
     private fun state(reason: BlockReason, unlock: Instant, detail: String, outcome: PressOutcome, streak: StreakSummary = record) =
         OverlayState(reason, unlock.toEpochMilli(), detail, streak, outcome, 10_000, 5, 15, null, zone)
 
-    private fun overlay(name: String, state: OverlayState, now: Instant) = compose.renderPng(name) {
-        Box(Modifier.size(390.dp, 844.dp)) {
-            BlockOverlay(state, nowMillis = { now.toEpochMilli() }, onQuit = {}, onHoldCompleted = {})
+    /** [link] faux : app sans ouverture fiable (emplacement vide). [height] 768 : overlay borné par la barre d'onglets. */
+    private fun overlay(name: String, state: OverlayState, now: Instant, link: Boolean = true, height: Int = 844, fontScale: Float = 1f) =
+        compose.renderPng(name) {
+            Box(Modifier.size(390.dp, height.dp)) {
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = fontScale)) {
+                    BlockOverlay(state, nowMillis = { now.toEpochMilli() }, onQuit = {}, onHoldCompleted = {}, onOpenMessages = if (link) ({}) else null)
+                }
+            }
         }
-    }
+
+    private fun quotaState() =
+        state(BlockReason.Quota, at(20, 22, 18), OverlayText.quotaDetail(QuotaWindow(Duration.ofMinutes(30), Duration.ofMinutes(5))), PressOutcome.Joker(1))
+
+    // v0.7.1 — planches Overlay-Messages, -SansLien, -130, -Borne.
+    @Test fun `overlay messages`() = overlay("overlay-messages", quotaState(), at(20, 22, 0))
+    @Test fun `overlay sans lien`() = overlay("overlay-sanslien", quotaState(), at(20, 22, 0), link = false)
+    @Test fun `overlay 130`() = overlay("overlay-130", quotaState(), at(20, 22, 0), fontScale = 1.3f)
+    @Test fun `overlay borne`() = overlay("overlay-borne", quotaState(), at(20, 22, 0), height = 768)
+    @Test fun `overlay borne 130`() = overlay(
+        "overlay-borne-130",
+        state(BlockReason.Night, at(21, 7, 30), OverlayText.nightDetail(DayOfWeek.SUNDAY, night), PressOutcome.Relapse(24)),
+        at(20, 23, 30), height = 768, fontScale = 1.3f,
+    )
 
     @Test fun `overlay quota`() = overlay(
         "overlay-quota",
@@ -104,6 +123,7 @@ class RenderOverlay {
                     nowMillis = { now.toEpochMilli() },
                     onQuit = {},
                     onHoldCompleted = {},
+                    onOpenMessages = {},
                 )
             }
         }
@@ -162,7 +182,7 @@ class RenderOverlayLandscape {
             Box(Modifier.size(width.dp, height.dp)) {
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = fontScale)) {
-                    BlockOverlay(state, nowMillis = { now.toEpochMilli() }, onQuit = {}, onHoldCompleted = {})
+                    BlockOverlay(state, nowMillis = { now.toEpochMilli() }, onQuit = {}, onHoldCompleted = {}, onOpenMessages = {})
                 }
             }
         }
