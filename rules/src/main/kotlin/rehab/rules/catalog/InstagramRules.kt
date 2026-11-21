@@ -55,5 +55,8 @@ object InstagramRules {
         // `feed_tab` en repli : même bord haut que la barre si `tab_bar` venait à disparaître (Instagram 451).
         navBarMatcher = Matcher.AnyOf(listOf(Matcher.ViewId("tab_bar"), Matcher.ViewId("feed_tab"))),
         homeTabMatcher = homeTab,
+        // Relevé sur le Pixel le 2026-11-21 (Instagram 456.1) : ouvre la liste des conversations.
+        // `https://www.instagram.com/direct/inbox/` ouvre le fil : ne pas l'utiliser.
+        messagesUri = "instagram://direct-inbox",
     )
 }

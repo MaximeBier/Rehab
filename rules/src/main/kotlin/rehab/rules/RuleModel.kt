@@ -23,6 +23,11 @@ data class PackageRules(
     val knownScreens: List<KnownScreen> = emptyList(),
     val navBarMatcher: Matcher? = null,
     val homeTabMatcher: Matcher? = null,
+    /**
+     * Adresse qui ouvre directement la liste des conversations (lien « Ouvrir mes messages » de l'écran de blocage,
+     * v0.7.1). `null` = pas d'ouverture fiable : le lien n'est pas affiché pour cette app.
+     */
+    val messagesUri: String? = null,
 )
 
 data class Detection(

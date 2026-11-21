@@ -100,4 +100,7 @@ class TwitterRulesTest {
     @Test fun `snapshot illisible compte`() {
         assertEquals(TwitterRules.APP, detector.detect(SnapshotBuilder.unreadable(TwitterRules.PACKAGE, "12.28", 0L)).target)
     }
+
+    @Test fun `ouverture directe de la liste des messages`() =
+        assertEquals("twitter://messages", TwitterRules.PACKAGE_RULES.messagesUri)
 }

@@ -59,5 +59,7 @@ object TwitterRules {
         // visible et cliquable, ce qui permet d'aller dans Messages pendant un blocage.
         navBarMatcher = Matcher.ContentDesc(Regex("^(Accueil|Home)$")),
         homeTabMatcher = homeTab,
+        // Relevé sur le Pixel le 2026-11-21 (X 12.45.1) : ouvre la liste des conversations (écran « Chat »).
+        messagesUri = "twitter://messages",
     )
 }

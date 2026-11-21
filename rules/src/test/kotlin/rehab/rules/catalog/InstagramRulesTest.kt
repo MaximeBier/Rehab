@@ -30,6 +30,9 @@ class InstagramRulesTest {
         assertNotNull(detect("ig_feed_followed.xml").navBarBounds)
     }
 
+    @Test fun `ouverture directe de la liste des messages`() =
+        assertEquals("instagram://direct-inbox", InstagramRules.PACKAGE_RULES.messagesUri)
+
     @Test fun `snapshot illisible compte`() {
         assertEquals(InstagramRules.APP, detector.detect(SnapshotBuilder.unreadable(InstagramRules.PACKAGE, "447.0", 0L)).target)
     }
