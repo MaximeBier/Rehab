@@ -30,6 +30,13 @@ class CapturesV07Test {
         }
     }
 
+    /** Reel partagé ouvert depuis une conversation, puis Reel suivant après un balayage (« Suggestions ») : comptés. */
+    @Test fun `reel ouvert depuis une conversation compte`() {
+        for (name in listOf("v07_ig_dm_reel", "v07_ig_dm_reel_swipe")) {
+            assertEquals(InstagramRules.APP, detector.detect(ig(name)).target, name)
+        }
+    }
+
     /** Profil ouvert depuis une conversation (nouvelle ModalActivity par-dessus) : compté, la conversation n'est plus à l'écran. */
     @Test fun `profil ouvert depuis une conversation compte`() {
         assertEquals(InstagramRules.APP, detector.detect(ig("v07_ig_dm_profile")).target)
