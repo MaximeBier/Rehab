@@ -145,8 +145,10 @@ class RehabAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val pkg = event.packageName?.toString() ?: return
         if (pkg !in graph.catalog.packageNames) return
-        engine.removeCallbacks(processRunnable)
-        engine.postDelayed(processRunnable, 300)
+        // Regroupe les événements sur 300 ms au plus, sans repousser l'échéance à chaque nouvel événement : un Reel
+        // en lecture émet des événements en continu (barre de progression) ; l'ancien « anti-rebond » repoussait
+        // alors process() indéfiniment — ni détection, ni ticker, rien de compté (constaté sur le Pixel, 2026-11-21).
+        if (!engine.hasCallbacks(processRunnable)) engine.postDelayed(processRunnable, 300)
     }
 
     override fun onInterrupt() {}
