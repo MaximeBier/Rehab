@@ -137,37 +137,77 @@ fun BlockOverlay(
             .then(if (state.navBarTop == null) Modifier.navigationBarsPadding() else Modifier),
     ) {
         if (maxWidth > maxHeight) {
-            // Paysage (v0.6.2) : deux colonnes ; chacune défile si son contenu dépasse (police à 130 %, fenêtre basse).
-            val minColumnHeight = (maxHeight - 48.dp).coerceAtLeast(0.dp)
+            // Paysage (v0.6.2, sans défilement depuis v0.7.1) : deux colonnes. À gauche, l'anneau prend la place restante
+            // sous l'en-tête (voir AdaptiveStreak) ; à droite, les actions gardent leur taille, centrées.
+            val vertical = if (maxHeight < 340.dp) 8.dp else 24.dp
             Row(
-                Modifier.fillMaxSize().displayCutoutPadding().padding(horizontal = 28.dp, vertical = 24.dp),
+                Modifier.fillMaxSize().displayCutoutPadding().padding(horizontal = 28.dp, vertical = vertical),
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
             ) {
-                Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                Column(Modifier.weight(1f).fillMaxHeight()) {
                     OverlayHeader(state, shownAt)
-                    Spacer(Modifier.height(20.dp))
-                    OverlayStreak(s, days, fx, relapse, line, ringSize = 128.dp, ringStroke = 8.dp, daysFontSize = 48.sp)
+                    AdaptiveStreak(
+                        s, days, fx, relapse, line, maxRing = 128.dp, minRing = 80.dp, maxStroke = 8.dp, maxDaysFont = 48.sp,
+                        gap = 20.dp, modifier = Modifier.weight(1f).fillMaxWidth(),
+                    )
                 }
-                Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
-                    Column(
-                        Modifier.fillMaxWidth().heightIn(min = minColumnHeight),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) { actions() }
-                }
+                Column(
+                    Modifier.weight(1f).fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) { actions() }
             }
         } else {
-            Column(Modifier.fillMaxSize().padding(top = 64.dp)) {
+            // Portrait (v0.7.1) : jamais de défilement. En-tête et actions gardent leur taille ; l'anneau prend la place
+            // restante entre les deux (fenêtre bornée par la barre d'onglets, police à 130 %, écran partagé).
+            Column(Modifier.fillMaxSize().padding(top = if (maxHeight < 640.dp) 24.dp else 64.dp)) {
                 Column(Modifier.padding(horizontal = 28.dp)) { OverlayHeader(state, shownAt) }
-                Column(Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 40.dp)) {
-                    OverlayStreak(s, days, fx, relapse, line, ringSize = 176.dp, ringStroke = 10.dp, daysFontSize = 64.sp)
-                }
-                Spacer(Modifier.weight(1f))
+                AdaptiveStreak(
+                    s, days, fx, relapse, line, maxRing = 176.dp, minRing = 104.dp, maxStroke = 10.dp, maxDaysFont = 64.sp,
+                    gap = 40.dp, modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 28.dp),
+                )
                 actions()
             }
         }
     }
 }
+
+/**
+ * Anneau de série dans la place que lui laissent l'en-tête et les actions (v0.7.1 : l'écran de blocage ne défile
+ * jamais). 16 dp restent libres en dessous. Ordre de repli quand la place manque : l'écart au-dessus se réduit à 12 dp, puis l'anneau rétrécit
+ * jusqu'à [minRing] (trait et chiffres à l'échelle), puis la ligne de série disparaît, puis l'anneau lui-même.
+ */
+@Composable
+private fun AdaptiveStreak(
+    s: StreakSummary, days: Int, fx: Float, relapse: Boolean, line: String,
+    maxRing: Dp, minRing: Dp, maxStroke: Dp, maxDaysFont: TextUnit, gap: Dp, modifier: Modifier,
+) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    BoxWithConstraints(modifier, contentAlignment = Alignment.TopCenter) {
+        val lineHeight = remember(line, maxWidth, density) {
+            val measured = measurer.measure(
+                withMonoNumbers(line, RehabColors.Text), streakLineStyle,
+                constraints = Constraints(maxWidth = with(density) { maxWidth.roundToPx() }),
+            )
+            maxOf(with(density) { measured.size.height.toDp() }, 20.dp)
+        }
+        // 16 dp gardés sous la série : l'anneau ne vient jamais coller au bouton d'appui.
+        fun ringFor(top: Dp, withLine: Boolean) = maxHeight - top - 16.dp - (if (withLine) 12.dp + lineHeight else 0.dp)
+        val choice = listOf(gap to true, 12.dp to true, 12.dp to false)
+            .firstOrNull { (top, withLine) -> ringFor(top, withLine) >= minRing && (top == gap || ringFor(gap, withLine) < maxRing) }
+        if (choice != null) {
+            val (top, withLine) = choice
+            val ring = ringFor(top, withLine).coerceAtMost(maxRing)
+            val k = ring / maxRing
+            Column(Modifier.padding(top = top)) {
+                OverlayStreak(s, days, fx, relapse, line, ringSize = ring, ringStroke = maxStroke * k, daysFontSize = maxDaysFont * k, showLine = withLine)
+            }
+        }
+    }
+}
+
+private val streakLineStyle = TextStyle(fontFamily = Chivo, fontSize = 13.sp, color = RehabColors.Muted, textAlign = TextAlign.Center)
 
 /** En-tête : surtitre, titre statique et détail de la condition de blocage. */
 @Composable
@@ -182,11 +222,11 @@ private fun OverlayHeader(state: OverlayState, shownAt: Long) {
     }
 }
 
-/** Anneau de série et ligne de série ; la taille de l'anneau dépend de l'orientation. */
+/** Anneau de série et ligne de série ; la taille de l'anneau est choisie par [AdaptiveStreak]. */
 @Composable
 private fun OverlayStreak(
     s: StreakSummary, days: Int, fx: Float, relapse: Boolean, line: String,
-    ringSize: Dp, ringStroke: Dp, daysFontSize: TextUnit,
+    ringSize: Dp, ringStroke: Dp, daysFontSize: TextUnit, showLine: Boolean = true,
 ) {
     Column(
         Modifier.fillMaxWidth(),
@@ -213,9 +253,9 @@ private fun OverlayStreak(
                 Text(HomeText.unit(days), style = RehabText.ringUnit)
             }
         }
-        Text(
+        if (showLine) Text(
             withMonoNumbers(line, RehabColors.Text),
-            style = TextStyle(fontFamily = Chivo, fontSize = 13.sp, color = RehabColors.Muted, textAlign = TextAlign.Center),
+            style = streakLineStyle,
             modifier = Modifier.defaultMinSize(minHeight = 20.dp),
         )
     }

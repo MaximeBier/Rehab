@@ -86,6 +86,9 @@ class RenderOverlay {
     @Test fun `overlay sans lien`() = overlay("overlay-sanslien", quotaState(), at(20, 22, 0), link = false)
     @Test fun `overlay 130`() = overlay("overlay-130", quotaState(), at(20, 22, 0), fontScale = 1.3f)
     @Test fun `overlay borne`() = overlay("overlay-borne", quotaState(), at(20, 22, 0), height = 768)
+    // Écran bas en portrait (écran partagé, taille d'affichage agrandie) : l'anneau rétrécit puis disparaît, jamais de défilement.
+    @Test fun `overlay portrait 600`() = overlay("overlay-portrait-600", quotaState(), at(20, 22, 0), height = 600)
+    @Test fun `overlay portrait 480 130`() = overlay("overlay-portrait-480-130", quotaState(), at(20, 22, 0), height = 480, fontScale = 1.3f)
     @Test fun `overlay borne 130`() = overlay(
         "overlay-borne-130",
         state(BlockReason.Night, at(21, 7, 30), OverlayText.nightDetail(DayOfWeek.SUNDAY, night), PressOutcome.Relapse(24)),
@@ -211,7 +214,7 @@ class RenderOverlayLandscape {
         "overlay-paysage-bas",
         state(BlockReason.Quota, at(20, 22, 18), OverlayText.jokersExhausted(2), PressOutcome.Relapse(24)),
         at(20, 22, 0),
-        height = 280,
+        height = 300,
     )
 
 }
