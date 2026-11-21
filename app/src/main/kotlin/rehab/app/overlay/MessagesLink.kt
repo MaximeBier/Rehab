@@ -3,6 +3,7 @@ package rehab.app.overlay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -36,9 +39,9 @@ import rehab.app.ui.theme.RehabColors
  * `Overlay-Messages`). Réservé même sans lien ([onClick] nul : app sans ouverture fiable) pour que rien ne bouge.
  */
 @Composable
-fun MessagesSlot(onClick: (() -> Unit)?, modifier: Modifier = Modifier) {
+fun MessagesSlot(onClick: (() -> Unit)?, modifier: Modifier = Modifier, onPressStart: () -> Unit = {}) {
     Box(modifier.fillMaxWidth().height(44.dp), contentAlignment = Alignment.Center) {
-        if (onClick != null) MessagesLink(onClick)
+        if (onClick != null) MessagesLink(onClick, onPressStart)
     }
 }
 
@@ -48,8 +51,11 @@ fun MessagesSlot(onClick: (() -> Unit)?, modifier: Modifier = Modifier) {
  * Pressé : texte `text` sur fond `panel`. Jamais atténué ni désactivé ; ne rougit pas pendant l'appui relapse.
  */
 @Composable
-private fun MessagesLink(onClick: () -> Unit) {
+private fun MessagesLink(onClick: () -> Unit, onPressStart: () -> Unit) {
     val source = remember { MutableInteractionSource() }
+    // Contact du doigt, avant le clic (qui part au relâcher) : sert à annuler tout de suite un appui en cours.
+    val pressStart by rememberUpdatedState(onPressStart)
+    LaunchedEffect(source) { source.interactions.collect { if (it is PressInteraction.Press) pressStart() } }
     val pressed by source.collectIsPressedAsState()
     val color = if (pressed) RehabColors.Text else RehabColors.Muted
     var baseline by remember { mutableFloatStateOf(0f) }

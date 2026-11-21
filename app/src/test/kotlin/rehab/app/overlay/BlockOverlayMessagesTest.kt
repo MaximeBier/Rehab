@@ -90,5 +90,19 @@ class BlockOverlayMessagesTest {
         assertEquals(0, completed)
     }
 
+    /**
+     * Doigt posé sur le lien (sans le relever) : [MessagesSlot] signale le contact tout de suite, pour annuler un appui en
+     * cours avant la fin — un relapse est irréversible, on n'attend pas le relâcher du clic.
+     */
+    @Test fun `poser le doigt sur le lien signale le contact sans ouvrir`() {
+        var pressed = 0
+        var opened = 0
+        compose.setContent { RehabTheme { MessagesSlot(onClick = { opened++ }, onPressStart = { pressed++ }) } }
+        compose.onNodeWithText(link).performTouchInput { down(center) }
+        compose.waitForIdle()
+        assertEquals(1, pressed)
+        assertEquals(0, opened)
+    }
+
     private fun androidx.compose.ui.test.SemanticsNodeInteraction.assertDoesNotExistCompat() = assertDoesNotExist()
 }

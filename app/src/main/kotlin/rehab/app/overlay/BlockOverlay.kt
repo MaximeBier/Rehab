@@ -125,7 +125,9 @@ fun BlockOverlay(
             state, relapse, p, done, holding, fx, pulsePhase, secondsLeft,
             onPressChange = { if (!done) pressing = it }, onQuit = onQuit,
             // Toucher le lien pendant un appui l'annule sans effet (p revient à 0, completed() n'est jamais appelé), puis ouvre.
+            // L'annulation part dès le contact du doigt (onMessagesPress), pas au relâcher : un relapse est irréversible.
             onOpenMessages = onOpenMessages?.let { open -> { if (!done) pressing = false; open() } },
+            onMessagesPress = { if (!done) pressing = false },
         )
     }
 
@@ -225,6 +227,7 @@ private fun OverlayActions(
     state: OverlayState, relapse: Boolean, p: Float, done: Boolean, holding: Boolean, fx: Float,
     pulsePhase: Float, secondsLeft: Int, onPressChange: (Boolean) -> Unit, onQuit: () -> Unit,
     onOpenMessages: (() -> Unit)?,
+    onMessagesPress: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth()) {
         Column(
@@ -290,7 +293,7 @@ private fun OverlayActions(
             }
         }
         // v0.7.1 : 10 dp, emplacement de 44 dp (réservé même sans lien), 8 dp jusqu'à « Quitter » (au lieu de 26).
-        MessagesSlot(onOpenMessages, Modifier.padding(top = 10.dp))
+        MessagesSlot(onOpenMessages, Modifier.padding(top = 10.dp), onPressStart = onMessagesPress)
         PrimaryButton("Quitter", onQuit, Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp))
     }
 }
