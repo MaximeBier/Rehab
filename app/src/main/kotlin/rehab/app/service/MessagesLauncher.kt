@@ -2,6 +2,7 @@ package rehab.app.service
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
 
@@ -17,7 +18,9 @@ class MessagesLauncher(private val context: Context) {
 
     /** Faux sans adresse ou si Android ne trouve aucune activité : le lien n'est alors pas affiché. */
     fun canOpen(packageName: String, uri: String?): Boolean =
-        uri != null && context.packageManager.resolveActivity(intentFor(packageName, uri), 0) != null
+        // MATCH_DEFAULT_ONLY : startActivity exige CATEGORY_DEFAULT ; sans ce filtre, canOpen pourrait dire vrai
+        // pour une activité que startActivity refuserait (lien affiché qui ne fait rien).
+        uri != null && context.packageManager.resolveActivity(intentFor(packageName, uri), PackageManager.MATCH_DEFAULT_ONLY) != null
 
     /** Lance l'ouverture ; faux en cas d'échec (l'overlay reste alors affiché), jamais d'exception. */
     fun open(packageName: String, uri: String?): Boolean {
