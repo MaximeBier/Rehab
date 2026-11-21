@@ -30,6 +30,8 @@ class OverlayController(
         /** « Quitter » : retour à l'écran d'accueil du téléphone (DESIGN §6.2). */
         fun onQuit()
         fun onHoldCompleted()
+        /** Lien « Ouvrir mes messages » (v0.7.1) : l'overlay n'est pas retiré ici, il le sera à la détection des DM. */
+        fun onOpenMessages(packageName: String)
     }
 
     companion object {
@@ -141,6 +143,7 @@ class OverlayController(
                                     nowMillis = { clock.now().toEpochMilli() },
                                     onQuit = callbacks::onQuit,
                                     onHoldCompleted = ::holdCompleted,
+                                    onOpenMessages = it.messagesPackage?.let { p -> { callbacks.onOpenMessages(p) } },
                                 )
                             }
                         }

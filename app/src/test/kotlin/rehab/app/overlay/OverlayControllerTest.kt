@@ -62,6 +62,7 @@ class OverlayControllerTest {
         var holdCompleted = 0
         override fun onQuit() { quit++ }
         override fun onHoldCompleted() { holdCompleted++ }
+        override fun onOpenMessages(packageName: String) = Unit
     }
 
     private lateinit var svc: AccessibilityService

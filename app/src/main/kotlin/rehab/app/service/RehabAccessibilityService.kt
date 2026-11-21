@@ -22,6 +22,7 @@ import rehab.domain.model.Decision
 import rehab.domain.model.Event
 import rehab.domain.policy.PressOutcome
 import rehab.rules.Detection
+import rehab.rules.catalog.InstagramRules
 import rehab.rules.SnapshotBuilder
 import java.time.Duration
 import java.time.Instant
@@ -63,6 +64,7 @@ class RehabAccessibilityService : AccessibilityService() {
     private lateinit var graph: AppGraph
     private lateinit var overlay: OverlayController
     private lateinit var blockJournal: BlockJournal
+    private lateinit var messages: MessagesLauncher
     private val engineThread = HandlerThread("rehab-engine").apply { start() }
     private val engine = Handler(engineThread.looper)
     private val processRunnable = Runnable { process() }
@@ -111,6 +113,11 @@ class RehabAccessibilityService : AccessibilityService() {
                 override fun onQuit() { performGlobalAction(GLOBAL_ACTION_HOME) }
                 // IMPORTANT 3 (revue finale) : le commit (Room) est protégé par `safely` — une exception
                 // ici ne doit pas tuer le thread moteur ; `process()` a déjà son propre `safely`.
+                // v0.7.1 : ouvre la liste des conversations ; ni hide(), ni journal, ni usage — l'overlay se retire
+                // quand l'écran des messages est détecté, et reste si l'ouverture échoue.
+                override fun onOpenMessages(packageName: String) {
+                    engine.post { safely { messages.open(packageName, graph.catalog.forPackage(packageName)?.messagesUri) } }
+                }
                 override fun onHoldCompleted() {
                     engine.post {
                         if (testOverlayShown) return@post hideTestOverlay()
@@ -123,6 +130,7 @@ class RehabAccessibilityService : AccessibilityService() {
         // Même logique que `lastBlockKey` avant l'extraction (MINEUR/IMPORTANT 2, revue finale) : conservé
         // entre deux appels d'onServiceConnected() sur la même instance, pas recréé à chaque reconnexion.
         if (!::blockJournal.isInitialized) blockJournal = BlockJournal(graph.eventLog)
+        messages = MessagesLauncher(this)
         // Publiée seulement une fois `graph`/`overlay` prêts : l'écran Debug lit cette instance
         // pour activer son bouton d'overlay de test, qui appelle showTestOverlay() (utilise les
         // deux). La publier plus tôt exposerait une fenêtre, même infime, où l'UI obtiendrait une
@@ -188,7 +196,7 @@ class RehabAccessibilityService : AccessibilityService() {
         safely {
             val now = graph.clock.now()
             // Pas de journalisation : ce blocage factice n'a pas eu lieu (pas d'Event.Block).
-            overlay.show(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null))
+            overlay.show(overlayState(Decision.Block(BlockReason.Quota, now.plusSeconds(90)), now, null, InstagramRules.PACKAGE))
             testOverlayShown = true
             engine.postDelayed(::hideTestOverlay, 5000)
         }
@@ -202,7 +210,7 @@ class RehabAccessibilityService : AccessibilityService() {
     }
 
     /** État de l'overlay pour [decision], commun au blocage réel ([apply]) et à l'overlay de test. Thread "rehab-engine". */
-    private fun overlayState(decision: Decision.Block, now: Instant, navBarTop: Int?): OverlayState {
+    private fun overlayState(decision: Decision.Block, now: Instant, navBarTop: Int?, packageName: String): OverlayState {
         val settings = graph.settingsRepo.get()
         val outcome = graph.unlock.preview(now)
         val detail = when {
@@ -223,6 +231,7 @@ class RehabAccessibilityService : AccessibilityService() {
             relapseMinutes = settings.relapseDuration.toMinutes(),
             navBarTop = navBarTop,
             zone = graph.clock.zone(),
+            messagesPackage = packageName.takeIf { messages.canOpen(it, graph.catalog.forPackage(it)?.messagesUri) },
         )
     }
 
@@ -289,7 +298,7 @@ class RehabAccessibilityService : AccessibilityService() {
             degradedReason = degradedReasonAfter,
         )
 
-        apply(detection)
+        apply(detection, pkg)
     }
 
     /**
@@ -306,7 +315,7 @@ class RehabAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun apply(detection: Detection) {
+    private fun apply(detection: Detection, packageName: String) {
         val now = graph.clock.now()
         val target = detection.target
         if (target == null) {
@@ -327,7 +336,7 @@ class RehabAccessibilityService : AccessibilityService() {
                 // blockJournal.logOnce ne doit jamais sauter l'affichage du tick (ni startTicker() au premier
                 // tick), sous peine de fenêtre sans blocage. lastKey n'est posé qu'après un append réussi
                 // (voir BlockJournal) : un échec est donc retenté au tick suivant.
-                overlay.show(overlayState(decision, now, detection.navBarBounds?.top))
+                overlay.show(overlayState(decision, now, detection.navBarBounds?.top, packageName))
                 testOverlayShown = false
                 // Même règle pour la clôture de l'intervalle d'usage (Room) : placée avant show(), une erreur sautait
                 // l'affichage du tick (résiduel de la revue finale de la refonte).

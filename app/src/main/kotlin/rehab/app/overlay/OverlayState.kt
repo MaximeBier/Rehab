@@ -28,6 +28,8 @@ data class OverlayState(
     val relapseMinutes: Long,
     val navBarTop: Int?,
     val zone: ZoneId,
+    /** App dont le lien « Ouvrir mes messages » ouvre la liste des conversations (v0.7.1) ; `null` : pas de lien. */
+    val messagesPackage: String? = null,
 )
 
 /** Texte d'annonce au repos : [emphasis] est mis en gras (et en bronze pour un joker). */
