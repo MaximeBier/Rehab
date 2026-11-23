@@ -1,5 +1,12 @@
 # Versions capturées
 
+Toutes les captures de ce dossier sont anonymisées par `AnonymizeCaptures` (`CaptureAnonymizer`) : les dumps
+uiautomator (`*.xml`) comme les captures Rehab (`v07_*.json`). Textes, descriptions et indices deviennent des jetons
+`t<n>`/`d<n>`/`h<n>` (n = rang du nœud), sauf les libellés d'interface lus par les règles (`CaptureAnonymizer.KEEP`) ;
+identifiants, classes, bounds et états sont conservés.
+
+## Dumps uiautomator (`*.xml`)
+
 Date : 2026-09-20
 Appareil : Pixel 6a, Android 17, locale fr-FR
 
@@ -11,7 +18,7 @@ Appareil : Pixel 6a, Android 17, locale fr-FR
 ## Captures v0.7 (`v07_*.json`)
 
 Date : 2026-11-21. Appareil : Pixel 6a, Android 17, locale fr-FR. Captures Rehab (écran Debug, nœuds visibles
-seulement), anonymisées par `AnonymizeCaptures` (textes et descriptions remplacés par t<n>/d<n> hors libellés d'onglets).
+seulement).
 
 | App | Version | Captures |
 |---|---|---|
