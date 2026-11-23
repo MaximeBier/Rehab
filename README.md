@@ -15,6 +15,8 @@ app/       Android : service d'accessibilité, overlay Compose, Room, UI
 licenses/  Licences des polices embarquées (Chivo, Chivo Mono — OFL)
 ```
 
+Cible : Android 14+, installation par APK.
+
 ## Construire
 
 Prérequis : JDK 17 et le SDK Android (platform 37, build-tools 36). Puis :
