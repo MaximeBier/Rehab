@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Tests, lint et APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Gradle (cache et validation du wrapper)
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Tests, lint et APK debug
+        run: >
+          ./gradlew --stacktrace
+          :domain:test
+          :rules:test
+          :app:testDebugUnitTest
+          :app:lintDebug
+          :app:assembleDebug
+
+      - name: APK debug
+        uses: actions/upload-artifact@v7
+        with:
+          name: rehab-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Rapports de tests et de lint
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: |
+            domain/build/reports/
+            rules/build/reports/
+            app/build/reports/
+          if-no-files-found: ignore
