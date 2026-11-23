@@ -73,7 +73,7 @@ class RehabAccessibilityService : AccessibilityService() {
     }
     @Volatile private var tickerRunning = false
     /**
-     * Purge quotidienne de `usageLog` (spec §2.4). Auparavant appelée une seule fois, à
+     * Purge quotidienne de `usageLog`. Auparavant appelée une seule fois, à
      * `onServiceConnected` : un service resté connecté des mois (le cas nominal — pas de raison de se
      * déconnecter) ne purgeait alors plus jamais après le premier appel. Se replanifie elle-même tant que
      * le service tourne ; `onServiceConnected` l'annule et la relance pour rester idempotent en cas de
@@ -109,9 +109,9 @@ class RehabAccessibilityService : AccessibilityService() {
             graph.clock,
             object : OverlayController.Callbacks {
                 // Accueil du téléphone, pas BACK : BACK peut ramener sur une cible et refaire apparaître
-                // l'overlay aussitôt (DESIGN §6.2).
+                // l'overlay aussitôt.
                 override fun onQuit() { performGlobalAction(GLOBAL_ACTION_HOME) }
-                // IMPORTANT 3 (revue finale) : le commit (Room) est protégé par `safely` — une exception
+                // Le commit (Room) est protégé par `safely` — une exception
                 // ici ne doit pas tuer le thread moteur ; `process()` a déjà son propre `safely`.
                 // v0.7.1 : ouvre la liste des conversations ; ni hide(), ni journal, ni usage — l'overlay se retire
                 // quand l'écran des messages est détecté, et reste si l'ouverture échoue.
@@ -127,7 +127,7 @@ class RehabAccessibilityService : AccessibilityService() {
                 }
             },
         )
-        // Même logique que `lastBlockKey` avant l'extraction (MINEUR/IMPORTANT 2, revue finale) : conservé
+        // Même logique que `lastBlockKey` avant l'extraction : conservé
         // entre deux appels d'onServiceConnected() sur la même instance, pas recréé à chaque reconnexion.
         if (!::blockJournal.isInitialized) blockJournal = BlockJournal(graph.eventLog)
         messages = MessagesLauncher(this)
@@ -270,7 +270,7 @@ class RehabAccessibilityService : AccessibilityService() {
         maybeRecheckVersion(pkg, snapshot.appVersion)
 
         if (snapshot.truncated) {
-            // Échec fermé (spec §2.8) : un arbre amputé (SnapshotBuilder.truncated) est indiscernable de
+            // Échec fermé : un arbre amputé (SnapshotBuilder.truncated) est indiscernable de
             // « rien à bloquer » pour ScreenDetector. On le fait remonter au lieu de le laisser silencieux :
             // un Event.Error, une fois par transition (pas à chaque tick). Ne change plus la décision :
             // un DM tronqué est compté.
@@ -303,7 +303,7 @@ class RehabAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * IMPORTANT 4 (revue finale) : `checkAll()` n'était appelé qu'à `onServiceConnected`. Une mise à jour
+     * `checkAll()` n'était appelé qu'à `onServiceConnected`. Une mise à jour
      * d'Instagram/X en arrière-plan (justement l'événement qui casse les règles) ne redémarre pas le service
      * et restait donc invisible. On compare la version vue dans le snapshot courant (toujours fraîche : lue
      * depuis `PackageManager` à chaque `process()`, voir `graph.versionChecker.versionOf`) à la dernière
@@ -333,14 +333,14 @@ class RehabAccessibilityService : AccessibilityService() {
                 overlay.hide()
             }
             is Decision.Block -> {
-                // IMPORTANT 2 (revue finale) : afficher d'abord, puis clore l'usage et journaliser — une erreur Room dans
+                // Afficher d'abord, puis clore l'usage et journaliser — une erreur Room dans
                 // blockJournal.logOnce ne doit jamais sauter l'affichage du tick (ni startTicker() au premier
                 // tick), sous peine de fenêtre sans blocage. lastKey n'est posé qu'après un append réussi
                 // (voir BlockJournal) : un échec est donc retenté au tick suivant.
                 overlay.show(overlayState(decision, now, detection.navBarBounds?.top, packageName, appVersion))
                 testOverlayShown = false
                 // Même règle pour la clôture de l'intervalle d'usage (Room) : placée avant show(), une erreur sautait
-                // l'affichage du tick (résiduel de la revue finale de la refonte).
+                // l'affichage du tick.
                 runCatching { graph.usageTracker.closeOpen(now) }
                     .onFailure { Log.e("Rehab", "Clôture de l'usage impossible", it) }
                 runCatching { blockJournal.logOnce(decision, now) }
@@ -353,7 +353,7 @@ class RehabAccessibilityService : AccessibilityService() {
     private fun leaveTargets() {
         // overlay.hide() d'abord : c'est un simple post{} vers le thread principal (voir OverlayController),
         // alors que usageTracker.closeOpen() attaque Room. Si l'I/O lève, l'overlay doit déjà avoir été
-        // retiré (IMPORTANT 5, revue finale) — l'ordre inverse laissait l'overlay affiché en cas d'échec Room.
+        // retiré — l'ordre inverse laissait l'overlay affiché en cas d'échec Room.
         overlay.hide()
         testOverlayShown = false
         stopTicker()

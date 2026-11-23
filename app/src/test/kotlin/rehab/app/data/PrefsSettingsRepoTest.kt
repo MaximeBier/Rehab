@@ -19,7 +19,7 @@ class PrefsSettingsRepoTest {
         repo.set(custom)
 
         // apply() est asynchrone pour le disque, mais le cache mémoire garantit une lecture
-        // immédiate cohérente : c'est ce que la tâche 25 (écran de réglages sur le thread UI) exige.
+        // immédiate cohérente : c'est ce qu'exige l'écran de réglages, sur le thread UI.
         assertEquals(custom, repo.get())
     }
 

@@ -33,7 +33,7 @@ fun RehabNavBar(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
         labels.forEachIndexed { i, label ->
             val active = i == selected
             Box(
-                // defaultMinSize garantit la cible tactile >= 44 dp (DESIGN §2) même si le padding
+                // defaultMinSize garantit la cible tactile >= 44 dp même si le padding
                 // vertical (14 dp) + le texte 11 sp ne l'atteignent pas tout seuls (~42-43 dp).
                 Modifier.weight(1f).clip(RoundedCornerShape(16.dp))
                     .background(if (active) RehabColors.Accent else Color.Transparent)

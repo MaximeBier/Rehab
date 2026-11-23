@@ -27,7 +27,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * Rendus de `HomeScreen` (tâche 3), en PNG (app/build/renders) pour relecture visuelle contre
+ * Rendus de `HomeScreen`, en PNG (app/build/renders) pour relecture visuelle contre
  * les maquettes `Main`, `Accueil-Bloque`, `Accueil-Alertes`. Aucune assertion sur les
  * pixels ; ignoré sauf -Prehab.render=true. La barre de navigation est dessinée par `RehabApp`, pas
  * par `HomeScreen` : elle n'apparaît donc pas dans ces rendus.

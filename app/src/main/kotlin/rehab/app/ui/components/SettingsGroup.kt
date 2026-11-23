@@ -34,9 +34,9 @@ data class RowSpec(
     val lockedReason: String? = null,
     val valueColor: Color? = null,
     val onClick: (() -> Unit)? = null,
-    // DESIGN §2 réserve Chivo Mono aux durées/heures/nombres. Par défaut `true` (comportement
+    // Chivo Mono est réservée aux durées/heures/nombres. Par défaut `true` (comportement
     // historique inchangé pour tous les appelants existants : Réglages n'affiche que des durées ou
-    // des nombres) ; `false` pour une valeur textuelle (ex. « Ouvrir », « Actif », tâche 8).
+    // des nombres) ; `false` pour une valeur textuelle (ex. « Ouvrir », « Actif »).
     val valueMono: Boolean = true,
 )
 
@@ -56,7 +56,7 @@ fun SettingsGroup(rows: List<RowSpec>, modifier: Modifier = Modifier) {
 private fun SettingsRow(row: RowSpec) {
     val locked = row.lockedReason != null
     val onClick = row.onClick.takeIf { !locked }
-    // defaultMinSize garantit la cible tactile >= 44 dp (DESIGN §2) sur les lignes cliquables ;
+    // defaultMinSize garantit la cible tactile >= 44 dp sur les lignes cliquables ;
     // le padding vertical de 14 dp seul suffit déjà dans la plupart des cas mais pas toujours
     // (libellé sans sous-titre en petite taille de police).
     val rowModifier = Modifier

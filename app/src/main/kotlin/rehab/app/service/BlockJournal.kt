@@ -8,7 +8,7 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Écrit un seul [Event.Block] par blocage (IMPORTANT 2, revue finale). Extrait de
+ * Écrit un seul [Event.Block] par blocage. Extrait de
  * `RehabAccessibilityService.logBlockOnce` pour être testable sans Robolectric : ne dépend que du
  * port [EventLog] (domain pur), aucune API Android.
  *

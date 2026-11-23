@@ -2,7 +2,7 @@ package rehab.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** Tokens de DESIGN.md §2. Aucune autre couleur dans l'UI. */
+/** Couleurs de l'app. Aucune autre couleur dans l'UI. */
 object RehabColors {
     val Bg = Color(0xFF171513)
     val Panel = Color(0xFF24211D)

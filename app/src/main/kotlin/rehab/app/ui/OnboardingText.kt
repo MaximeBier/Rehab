@@ -2,7 +2,7 @@ package rehab.app.ui
 
 import rehab.app.service.AppStatus
 
-/** Textes de l'écran Onboarding (tâche 8), au même style que Réglages/Accueil. */
+/** Textes de l'écran Onboarding, au même style que Réglages/Accueil. */
 object OnboardingText {
     /**
      * Valeur + ton de pastille d'une ligne app, format abrégé aux deux premiers composants de

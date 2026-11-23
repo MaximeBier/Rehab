@@ -1,6 +1,6 @@
 package rehab.domain.fakes
 
-// Déplacées en `java-test-fixtures` (revue finale, mineur) : voir la note sur FakeClock
+// Déplacées en `java-test-fixtures` : voir la note sur FakeClock
 // (rehab.domain.time) — ces fakes vivaient dans src/main et partaient dans l'APK release,
 // qui n'est pas minifié.
 

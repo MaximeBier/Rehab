@@ -7,7 +7,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
- * DESIGN §5, tableau de l'animation relapse. `p` ∈ [0, 1] ; les phases (pulsation, tremblement) sont
+ * Courbes de l'animation relapse. `p` ∈ [0, 1] ; les phases (pulsation, tremblement) sont
  * intégrées image par image par [BlockOverlay], ces fonctions restent pures.
  */
 object RelapseFx {

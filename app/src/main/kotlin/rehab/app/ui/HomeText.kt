@@ -32,7 +32,7 @@ object HomeText {
         "$n " + if (n <= 1) singular else plural
 
     /** Espace insécable entre un nombre et son unité (« 18 min », « 1 h 05 min ») : évite la coupure
-     * en fin de ligne qui isolerait l'unité seule (MINEUR 6, revue finale). */
+     * en fin de ligne qui isolerait l'unité seule. */
     private const val NBSP = " "
 
     fun duration(d: Duration): String {

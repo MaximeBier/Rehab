@@ -47,7 +47,7 @@ object StatsText {
             ?: if (hasPermission) TO_FILL else UNAVAILABLE
         val nowText = now?.let { perDay(it) } ?: UNAVAILABLE
         val change = if (before != null && now != null) StatsMath.changePercent(before, now) else null
-        // Signe typographique (U+2212), pas le trait d'union ASCII : spec §Écran Stats (« −73 % »).
+        // Signe typographique (U+2212), pas le trait d'union ASCII (« −73 % »).
         val changeText = change?.let { c ->
             when {
                 c > 0 -> "+$c %"

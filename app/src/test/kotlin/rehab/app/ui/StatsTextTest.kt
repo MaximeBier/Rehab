@@ -18,7 +18,7 @@ class StatsTextTest {
         assertEquals("12 min/j", c.now)
         assertEquals("Dont hors DM", c.rehabLabel)
         assertEquals("3 min/j", c.rehab)
-        // Signe typographique U+2212 (spec §Écran Stats : « −73 % »), pas le trait d'union ASCII.
+        // Signe typographique U+2212 (« −73 % »), pas le trait d'union ASCII.
         assertEquals("−73 %", c.change)
         assertEquals(StatTone.Accent, c.changeTone)
     }

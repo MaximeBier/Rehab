@@ -59,7 +59,7 @@ import rehab.domain.policy.PressOutcome
 import rehab.domain.policy.StreakSummary
 
 /**
- * Overlay de blocage (DESIGN §5 ; maquettes `Overlay-Quota`, `Overlay-Nuit`, `Overlay-Relapse`,
+ * Overlay de blocage (maquettes `Overlay-Quota`, `Overlay-Nuit`, `Overlay-Relapse`,
  * `Overlay-HorsRecord`, `Overlay-Proto`). Même fond et même structure quelle que soit la condition ;
  * seuls changent la variante du bouton et le texte d'annonce. L'appui long est animé image par image :
  * `p` ∈ [0, 1] pilote tous les effets relapse ([RelapseFx]) ; le joker n'a que la jauge et le décompte.
@@ -73,7 +73,7 @@ fun BlockOverlay(
     /** Lien « Ouvrir mes messages » (v0.7.1) ; `null` : pas d'ouverture fiable pour l'app, emplacement laissé vide. */
     onOpenMessages: (() -> Unit)? = null,
 ) {
-    // Titre statique (DESIGN §6.1) : figé à l'apparition du blocage, pas de compte à rebours.
+    // Titre statique : figé à l'apparition du blocage, pas de compte à rebours.
     val shownAt = remember(state.reason, state.unlockAtMillis) { nowMillis() }
     val relapse = state.outcome is PressOutcome.Relapse
     val completed by rememberUpdatedState(onHoldCompleted)
@@ -289,11 +289,11 @@ private fun OverlayActions(
                 },
                 onPressChange = onPressChange,
             )
-            // Boîte de hauteur fixe : rien ne bouge quand le texte change (DESIGN §5.5). Mesurée (pas
+            // Boîte de hauteur fixe : rien ne bouge quand le texte change. Mesurée (pas
             // calculée à la main en sp) : à 130 % de police système, une formule sp * dp naïve restait
             // trop courte de près d'une ligne (métriques réelles de Chivo à cette taille, pas seulement
             // une histoire d'arrondi) — `rememberTextMeasurer` mesure exactement ce que `Text` va rendre,
-            // donc les deux ne peuvent pas diverger (IMPORTANT 1, revue finale).
+            // donc les deux ne peuvent pas diverger.
             val k = if (relapse) RelapseFx.captionScale(fx) else 1f
             val color = if (relapse) RehabColors.Danger else RehabColors.Text
             val style = TextStyle(

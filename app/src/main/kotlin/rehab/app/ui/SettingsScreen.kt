@@ -93,7 +93,7 @@ fun SettingsContent(
                     RowSpec(
                         label = SettingsText.windowLabel(w),
                         value = SettingsText.windowValue(w),
-                        // Masqué quand verrouillé : la raison du verrou prend cette place (maquette Reglages.png).
+                        // Masqué quand verrouillé : la raison du verrou prend cette place (planche `Reglages`).
                         subtitle = if (locked) null else "Toutes cibles confondues",
                         lockedReason = if (locked) SettingsText.quotaLockReason(locks.quotaUnlockAt!!, locks.now) else null,
                         onClick = { onEdit(Editor.Window(i)) },

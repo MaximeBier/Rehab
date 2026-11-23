@@ -45,7 +45,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * Rendus de l'overlay de blocage (tâche 7), en PNG (app/build/renders) pour relecture visuelle contre
+ * Rendus de l'overlay de blocage, en PNG (app/build/renders) pour relecture visuelle contre
  * les maquettes `Overlay-*` et `Etats-Bouton`. Aucune assertion sur les pixels ; ignoré sauf
  * -Prehab.render=true. La bande « barre de navigation système · non couverte » des maquettes est une
  * annotation, pas de l'UI : elle n'est pas dessinée.
@@ -113,7 +113,7 @@ class RenderOverlay {
         at(20, 22, 0),
     )
 
-    // IMPORTANT 1 (revue finale) : la légende de l'overlay-nuit tient sur deux lignes complètes
+    // La légende de l'overlay-nuit tient sur deux lignes complètes
     // (« ... et ton streak de 24 jours tombe ») ; à 130 % de police système, la 2ᵉ ligne était coupée
     // avant que la boîte ne soit calculée en sp (voir BlockOverlay). Vérifié en relisant le PNG.
     @Test fun `overlay nuit 130`() = compose.renderPng("overlay-nuit-130") {

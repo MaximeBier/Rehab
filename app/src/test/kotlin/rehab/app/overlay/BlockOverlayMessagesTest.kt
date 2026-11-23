@@ -32,7 +32,7 @@ import rehab.domain.policy.StreakSummary
 import java.time.Instant
 import java.time.ZoneId
 
-/** Lien « Ouvrir mes messages » de l'écran de blocage (v0.7.1, DESIGN §5 « Accès aux messages »). */
+/** Lien « Ouvrir mes messages » de l'écran de blocage (v0.7.1). */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w390dp-h844dp-xxhdpi")
 class BlockOverlayMessagesTest {

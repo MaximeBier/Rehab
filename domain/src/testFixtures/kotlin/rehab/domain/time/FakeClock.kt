@@ -5,7 +5,7 @@ import java.time.Instant
 import java.time.ZoneId
 
 /**
- * Déplacée en `java-test-fixtures` (revue finale, mineur) : cette classe et `InMemory*` (voir
+ * Déplacée en `java-test-fixtures` : cette classe et `InMemory*` (voir
  * `rehab.domain.fakes`) vivaient dans `src/main`, donc partaient dans l'APK — le build release n'étant pas
  * minifié (`isMinifyEnabled = false`), rien ne les en retirait.
  */

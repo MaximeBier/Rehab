@@ -156,7 +156,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
 
     /**
      * Moyenne Android sur les 28 jours précédant [installedAt]. La période commence au plus ancien bucket
-     * retourné (spec §Sources) : Android ne garde que quelques semaines d'historique hebdomadaire, et
+     * retourné : Android ne garde que quelques semaines d'historique hebdomadaire, et
      * diviser par 28 jours dont une partie n'existe plus sous-estimerait la moyenne.
      */
     private fun androidBefore(pkg: String, installedAt: Instant, hasPermission: Boolean): Duration? {
@@ -166,7 +166,7 @@ class RehabViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     /**
-     * Construit l'état de l'écran Stats (spec §Sources) : « avant » = 28 jours précédant
+     * Construit l'état de l'écran Stats : « avant » = 28 jours précédant
      * l'installation (historique Android, granularité hebdomadaire, ou saisie manuelle),
      * « maintenant » = 7 derniers jours, bornés à l'installation (historique Android, granularité
      * journalière, app entière), « dont … » = mesure Rehab sur exactement la même période : le total

@@ -9,7 +9,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class SettingsTest {
-    @Test fun `defauts conformes a la spec`() {
+    @Test fun `reglages par defaut`() {
         val s = Settings.DEFAULT
         assertEquals(NightWindow(LocalTime.of(23, 0), LocalTime.of(7, 30)), s.nights[DayOfWeek.MONDAY])
         assertEquals(NightWindow(LocalTime.of(0, 30), LocalTime.of(9, 0)), s.nights[DayOfWeek.FRIDAY])

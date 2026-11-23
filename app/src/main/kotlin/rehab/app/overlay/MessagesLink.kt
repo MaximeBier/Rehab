@@ -35,7 +35,7 @@ import rehab.app.ui.theme.Chivo
 import rehab.app.ui.theme.RehabColors
 
 /**
- * Emplacement fixe de 44 dp sous la légende du bouton d'appui (DESIGN §5 « Accès aux messages », planche
+ * Emplacement fixe de 44 dp sous la légende du bouton d'appui (planche
  * `Overlay-Messages`). Réservé même sans lien ([onClick] nul : app sans ouverture fiable) pour que rien ne bouge.
  */
 @Composable

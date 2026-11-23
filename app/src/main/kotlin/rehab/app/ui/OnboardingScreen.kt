@@ -50,7 +50,7 @@ fun OnboardingContent(
         // Seul le contenu défile : le bouton reste ancré en bas (un weight dans une colonne défilante n'a aucun effet).
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
             SectionLabel("Avant de commencer")
-            // valueMono = false partout (Onboarding) : DESIGN §2 réserve Chivo Mono aux durées/heures/
+            // valueMono = false partout (Onboarding) : Chivo Mono est réservée aux durées/heures/
             // nombres purs (comme Réglages : « 10 s », « 30 min max »). Ici, aucune valeur n'est un
             // nombre nu : « Ouvrir »/« Actif »/« Autoriser(-ées) » sont des mots, et les valeurs d'app
             // (« 412.0 · reconnue ») sont dominées par un mot d'état (reconnue/hors plage/non installée)

@@ -12,7 +12,7 @@ import java.time.Instant
 data class UsageBucket(val start: Instant, val end: Instant, val duration: Duration)
 
 /**
- * Calculs de l'onglet Stats (v0.4.0 — spec §Technique), purs et testables sans Android : moyenne
+ * Calculs de l'onglet Stats (v0.4.0), purs et testables sans Android : moyenne
  * quotidienne à partir de buckets d'utilisation, écart en % entre deux moyennes, et sélection de la
  * valeur « avant Rehab » effective (saisie manuelle en priorité sur l'historique Android).
  */
@@ -45,7 +45,7 @@ object StatsMath {
         return Math.round(diffMillis * 100.0 / before.toMillis()).toInt()
     }
 
-    /** Valeur « avant Rehab » effective (spec §Sources) : la saisie manuelle si renseignée, sinon l'historique Android. */
+    /** Valeur « avant Rehab » effective : la saisie manuelle si renseignée, sinon l'historique Android. */
     fun effectiveBefore(manual: Duration?, android: Duration?): Duration? = manual ?: android
 
     /**

@@ -26,7 +26,7 @@ data class KeyValue(
     val value: String,
     val valueColor: Color = RehabColors.Text,
     val keyMono: Boolean = false,
-    // DESIGN §2 réserve Chivo Mono aux durées/heures/nombres. Par défaut `true` (comportement
+    // Chivo Mono est réservée aux durées/heures/nombres. Par défaut `true` (comportement
     // historique inchangé, ex. Debug : "com.instagram.android", tailles de fichier) ; `false` pour
     // une valeur qui mélange mots et nombres (ex. Stats : « 45 min/j · Android ») — seules les
     // suites de chiffres passent alors en Chivo Mono (voir `withMonoNumbers`).
@@ -48,7 +48,7 @@ fun KeyValueGroup(items: List<KeyValue>) {
 
 @Composable
 private fun KeyValueRow(item: KeyValue) {
-    // defaultMinSize garantit la cible tactile >= 44 dp (DESIGN §2) sur les lignes cliquables :
+    // defaultMinSize garantit la cible tactile >= 44 dp sur les lignes cliquables :
     // le padding vertical de 11 dp seul ne les amène qu'à ~39 dp.
     val rowModifier = Modifier
         .fillMaxWidth()

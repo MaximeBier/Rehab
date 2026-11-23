@@ -10,7 +10,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Régression du CRITIQUE 1 / CRITIQUE 2 de la revue finale : les 10 captures réelles font 17 à 32 niveaux de
+ * Régression : les 10 captures réelles font 17 à 32 niveaux de
  * profondeur. Avec l'ancien `maxDepth = 12`, `SnapshotBuilder` amputait l'arbre bien avant les nœuds ciblés par
  * les règles, mais aucun test ne pouvait le voir car `Fixtures`/`UiAutomatorXml` construisaient un snapshot à
  * plat, sans passer par `SnapshotBuilder`. Ce test fait explicitement ce que la production fait : il vérifie
@@ -44,7 +44,7 @@ class SnapshotBuilderCapturesTest {
     }
 
     @Test fun `ig_feed_suggested est detecte a travers les bornes de production`() {
-        // Avant la correction du CRITIQUE 1 (maxDepth = 12), le libellé "Suggestions..." (profondeur 21-22) et
+        // Avec l'ancien maxDepth = 12, le libellé "Suggestions..." (profondeur 21-22) et
         // inline_follow_button étaient hors de portée : target=null au lieu de InstagramSuggested.
         val d = detector.detect(load("ig_feed_suggested.xml", InstagramRules.PACKAGE))
         assertEquals(InstagramRules.APP, d.target)

@@ -50,7 +50,7 @@ private fun StatCardView(card: StatCard) {
 }
 
 /**
- * Mise en page de l'écran Stats (v0.4.0, spec §Écran Stats), sans dépendance au ViewModel : reçoit
+ * Mise en page de l'écran Stats (v0.4.0), sans dépendance au ViewModel : reçoit
  * l'état déjà chargé (`null` = premier chargement en cours) et notifie `onOpenUsageAccess` au clic
  * sur le bandeau de permission. Composable pur, testable/rendable sans Room ni Android
  * (voir RenderStats).

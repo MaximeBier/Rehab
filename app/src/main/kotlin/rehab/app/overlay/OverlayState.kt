@@ -35,11 +35,11 @@ data class OverlayState(
 /** Texte d'annonce au repos : [emphasis] est mis en gras (et en bronze pour un joker). */
 data class Caption(val prefix: String, val emphasis: String, val suffix: String)
 
-/** Textes de l'overlay (DESIGN §5), en français. */
+/** Textes de l'overlay, en français. */
 object OverlayText {
     private val hm = DateTimeFormatter.ofPattern("HH:mm")
 
-    /** Statique (DESIGN §6.1) : [shownAtMillis] est l'instant d'apparition de l'overlay, pas « maintenant ». */
+    /** Statique : [shownAtMillis] est l'instant d'apparition de l'overlay, pas « maintenant ». */
     fun title(s: OverlayState, shownAtMillis: Long): String = when (s.reason) {
         BlockReason.Night -> "Nuit · déblocage à " + Instant.ofEpochMilli(s.unlockAtMillis).atZone(s.zone).format(hm)
         BlockReason.Quota -> "Quota atteint · " + HomeText.waitText(Instant.ofEpochMilli(shownAtMillis), Instant.ofEpochMilli(s.unlockAtMillis))
@@ -68,7 +68,7 @@ object OverlayText {
 
     private fun holdSeconds(s: OverlayState) = s.holdMillis / 1000
 
-    /** « ton streak » quand la série en cours est le record, « ta série » sinon (DESIGN §5.5). */
+    /** « ton streak » quand la série en cours est le record, « ta série » sinon. */
     private fun loss(s: OverlayState, lost: Int) =
         if (s.streak.inRecord) "ton streak de " + HomeText.plural(lost, "jour") else "ta série de " + HomeText.plural(lost, "jour")
 

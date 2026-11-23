@@ -32,7 +32,7 @@ private class FlakyEventLog : EventLog {
     override fun since(from: Instant) = all().filter { it.at >= from }
 }
 
-/** IMPORTANT 2 (revue finale) : logique extraite de RehabAccessibilityService.logBlockOnce. */
+/** Logique extraite de RehabAccessibilityService.logBlockOnce. */
 class BlockJournalTest {
     private val now = Instant.parse("2026-09-22T20:00:00Z")
 

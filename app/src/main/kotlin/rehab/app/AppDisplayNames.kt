@@ -5,7 +5,7 @@ import rehab.rules.catalog.TwitterRules
 
 /**
  * Nom d'affichage d'une app du catalogue, pour l'UI et les notifications. Factorisé : ce mapping était
- * dupliqué entre `RulesNotifier.kt` et `HomeText.kt` (revue finale, mineur).
+ * dupliqué entre `RulesNotifier.kt` et `HomeText.kt`.
  */
 object AppDisplayNames {
     fun of(packageName: String): String = when (packageName) {
@@ -14,7 +14,7 @@ object AppDisplayNames {
         else -> packageName
     }
 
-    /** Nom d'affichage d'une cible (`TargetId.value`) du catalogue, pour le Journal (tâche 5). */
+    /** Nom d'affichage d'une cible (`TargetId.value`) du catalogue, pour le Journal. */
     fun target(id: String): String = when (id) {
         InstagramRules.APP.value -> "Instagram · hors DM"
         InstagramRules.REELS.value -> "Instagram · Reels"

@@ -24,13 +24,13 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * Rendu de `JournalContent` (tâche 5), en PNG (app/build/renders) pour relecture visuelle contre
+ * Rendu de `JournalContent`, en PNG (app/build/renders) pour relecture visuelle contre
  * la maquette `Journal`. Aucune assertion sur les pixels ; ignoré sauf
  * -Prehab.render=true. Les journées viennent du vrai pipeline `JournalText.rows`/`days` (jamais
  * construites à la main) : ce test vérifie le rendu du pipeline réel, pas une reconstitution
  * manuelle du visuel de la maquette.
  *
- * Deux écarts volontaires avec la maquette, documentés dans le rapport de tâche 5 :
+ * Deux écarts volontaires avec la maquette :
  *  - le blocage quota (`Event.Block`) écrit toujours une ligne de début en plus de la ligne de fin
  *    une fois passé (règle testée dans `JournalTextTest`) ; la maquette n'affiche que la fin. Le
  *    début est placé ici à 08:00 pour apparaître en dernière ligne d'Aujourd'hui, sans perturber

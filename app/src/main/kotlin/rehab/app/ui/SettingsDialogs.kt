@@ -37,8 +37,8 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 
 /**
- * Conteneur commun à tous les éditeurs de l'écran Réglages : un `AlertDialog` stylé aux tokens
- * (DESIGN §2), avec un message d'erreur optionnel affiché sous le contenu et une action
+ * Conteneur commun à tous les éditeurs de l'écran Réglages : un `AlertDialog` stylé aux tokens,
+ * avec un message d'erreur optionnel affiché sous le contenu et une action
  * supplémentaire (« Supprimer ») à gauche du bouton d'annulation. `onConfirm` ne ferme jamais le
  * dialogue lui-même : c'est `SettingsScreen.save` qui décide (Rejected laisse le dialogue ouvert).
  */
@@ -106,7 +106,7 @@ fun NightDialog(
         onConfirm = { onConfirm(LocalTime.of(bedState.hour, bedState.minute), LocalTime.of(wakeState.hour, wakeState.minute)) },
     ) {
         Row {
-            // Box + defaultMinSize : cible tactile >= 44 dp (DESIGN §2), le Text seul ne fait que
+            // Box + defaultMinSize : cible tactile >= 44 dp, le Text seul ne fait que
             // ~17-20 dp de haut (même remarque que SettingsGroup/KeyValueGroup).
             Box(
                 Modifier.defaultMinSize(minHeight = 44.dp).clickable { editingWakeup = false }.padding(horizontal = 12.dp),

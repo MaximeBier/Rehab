@@ -80,8 +80,8 @@ fun RehabApp(vm: RehabViewModel) {
 
     // `remember(tick)` : sans lui, cette ligne s'exécutait à chaque recomposition de RehabApp, y
     // compris celles déclenchées par `home` (une par seconde via vm.refreshNow(), voir plus bas) —
-    // soit une requête `Settings.Secure` sur le thread principal chaque seconde (IMPORTANT/mineur
-    // de la revue finale). `remember(tick)` ne relit ce prérequis qu'au retour au premier plan.
+    // soit une requête `Settings.Secure` sur le thread principal chaque seconde.
+    // `remember(tick)` ne relit ce prérequis qu'au retour au premier plan.
     val accessibilityEnabled = remember(tick) { prerequisites.accessibilityEnabled() }
     if (!onboardingDone || !accessibilityEnabled) {
         Box(Modifier.fillMaxSize().background(RehabColors.Bg).statusBarsPadding().navigationBarsPadding()) {

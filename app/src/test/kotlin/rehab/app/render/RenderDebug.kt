@@ -28,14 +28,14 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * Rendu de `DebugContent` (tâche 6), en PNG (app/build/renders) pour relecture visuelle contre
+ * Rendu de `DebugContent`, en PNG (app/build/renders) pour relecture visuelle contre
  * la maquette `Debug`. Aucune assertion sur les pixels ; ignoré sauf -Prehab.render=true.
  * La barre de navigation est dessinée par `RehabApp`, pas par `DebugContent` (même remarque que
  * RenderHome/RenderJournal), et la fenêtre simulée fait 390×1000 dp comme la maquette.
  *
  * Écart volontaire avec la maquette : les noms de capture y omettent les secondes
  * (« ig_reels_2026-09-20T21-31.json ») pour tenir sur la largeur affichée, alors que
- * `CaptureNames.fileName` (tâche 6) les inclut toujours (« …T21-31-05.json »). Ce rendu utilise le
+ * `CaptureNames.fileName` les inclut toujours (« …T21-31-05.json »). Ce rendu utilise le
  * vrai format produit par le code, pas la simplification de la maquette.
  */
 @RunWith(RobolectricTestRunner::class)

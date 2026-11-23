@@ -15,7 +15,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class OverlayTextTest {
-    /** Espace insécable utilisée par HomeText.duration entre le nombre et l'unité (MINEUR 6, revue finale). */
+    /** Espace insécable utilisée par HomeText.duration entre le nombre et l'unité. */
     private val nbsp = " "
     private val zone = ZoneId.of("Europe/Paris")
     private fun at(d: Int, h: Int, m: Int) = ZonedDateTime.of(2026, 9, d, h, m, 0, 0, zone).toInstant()

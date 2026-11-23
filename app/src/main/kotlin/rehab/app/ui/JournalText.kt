@@ -11,7 +11,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** Couleur d'accroche d'une ligne du Journal (point + libellé), DESIGN.md §2. */
+/** Couleur d'accroche d'une ligne du Journal (point + libellé). */
 enum class JournalTone { Danger, Accent, Warn, Neutral }
 
 data class JournalRow(

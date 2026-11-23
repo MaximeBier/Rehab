@@ -20,7 +20,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * Rendu de `SettingsContent` (tâche 4), en PNG (app/build/renders) pour relecture visuelle contre
+ * Rendu de `SettingsContent`, en PNG (app/build/renders) pour relecture visuelle contre
  * la maquette `Reglages`. Aucune assertion sur les pixels ; ignoré sauf
  * -Prehab.render=true. La barre de navigation est dessinée par `RehabApp`, pas par
  * `SettingsContent` : elle n'apparaît donc pas dans ce rendu (voir RenderHome, même remarque).

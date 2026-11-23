@@ -45,7 +45,7 @@ import rehab.app.ui.theme.ChivoMono
 import rehab.app.ui.theme.RehabColors
 
 /**
- * Galerie des composants de la tâche 2, rendue en PNG (app/build/renders) pour relecture visuelle
+ * Galerie des composants partagés, rendue en PNG (app/build/renders) pour relecture visuelle
  * contre les maquettes du canevas. Aucune assertion sur les pixels ; ignoré sauf -Prehab.render=true.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -88,7 +88,7 @@ class RenderComponents {
         }
     }
 
-    // IMPORTANT 1 (revue finale) : « RÉGLAGES » (le plus long des libellés) ne doit pas être coupé à
+    // « RÉGLAGES » (le plus long des libellés) ne doit pas être coupé à
     // 130 % de police système. Vérifié en relisant le PNG. v0.4.0 : 5 onglets (ajout de Stats) —
     // espacement des lettres réduit dans RehabNavBar (0.1em -> 0.04em) pour que les 5 libellés
     // tiennent toujours à 130 %.

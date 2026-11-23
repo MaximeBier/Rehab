@@ -35,9 +35,9 @@ import rehab.app.ui.theme.RehabColors
 enum class HoldKind { Joker, Relapse }
 
 /**
- * Bouton d'appui long de l'overlay (DESIGN §3, `Etats-Bouton`) : rendu et geste seulement, sans horloge.
+ * Bouton d'appui long de l'overlay (planche `Etats-Bouton`) : rendu et geste seulement, sans horloge.
  * [progress] ∈ [0, 1] est piloté par [BlockOverlay] ; [onPressChange] signale l'appui et le relâchement.
- * Au repos la jauge est absente (pas d'arc de longueur 0). [scale] : effet relapse (DESIGN §5).
+ * Au repos la jauge est absente (pas d'arc de longueur 0). [scale] : effet relapse.
  */
 @Composable
 fun HoldButton(
@@ -83,7 +83,7 @@ fun HoldButton(
             val sz = Size(size.width - 2 * inset, size.height - 2 * inset)
             // Terminé : le disque plein de la même couleur que la jauge suffit.
             if (!done) drawArc(track, 0f, 360f, false, tl, sz, style = Stroke(w))
-            // Extrémités rondes comme Etats-Bouton ; jamais dessinée à 0 (sinon un point, DESIGN §3).
+            // Extrémités rondes comme Etats-Bouton ; jamais dessinée à 0 (sinon un point).
             if (!done && progress > 0f) drawArc(gauge, -90f, 360f * progress.coerceAtMost(1f), false, tl, sz, style = Stroke(w, cap = StrokeCap.Round))
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {

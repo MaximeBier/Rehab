@@ -20,7 +20,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Signature debug réutilisée pour le release (revue finale, mineur) : sans signingConfig,
+            // Signature debug réutilisée pour le release : sans signingConfig,
             // assembleRelease produit un APK non signé, installable nulle part. Ce n'est pas une clé de
             // production — juste ce qu'il faut pour qu'assembleRelease produise un artefact installable
             // en V1 (usage personnel, pas de publication sur un store). À remplacer par une vraie
@@ -69,7 +69,7 @@ dependencies {
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
-    // FakeClock / InMemory*Repo vivent en java-test-fixtures du module domain (revue finale, mineur) :
+    // FakeClock / InMemory*Repo vivent en java-test-fixtures du module domain :
     // elles ne doivent pas partir dans l'APK (le build release n'est pas minifié).
     testImplementation(testFixtures(project(":domain")))
 }

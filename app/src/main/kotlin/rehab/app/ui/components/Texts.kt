@@ -17,7 +17,7 @@ import rehab.app.ui.theme.Chivo
 import rehab.app.ui.theme.ChivoMono
 import rehab.app.ui.theme.RehabColors
 
-/** Styles de texte partagés, DESIGN.md §2 (typographie). */
+/** Styles de texte partagés (typographie). */
 object RehabText {
     val brand = TextStyle(fontFamily = Chivo, fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.16.em, color = RehabColors.Text)
     val section = TextStyle(fontFamily = Chivo, fontSize = 11.sp, letterSpacing = 0.14.em, color = RehabColors.Muted)
@@ -34,7 +34,7 @@ object RehabText {
 
 private val numberRun = Regex("""\d+(?:[/:.,]\d+)*""")
 
-/** Passe en Chivo Mono chaque suite de chiffres (« 23 », « 2/2 », « 07:30 ») : DESIGN §2, valeurs en mono dans le texte courant. */
+/** Passe en Chivo Mono chaque suite de chiffres (« 23 », « 2/2 », « 07:30 ») : Chivo Mono est réservée aux nombres, y compris dans le texte courant. */
 fun withMonoNumbers(text: String, numberColor: Color? = null): AnnotatedString = buildAnnotatedString {
     append(text)
     numberRun.findAll(text).forEach {

@@ -16,8 +16,8 @@ import rehab.app.service.AppStatus
 import rehab.app.ui.OnboardingContent
 
 /**
- * Rendu de `OnboardingContent` (tâche 8), en PNG (app/build/renders) pour relecture visuelle contre
- * la maquette `Reglages` (mêmes composants, DESIGN §4). Aucune assertion sur les pixels ;
+ * Rendu de `OnboardingContent`, en PNG (app/build/renders) pour relecture visuelle contre
+ * la maquette `Reglages` (mêmes composants). Aucune assertion sur les pixels ;
  * ignoré sauf -Prehab.render=true.
  */
 @RunWith(RobolectricTestRunner::class)

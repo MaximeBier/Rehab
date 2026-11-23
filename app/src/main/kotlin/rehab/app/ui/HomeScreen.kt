@@ -30,7 +30,7 @@ import rehab.app.ui.components.withMonoNumbers
 import rehab.app.ui.theme.ChivoMono
 import rehab.app.ui.theme.RehabColors
 
-// internal (pas private) : réutilisé par OnboardingScreen (tâche 8) pour les mêmes tons de pastille.
+// internal (pas private) : réutilisé par OnboardingScreen pour les mêmes tons de pastille.
 internal fun PillTone.color(): Color = when (this) {
     PillTone.Accent -> RehabColors.Accent
     PillTone.Muted -> RehabColors.Muted
@@ -67,7 +67,7 @@ fun HomeScreen(state: HomeUiState, onAlertAction: (AlertAction) -> Unit) {
                     Text(HomeText.unit(s.current), style = RehabText.ringUnit)
                 }
             } else {
-                // Décision de cadrage (spec §2.1) : hors record, arc partiel série / record sur piste panel.
+                // Hors record : arc partiel série / record sur piste panel.
                 RecordRing(180.dp, 12.dp, RehabColors.Accent, fraction = HomeText.ringFraction(s), trackColor = RehabColors.Panel) {
                     Text("${s.current}", style = TextStyle(fontFamily = ChivoMono, fontSize = 68.sp, fontWeight = FontWeight.W300, lineHeight = 68.sp, color = RehabColors.Text))
                     Spacer(Modifier.height(4.dp))
