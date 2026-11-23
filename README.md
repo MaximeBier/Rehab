@@ -12,13 +12,8 @@ Un `AccessibilityService` filtré sur Instagram et X lit la structure visible de
 domain/    Kotlin JVM pur : horaires, quota glissant, streak, joker/relapse, verrous d'édition
 rules/     Kotlin JVM pur : détection d'écrans sur un snapshot plat de l'arbre d'accessibilité
 app/       Android : service d'accessibilité, overlay Compose, Room, UI
-docs/      Specs et plans (superpowers/), design (DESIGN.md), checklist de test, guide des règles
 licenses/  Licences des polices embarquées (Chivo, Chivo Mono — OFL)
 ```
-
-## État
-
-Version 0.6.2 installée, 0.7.0 (captation fiable) en cours. Cible : Pixel, Android 14+, installation par APK. Les maquettes visuelles vivent dans le canevas Claude Design, hors de ce dépôt.
 
 ## Construire
 
